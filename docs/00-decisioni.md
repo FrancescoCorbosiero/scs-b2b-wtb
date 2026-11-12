@@ -185,3 +185,14 @@ Formato:
   (docs/03 § Sync completo).
 - Come si torna indietro: `catalog.sold_out_days = 0` (assente dal feed ⇒
   subito inattivo, la regola originale).
+
+### D-018 · 12/11/2026 · Dominio `ingrosso.shoesclothingstore.com`
+- Decisione: la piattaforma vive su `https://ingrosso.shoesclothingstore.com`.
+- Perché: scelta del titolare. Un sottodominio neutro: il primo proposto
+  (`wtb.…`) avrebbe mostrato il nome del fornitore ai clienti in indirizzi,
+  link delle email e pro-forma (regola d'oro 2, D-012).
+- Dove vive: `.env` del server (`APP_URL`, `APP_DOMAIN` per la label di
+  Caddy), record DNS del sottodominio verso la VPS.
+- Come si torna indietro: nuovo record DNS, nuovi `APP_URL` e `APP_DOMAIN`,
+  `docker compose up -d`; i link nelle email già inviate puntano al vecchio
+  dominio, che conviene reindirizzare per un po'.

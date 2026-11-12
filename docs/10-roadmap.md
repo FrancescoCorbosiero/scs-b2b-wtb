@@ -9,7 +9,7 @@ controlli di "fatto".
 Al 12/11/2026: **M0–M5 fatte** (branch `claude/sleepy-bardeen-5fqztr`, CI
 verde), più la pagina `/admin/spedizione`. Prossima: **M6**, la messa in
 produzione sulla VPS del titolare, che aspetta le risposte alle domande qui
-sotto (dominio, tariffe, coordinate bancarie, email, commercialista, WTB).
+sotto (nome mostrato ai clienti, tariffe, coordinate bancarie, email, commercialista, WTB).
 
 ## Milestone
 
@@ -80,7 +80,8 @@ manuali, verifica VIES automatica, descrizioni SEO di WTB, report vendite.
 
 **Al titolare**
 
-1. Dominio o sottodominio della piattaforma, e nome mostrato ai clienti.
+1. ~~Dominio~~: `ingrosso.shoesclothingstore.com` (D-018). Resta da
+   decidere il nome mostrato ai clienti (oggi "SCS B2B").
 2. Tariffe di spedizione definitive (dopo la proposta di M0) ed eventuali
    soglie di gratuità per zona.
 3. Margini: va bene il 5% di default? Servono regole per brand fin

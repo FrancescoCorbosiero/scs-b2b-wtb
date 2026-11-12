@@ -5,6 +5,7 @@ o per i suoi clienti. Le più recenti in alto.
 
 ## 12/11/2026
 
+- Scelto l'indirizzo della piattaforma: ingrosso.shoesclothingstore.com.
 - Nuova pagina Admin › Spedizione: tariffe per zona, spedizione gratis da N
   paia, tempi di transito, paesi serviti e nuove zone; accanto a ogni zona
   quanto costa a noi un ordine minimo secondo le tariffe del fornitore, così
