@@ -295,19 +295,30 @@ final class SupplierOrderService
             return (int) $last['id'];
         }
 
-        return $this->db->insert('supplier_orders', [
-            'order_id' => (int) $order['id'],
-            'mode' => $this->supplier->mode(),
-            'reference' => $reference,
-            'attempt' => $attempt,
-            'status' => $status,
-            'payment_method' => $request->paymentMethod,
-            'request_payload' => $payload,
-            'last_error' => mb_substr($error, 0, 2000),
-            'created_by' => $by,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        try {
+            return $this->db->insert('supplier_orders', [
+                'order_id' => (int) $order['id'],
+                'mode' => $this->supplier->mode(),
+                'reference' => $reference,
+                'attempt' => $attempt,
+                'status' => $status,
+                'payment_method' => $request->paymentMethod,
+                'request_payload' => $payload,
+                'last_error' => mb_substr($error, 0, 2000),
+                'created_by' => $by,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        } catch (\PDOException $e) {
+            // Due creazioni simultanee (doppio clic, on_request + admin): stessa riga e stesso reference,
+            // che il fornitore tratta come lo stesso ordine.
+            $existing = $this->db->value('SELECT id FROM supplier_orders WHERE reference = :r', ['r' => $reference]);
+            if (!str_contains($e->getMessage(), 'UNIQUE') || $existing === null) {
+                throw $e;
+            }
+
+            return (int) $existing;
+        }
     }
 
     private function fail(int $id, string $message): void
