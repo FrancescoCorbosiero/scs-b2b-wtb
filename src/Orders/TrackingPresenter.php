@@ -53,9 +53,11 @@ final class TrackingPresenter
     public function safe(array $item): array
     {
         $url = is_string($item['url'] ?? null) ? $item['url'] : '';
+        $carrier = is_string($item['carrier'] ?? null) ? mb_substr($item['carrier'], 0, 60) : '';
 
         return [
-            'carrier' => is_string($item['carrier'] ?? null) ? mb_substr($item['carrier'], 0, 60) : '',
+            // Un "corriere" col nome del fornitore non arriva mai al cliente (regola d'oro 2).
+            'carrier' => preg_match('/wtb/i', $carrier) === 1 ? '' : $carrier,
             'number' => mb_substr((string) $item['number'], 0, 100),
             'url' => $this->isCarrierUrl($url) ? $url : '',
         ];

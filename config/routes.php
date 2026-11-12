@@ -10,7 +10,10 @@ use App\Http\Controller\Admin\ProductsController as AdminProductsController;
 use App\Http\Controller\Admin\CustomersController as AdminCustomersController;
 use App\Http\Controller\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controller\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controller\Admin\SupplierOrdersController as AdminSupplierOrdersController;
 use App\Http\Controller\Admin\SyncController as AdminSyncController;
+use App\Http\Controller\Admin\WebhooksController as AdminWebhooksController;
+use App\Http\Controller\SupplierWebhookController;
 use App\Http\Controller\Site\AccountController;
 use App\Http\Controller\Site\AuthController;
 use App\Http\Controller\Site\CartController;
@@ -41,6 +44,9 @@ return static function (App $app): void {
     $app->get('/healthz', [PageController::class, 'health']);
     // Immagini prodotto dal nostro dominio (D-011), pubbliche ma noindex.
     $app->get('/img/{product:\\d+}/{position:\\d+}-{width:0|400|800}.jpg', [ImageController::class, 'show']);
+
+    // Webhook del fornitore: pubblico, senza sessione né CSRF, firmato (docs/06 § Webhook).
+    $app->post('/webhooks/wtb', [SupplierWebhookController::class, 'receive']);
 
     // Vetrina: catalogo senza prezzi, aperto a tutti ma noindex.
     $app->get('/vetrina', [ShowcaseController::class, 'index']);
@@ -96,6 +102,15 @@ return static function (App $app): void {
         $g->post('/ordini/{id:\d+}/conferma', [AdminOrdersController::class, 'confirm']);
         $g->post('/ordini/{id:\d+}/annulla', [AdminOrdersController::class, 'cancel']);
         $g->post('/ordini/{id:\d+}/riallinea', [AdminOrdersController::class, 'realign']);
+        $g->post('/ordini/{id:\d+}/fornitore', [AdminOrdersController::class, 'supplierCreate']);
+        $g->post('/ordini/{id:\d+}/fornitore/rileggi', [AdminOrdersController::class, 'supplierRefresh']);
+        $g->post('/ordini/{id:\d+}/spedito', [AdminOrdersController::class, 'markShipped']);
+
+        $g->get('/ordini-fornitore', [AdminSupplierOrdersController::class, 'index']);
+        $g->get('/ordini-fornitore/{id:\d+}', [AdminSupplierOrdersController::class, 'show']);
+
+        $g->get('/webhook', [AdminWebhooksController::class, 'index']);
+        $g->post('/webhook/simula', [AdminWebhooksController::class, 'simulate']);
 
         $g->get('/richieste-profilo', [AdminRequestsController::class, 'index']);
         $g->get('/richieste-profilo/{id:\d+}', [AdminRequestsController::class, 'show']);

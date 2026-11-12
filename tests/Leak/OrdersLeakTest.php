@@ -40,9 +40,11 @@ final class OrdersLeakTest extends TestCase
 
         $admin = $app->http('198.51.100.210');
         $admin->loginAdmin();
-        $admin->post('/admin/ordini/1001/conferma');
+        // Riallineamento prima della conferma: dopo, l'ordine al fornitore (simulato in fixture) lo blocca.
         $line = $app->db->int('SELECT id FROM order_lines WHERE order_id = 1001 AND qty_immediate + qty_extended >= 2 ORDER BY id LIMIT 1');
         $admin->post('/admin/ordini/1001/riallinea', ['qty' => [$line => '1'], 'notify' => '1']);
+        $admin->post('/admin/ordini/1001/conferma');
+        self::assertSame('simulated', $app->db->value('SELECT status FROM supplier_orders WHERE order_id = 1001'));
 
         $pdf = $http->get('/account/ordini/1001/proforma.pdf');
         $this->assertResponseHasNoLeak($app, $pdf, 'PDF (byte e header)');
@@ -51,7 +53,7 @@ final class OrdersLeakTest extends TestCase
         $this->assertNoLeak($app, $app->get(ProformaPdf::class)->html($order, $app->get(OrderRepository::class)->lines(1001)), 'HTML della pro-forma');
 
         $customerMails = $app->mail->sentTo('cliente@example.com');
-        self::assertCount(3, $customerMails, 'Richiesta, conferma, aggiornamento');
+        self::assertCount(3, $customerMails, 'Richiesta, aggiornamento, conferma');
         foreach ($customerMails as $email) {
             $content = $email->subject . $email->html . $email->text;
             foreach ($email->attachments as $attachment) {

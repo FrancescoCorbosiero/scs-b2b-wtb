@@ -13,6 +13,7 @@ use App\Supplier\Model\SupplierQuote;
 use App\Supplier\SupplierOrders;
 use App\Support\Clock;
 use App\Support\Db;
+use App\Support\Deferred;
 use App\Support\RateLimiter;
 use App\Support\Session;
 use Psr\Log\LoggerInterface;
@@ -37,6 +38,8 @@ final class CheckoutService
         private readonly RateLimiter $limiter,
         private readonly Db $db,
         private readonly Clock $clock,
+        private readonly SupplierOrderService $supplierOrders,
+        private readonly Deferred $deferred,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -170,6 +173,10 @@ final class CheckoutService
         $cart->clear();
         $this->orders->notifyCreated($orderId);
         $this->logger->info('Richiesta d\'ordine salvata', ['order' => $orderId, 'unverified' => $unverified]);
+        if ($this->supplierOrders->trigger() === 'on_request') {
+            // WTB_ORDER_TRIGGER=on_request: ordine al fornitore subito, ma dopo la risposta (il cliente non aspetta).
+            $this->deferred->add('ordine al fornitore alla richiesta', fn () => $this->supplierOrders->afterRequest($orderId));
+        }
 
         return ['status' => 'created', 'order_id' => $orderId];
     }

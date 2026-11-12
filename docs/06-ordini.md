@@ -147,6 +147,30 @@ con stato `simulated`; nessuna rilettura, nessun webhook atteso. M0: in prova
 lo stesso `reference` risponde sempre 201 (WTB non salva nulla), quindi
 l'idempotenza con risposta 200 si potrà osservare solo in live.
 
+Dettagli dell'implementazione (`src/Orders/SupplierOrderService.php`):
+
+- La riga in `supplier_orders` nasce `pending` **prima** di chiamare WTB:
+  se il processo si interrompe resta traccia. Una riga `pending` ferma da più
+  di 10 minuti conta come creazione interrotta e si può ritentare; la
+  rilettura periodica la porta in `error` se WTB non la conosce.
+- Ritentare (dopo `error` o `pending` interrotto) riusa **la stessa riga e lo
+  stesso reference**; il tentativo cresce solo dopo un annullamento.
+- Il payload ha una riga per variante + regime (somma delle due fasce); i
+  campi vuoti del `ship_to` non si mandano. Mai prezzi, mai note del cliente
+  (`notes` vuoto).
+- Rifiuti senza chiamare WTB: kill switch, modalità diversa da quella
+  dell'ordine, ordine annullato o spedito, ordine al fornitore già vivo,
+  costo stimato oltre `WTB_MAX_ORDER_EUR` (dal preventivo).
+- Email all'admin (`templates/emails/supplier_order_admin.twig`, solo
+  `company.admin_emails`): creato con le istruzioni di pagamento, simulato,
+  non creato (con il messaggio di WTB), annullato dal fornitore, differenze.
+- Con `on_confirm` la conferma del pagamento mostra l'esito come messaggio;
+  con `on_request` l'ordine al fornitore parte **dopo** la risposta al
+  cliente (lavoro rinviato, `src/Support/Deferred.php`) e gli esiti arrivano
+  all'admin per email; con `manual` lo crea l'admin dal bottone.
+- Dopo la creazione il riallineamento non è più possibile (§ Azioni admin):
+  le quantità si correggono presso WTB.
+
 ## Webhook WTB (`POST /webhooks/wtb`)
 
 - Rotta pubblica fuori da sessione e CSRF; si legge il corpo grezzo.
@@ -174,18 +198,55 @@ l'idempotenza con risposta 200 si potrà osservare solo in live.
 | `order.cancelled` | annullato; email all'admin (il cliente non viene avvisato in automatico: rimborso e comunicazione li decide l'admin) |
 | `ping` | 200 |
 
+Dettagli dell'implementazione (`src/Orders/WebhookProcessor.php`,
+`SupplierOrderUpdater.php`; firma e lettura in `src/Supplier/Wtb/WtbWebhooks.php`):
+
+- Controlli in quest'ordine: corpo oltre 1 MB ⇒ 413; tipo diverso da
+  `application/json` ⇒ 415; firma non valida o segreto non impostato ⇒ 401
+  (una riga di log con delivery e dimensione, nessuna scrittura).
+- Firmato ma illeggibile (stato sconosciuto, dati mancanti) ⇒ evento salvato
+  con esito `error`, risposta 200 (ritentare non lo aggiusterebbe) e avviso in
+  dashboard. Un errore nostro durante l'elaborazione ⇒ 500, così WTB riprova e
+  l'evento si rielabora (i doppioni si scartano solo se già elaborati).
+- Esiti salvati: `applied`, `stale` (nessuna novità, es. evento fuori
+  ordine), `unknown_order`, `ping`, `ignored` (evento senza ordine), `error`.
+- Ordine degli stati: `error`/`simulated` < `pending` < `received` <
+  `confirmed` < `paid` < `shipped`; `cancelled` vale sempre ed è definitivo.
+  Un ordine in `error` (es. timeout) che WTB ha creato davvero si sistema da
+  solo col primo evento.
+- Tracking: i numeri nuovi si aggiungono. Email al cliente alla prima
+  spedizione (con tutti i numeri), poi solo per i numeri nuovi; i numeri già
+  comunicati a mano non si ripetono. Spedito su un ordine annullato da noi ⇒
+  email all'admin, cliente non toccato.
+- Differenze (totale diverso di oltre 1 € dall'ultimo visto o dal preventivo,
+  paia per articolo diverse dalle righe dell'ordine) ⇒ salvate in
+  `warnings`, email all'admin una volta per differenza, avviso in dashboard.
+- "Simula evento" (`/admin/webhook`, `php bin/wtb-webhook.php`) costruisce
+  l'evento dalla risposta salvata dell'ordine al fornitore e lo firma con
+  `WTB_WEBHOOK_SECRET`: passa dallo stesso codice e manda le stesse email.
+
 ## Tracking al cliente
 
 Email nella lingua del cliente con corriere e numero di spedizione; il link
 compare solo se il dominio dell'URL è tra i corrieri di
 `shipping.carrier_domains` (mai un URL del fornitore, regola d'oro 2). Lo
-stesso in `/account/ordini`.
+stesso in `/account/ordini`. Un corriere il cui nome contiene quello del
+fornitore compare senza nome (solo il numero). "Segna come spedito" a mano
+(ordine confermato o già spedito) aggiunge numeri in `orders.manual_tracking`
+con la stessa email.
 
 ## Rete di sicurezza (`orders_poll`)
 
 Ogni ora: gli ordini WTB live non conclusi e fermi da più di 2 ore si rileggono
 con `GET /orders/?reference=…` e passano dalle stesse transizioni dei webhook
 (stesso codice).
+
+Dettagli: solo in modalità `live` e solo per gli ordini al fornitore `live`;
+stati `pending`, `received`, `confirmed`, `paid` (e `error` delle ultime 48
+ore, per scoprire ordini creati nonostante un timeout); creati negli ultimi
+60 giorni; al massimo 50 per giro. Una riga `pending` più vecchia di un'ora
+che WTB non conosce passa in `error` (ritentabile). Si può lanciare da
+`/admin/sync` e, per un singolo ordine, con "Rileggi dal fornitore".
 
 ## Checklist prima di `WTB_MODE=live`
 

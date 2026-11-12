@@ -48,8 +48,16 @@ php -S 127.0.0.1:8080 -t public bin/dev-router.php
   modalità in alto, impostazioni con storico, clienti, sync, ordini, webhook.
 - Email: file `.eml` in `var/mail/` (inviti, reset, ordini). Il link d'invito
   è nel testo dell'email.
-- Webhook di prova: `php bin/wtb-webhook.php <evento> <id ordine>` oppure
-  "Simula evento" in `/admin/webhook`.
+- Ordine al fornitore: conferma un ordine in `/admin/ordini/<id>` (con
+  `WTB_ORDER_TRIGGER=on_confirm` parte da solo; in fixture e test è
+  "Simulato") e guarda la sezione "Ordine al fornitore".
+- Webhook di prova (serve `WTB_WEBHOOK_SECRET` nel `.env`, anche inventato):
+  "Simula evento" in `/admin/webhook` oppure
+  `php bin/wtb-webhook.php order.shipped <id ordine>`; con
+  `--url=http://127.0.0.1:8080` passa dal server (rotta e middleware).
+  Sequenza tipica: `order.created` (compare in "Da pagare al fornitore" in
+  dashboard), `order.paid`, `order.shipped` (email di spedizione al cliente in
+  `var/mail/`), `order.tracking_updated`.
 
 ## 5. Controlli automatici
 

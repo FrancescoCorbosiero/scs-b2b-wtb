@@ -67,6 +67,23 @@ final class OrderMailer
         ]], $this->settings->string('company.email'));
     }
 
+    /**
+     * Spedizione al cliente, nella sua lingua: corriere e numero; il link solo se è di un corriere ammesso
+     * (TrackingPresenter, docs/06 § Tracking). $update = true: solo i numeri aggiunti dopo la prima email.
+     *
+     * @param array<string, mixed> $order
+     * @param list<array{carrier: string, number: string, url: string}> $tracking già filtrato da TrackingPresenter
+     */
+    public function orderShipped(array $order, array $tracking, bool $update): bool
+    {
+        return $this->mailer->sendTemplate('order_shipped', [(string) $order['email']], [
+            'order' => OrderPresenter::forCustomer($order, []),
+            'tracking' => $tracking,
+            'update' => $update,
+            'link' => $this->config->appUrl() . '/account/ordini/' . $order['id'],
+        ], (string) $order['locale'], [], $this->settings->string('company.email'));
+    }
+
     /** @param array<string, mixed> $order @param list<array<string, mixed>> $lines */
     public function orderUpdated(array $order, array $lines): bool
     {

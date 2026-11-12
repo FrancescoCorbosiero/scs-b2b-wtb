@@ -1,0 +1,63 @@
+{% extends 'admin/layout.twig' %}
+{% import 'admin/macros.twig' as m %}
+{% block title %}{{ t('admin.supplier_orders.detail', {id: id}) }}{% endblock %}
+{% block content %}
+  <p class="mb-2"><a href="/admin/ordini-fornitore" class="link text-sm">← {{ t('admin.supplier_orders.title') }}</a></p>
+  {% if order is null %}
+    <h1 class="h1 mb-4">{{ t('admin.supplier_orders.detail', {id: id}) }}</h1>
+    <p class="alert alert-error">{{ t('admin.supplier_orders.error', {error: error}) }}</p>
+  {% else %}
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
+      <div>
+        <h1 class="h1">{{ order.number ?: t('admin.supplier_orders.detail', {id: id}) }}</h1>
+        <p class="text-sm text-muted">{% include 'admin/orders/_supplier_status.twig' with {status: order.status} only %} {{ order.createdAt|local_datetime }} · {{ t('admin.supplier.reference') }} <code>{{ order.reference }}</code></p>
+      </div>
+      {% if local %}<a class="btn btn-ghost" href="/admin/ordini/{{ local.order_id }}#fornitore">{{ t('admin.orders.order', {id: local.order_id}) }} · {{ local.company }}</a>{% else %}<span class="badge badge-warn">{{ t('admin.supplier_orders.not_ours') }}</span>{% endif %}
+    </div>
+    <div class="grid gap-6 xl:grid-cols-[1fr,24rem] items-start">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>{{ t('orders.item') }}</th><th>{{ t('admin.margins.regime') }}</th><th class="num">{{ t('cart.pairs') }}</th><th class="num">{{ t('admin.products.cost') }}</th></tr></thead>
+          <tbody>
+            {% for l in order.lines %}
+              <tr>
+                <td><span class="font-semibold">{{ l.name ?: l.sku }}</span><span class="block text-xs text-muted"><code>{{ l.sku }}</code> · EU {{ l.size_eu }}</span></td>
+                <td>{{ l.vat_regime }}</td>
+                <td class="num">{{ l.quantity }}</td>
+                <td class="num">{{ money(l.unit_cost_cents) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <aside class="space-y-4">
+        <div class="card space-y-2">
+          <dl class="dl">
+            <dt>{{ t('admin.supplier.subtotal') }}</dt><dd>{{ money(order.subtotalCents) }}</dd>
+            <dt>{{ t('admin.supplier.shipping') }}</dt><dd>{{ money(order.shippingCents) }}</dd>
+            <dt>{{ t('admin.supplier.vat') }}</dt><dd>{{ money(order.vatCents) }}</dd>
+            <dt>{{ t('admin.supplier.total') }}</dt><dd>{{ money(order.totalCents) }}</dd>
+            <dt>{{ t('admin.supplier.payment_method') }}</dt><dd>{{ t('admin.supplier.methods.' ~ (order.paymentMethod ?: 'bank_transfer')) }} · {{ order.isPaid ? t('admin.supplier.paid') : t('admin.supplier.to_pay') }}</dd>
+          </dl>
+        </div>
+        {% if instructions is not empty %}
+          <div class="card space-y-2">
+            <h2 class="h3">{{ t('admin.supplier.instructions_title') }}</h2>
+            <dl class="dl">
+              {% for i in instructions %}
+                <dt>{{ i.kind == 'other' ? i.key : t('admin.supplier.instructions.' ~ i.kind) }}</dt>
+                <dd>{% if i.highlight %}{{ m.copy(i.value) }}{% else %}{{ i.value }}{% endif %}</dd>
+              {% endfor %}
+            </dl>
+          </div>
+        {% endif %}
+        {% if order.tracking is not empty %}
+          <div class="card space-y-1">
+            <h2 class="h3">{{ t('orders.tracking') }}</h2>
+            {% for tr in order.tracking %}<p class="text-sm">{{ tr.carrier }} · <code>{{ tr.number }}</code>{% if tr.url %} · <a class="link" href="{{ tr.url }}" rel="noopener noreferrer" target="_blank">{{ t('admin.supplier.track') }}</a>{% endif %}</p>{% endfor %}
+          </div>
+        {% endif %}
+      </aside>
+    </div>
+  {% endif %}
+{% endblock %}

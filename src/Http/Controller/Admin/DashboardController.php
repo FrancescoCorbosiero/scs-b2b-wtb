@@ -25,6 +25,7 @@ final class DashboardController
         return $this->responder->render($response, 'admin/dashboard.twig', [
             'alerts' => $this->alerts->all(),
             'cards' => $this->cards->all(),
+            'to_pay' => $this->cards->toPay(),
         ]);
     }
 }

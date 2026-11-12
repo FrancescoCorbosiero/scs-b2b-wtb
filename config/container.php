@@ -144,6 +144,7 @@ return static function (Config $config): array {
         )),
         SupplierCatalog::class => \DI\get(WtbCatalog::class),
         SupplierOrders::class => \DI\get(WtbOrders::class),
+        \App\Supplier\SupplierWebhooks::class => \DI\get(\App\Supplier\Wtb\WtbWebhooks::class),
         WebhookVerifier::class => factory(static fn (ContainerInterface $c): WebhookVerifier => new WebhookVerifier(
             $c->get(WtbConfig::class)->webhookSecret,
             $c->get(Clock::class),
@@ -181,11 +182,23 @@ return static function (Config $config): array {
             $c->get(Db::class),
             $config->string('RECEIPT_PREFIX', 'PFW'),
         )),
-        'cleanup.extra' => [],
+        \App\Jobs\OrdersPollJob::class => factory(static fn (ContainerInterface $c): \App\Jobs\OrdersPollJob => new \App\Jobs\OrdersPollJob(
+            $c->get(SupplierOrders::class),
+            $c->get(\App\Orders\SupplierOrderUpdater::class),
+            $c->get(Db::class),
+            $c->get(Clock::class),
+            $c->get(\App\Support\Deferred::class),
+            max(600, $config->int('WTB_ORDERS_POLL_INTERVAL', 3600)),
+        )),
+        // Pulizie aggiunte dai moduli: eventi webhook oltre i 90 giorni.
+        'cleanup.extra' => factory(static fn (ContainerInterface $c): array => [
+            static fn (): int => $c->get(Db::class)->run('DELETE FROM webhook_events WHERE received_at < :t', ['t' => $c->get(Clock::class)->isoAgo(90 * 86400)])->rowCount(),
+        ]),
         CleanupJob::class => \DI\autowire()->constructorParameter('extra', \DI\get('cleanup.extra')),
         'jobs' => factory(static fn (ContainerInterface $c): array => [
             $c->get(StockSyncJob::class),
             $c->get(ProductsSyncJob::class),
+            $c->get(\App\Jobs\OrdersPollJob::class),
             $c->get(ImagePrefetchJob::class),
             $c->get(CleanupJob::class),
             $c->get(BackupJob::class),

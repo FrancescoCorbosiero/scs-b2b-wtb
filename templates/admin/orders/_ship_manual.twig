@@ -1,0 +1,23 @@
+{#- "Segna come spedito" a mano: ripiego se il webhook del fornitore non arriva (docs/06). -#}
+{% if order.status in ['confirmed', 'shipped'] %}
+  <details class="border-t border-line pt-3">
+    <summary class="cursor-pointer font-semibold text-sm">{{ t(order.status == 'shipped' ? 'admin.orders.ship_add' : 'admin.orders.ship_manual') }}</summary>
+    <form method="post" action="/admin/ordini/{{ order.id }}/spedito" class="space-y-2 mt-2" data-confirm="{{ t('admin.orders.ship_question') }}">
+      {{ csrf_field() }}
+      <p class="text-xs text-muted">{{ t('admin.orders.ship_hint') }}</p>
+      <div>
+        <label class="label" for="ship-carrier">{{ t('admin.orders.ship_carrier') }}</label>
+        <input class="input" id="ship-carrier" name="carrier" maxlength="60" placeholder="{{ t('admin.orders.ship_carrier_placeholder') }}">
+      </div>
+      <div>
+        <label class="label" for="ship-number">{{ t('admin.orders.ship_number') }}</label>
+        <input class="input" id="ship-number" name="number" required minlength="3" maxlength="100">
+      </div>
+      <div>
+        <label class="label" for="ship-url">{{ t('admin.orders.ship_url') }}</label>
+        <input class="input" id="ship-url" name="url" type="url" maxlength="500" placeholder="https://">
+      </div>
+      <button type="submit" class="btn btn-ghost w-full">{{ t('admin.orders.ship_submit') }}</button>
+    </form>
+  </details>
+{% endif %}

@@ -155,6 +155,12 @@ vive in `src/Supplier/Wtb/` e nei job di sync.
 - In `fixture` e `test` l'admin ha "Simula evento": costruisce un webhook
   firmato col segreto di sviluppo e lo manda al nostro endpoint, per provare
   tutto il percorso (anche da CLI: `php bin/wtb-webhook.php <evento> <ordine>`).
+  L'evento parte dalla risposta salvata dell'ordine al fornitore (o da un
+  ordine minimo se manca) con lo stato dell'evento; `order.shipped` e
+  `order.tracking_updated` aggiungono un numero di spedizione finto (`DEMO…`,
+  link di un corriere). Senza `WTB_WEBHOOK_SECRET` non si simula nulla: in
+  sviluppo basta un valore qualsiasi nel `.env`. Solo `src/Supplier/Wtb/`
+  conosce busta, intestazioni e firma (`WtbWebhooks`).
 
 ## Ricognizione M0 (con la chiave di prova)
 

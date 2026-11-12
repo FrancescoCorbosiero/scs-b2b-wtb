@@ -1,0 +1,41 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ t('admin.supplier_orders.title') }}{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-2">
+    <h1 class="h1">{{ t('admin.supplier_orders.title') }}</h1>
+    <span class="badge badge-muted">{{ mode|upper }}</span>
+  </div>
+  <p class="text-sm text-muted mb-4">{{ t('admin.supplier_orders.intro') }}</p>
+  {% if mode == 'test' %}<p class="alert alert-info mb-4">{{ t('admin.supplier_orders.test_note') }}</p>{% endif %}
+  {% if error %}<p class="alert alert-error mb-4">{{ t('admin.supplier_orders.error', {error: error}) }}</p>{% endif %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr>
+        <th>{{ t('admin.supplier.number') }}</th><th>{{ t('admin.supplier.reference') }}</th><th>{{ t('admin.orders.date') }}</th>
+        <th>{{ t('admin.supplier.status_label') }}</th><th class="num">{{ t('cart.pairs') }}</th><th class="num">{{ t('admin.supplier.total') }}</th>
+        <th>{{ t('orders.tracking') }}</th><th>{{ t('admin.supplier_orders.ours') }}</th>
+      </tr></thead>
+      <tbody>
+        {% for row in orders %}
+          {% set o = row.data %}
+          <tr>
+            <td>{% if o.id %}<a class="link font-semibold" href="/admin/ordini-fornitore/{{ o.id }}">{{ o.number ?: o.id }}</a>{% else %}{{ o.number }}{% endif %}</td>
+            <td><code>{{ o.reference }}</code></td>
+            <td class="whitespace-nowrap">{{ o.createdAt|local_datetime }}</td>
+            <td>{% include 'admin/orders/_supplier_status.twig' with {status: o.status} only %}{% if o.isPaid %} <span class="badge badge-ok">{{ t('admin.supplier.paid') }}</span>{% endif %}</td>
+            <td class="num">{{ row.pairs }}</td>
+            <td class="num">{{ money(o.totalCents) }}</td>
+            <td class="text-xs">{% for tr in o.tracking %}<span class="block">{{ tr.carrier }} · {{ tr.number }}</span>{% endfor %}</td>
+            <td>{% if row.local %}<a class="link" href="/admin/ordini/{{ row.local.order_id }}#fornitore">{{ t('admin.orders.order', {id: row.local.order_id}) }}</a><span class="block text-xs text-muted">{{ row.local.company }}</span>{% else %}<span class="badge badge-warn">{{ t('admin.supplier_orders.not_ours') }}</span>{% endif %}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="8" class="text-muted">{{ t('admin.supplier_orders.none') }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <nav class="flex gap-2 mt-4">
+    {% if page > 1 %}<a class="btn btn-ghost btn-sm" href="/admin/ordini-fornitore?pagina={{ page - 1 }}">← {{ t('admin.supplier_orders.prev') }}</a>{% endif %}
+    {% if has_more %}<a class="btn btn-ghost btn-sm" href="/admin/ordini-fornitore?pagina={{ page + 1 }}">{{ t('admin.supplier_orders.next') }} →</a>{% endif %}
+  </nav>
+{% endblock %}

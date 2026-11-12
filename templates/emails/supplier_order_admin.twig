@@ -1,0 +1,37 @@
+{% extends 'emails/layout.twig' %}
+{#- Solo admin (company.admin_emails): può contenere costi e il nome del fornitore. -#}
+{% block subject %}{{ t('admin.emails.supplier.' ~ kind ~ '.subject', params) }}{% endblock %}
+{% block body %}
+  <p>{{ t('admin.emails.supplier.' ~ kind ~ '.intro', params) }}</p>
+  {% if details is not empty %}
+    <ul>{% for d in details %}<li>{{ d }}</li>{% endfor %}</ul>
+  {% endif %}
+  <p>{{ order.company }} · {{ t('orders.total') }} {{ money(order.total_cents) }} · {{ t('admin.orders.goods_cost') }} {{ money(order.expected_cost_cents) }}</p>
+  {% if supplier %}
+    <p>{{ t('admin.supplier.reference') }}: <strong>{{ supplier.reference }}</strong>{% if supplier.wtb_number %} · {{ t('admin.supplier.number') }}: <strong>{{ supplier.wtb_number }}</strong>{% endif %} · {{ t('admin.supplier.status_label') }}: {{ t('admin.supplier.status.' ~ supplier.status) }}{% if supplier.total_cents is not null %} · {{ t('admin.supplier.total') }}: <strong>{{ money(supplier.total_cents) }}</strong>{% endif %}</p>
+    {% if kind == 'created' %}
+      <h3 style="font-size:15px;margin:16px 0 6px;">{{ t('admin.supplier.instructions_title') }}</h3>
+      {% if instructions is not empty %}
+        <table role="presentation" cellpadding="4" cellspacing="0" style="border-collapse:collapse;font-size:14px;">
+          {% for i in instructions %}
+            <tr><td style="color:#6b665e;">{{ i.kind == 'other' ? i.key : t('admin.supplier.instructions.' ~ i.kind) }}</td><td>{% if i.highlight %}<strong>{{ i.value }}</strong>{% else %}{{ i.value }}{% endif %}</td></tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p>{{ t('admin.supplier.no_instructions') }}</p>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+  {% include 'emails/_button.twig' with {href: link, label: t('admin.emails.order.button')} only %}
+{% endblock %}
+{% block footer_note %}{{ t('admin.emails.footer') }}{% endblock %}
+{% block text %}
+{{ t('admin.emails.supplier.' ~ kind ~ '.intro', params) }}
+{% for d in details %}
+- {{ d }}
+{% endfor %}
+{% if supplier %}{{ t('admin.supplier.reference') }}: {{ supplier.reference }}{% if supplier.total_cents is not null %} · {{ money(supplier.total_cents) }}{% endif %}
+{% for i in instructions %}{{ i.key }}: {{ i.value }}
+{% endfor %}{% endif %}
+{{ link }}
+{% endblock %}

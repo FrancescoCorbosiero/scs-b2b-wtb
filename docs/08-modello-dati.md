@@ -116,17 +116,27 @@ ripiego se il webhook non arriva); `email_customer_sent`, `email_admin_sent`;
 Le righe sono la fotografia al momento dell'ordine: il riallineamento le
 modifica, il sync mai.
 
-**`supplier_orders`** — `id`, `order_id` FK, `mode`
-(`fixture`|`test`|`live`), `reference` UNIQUE, `attempt`, `wtb_order_id`
-NULL, `wtb_number` NULL, `status`, `is_paid`, `payment_method`,
-`payment_instructions` (JSON), importi WTB (`subtotal_cents`,
-`shipping_cents`, `vat_cents`, `total_cents`: sono costi, **riservati**),
-`tracking` (JSON), `request_payload`, `response_payload`, `last_error`,
-`last_event_at`, `created_at`, `updated_at`.
+**`supplier_orders`** (migrazione 0005) — `id`, `order_id` FK, `mode`
+(`fixture`|`test`|`live`), `reference` UNIQUE (`<prefisso>-<ordine>-<tentativo>`),
+`attempt`, `wtb_order_id` NULL, `wtb_number` NULL, `status`
+(`pending`|`received`|`confirmed`|`paid`|`shipped`|`cancelled`|`simulated`|`error`;
+`pending` = riga salvata prima della chiamata), `is_paid`, `payment_method`,
+`payment_instructions` (JSON, forma libera), importi WTB (`subtotal_cents`,
+`shipping_cents`, `vat_cents`, `total_cents`, `expected_total_cents` dal
+preventivo: sono costi, **riservati**), `tracking` (JSON, i numeri si
+aggiungono e non spariscono), `request_payload`, `response_payload`
+(ultima versione vista), `last_error`, `warnings` (JSON: differenze già
+segnalate all'admin), `last_event_at`, `created_by`, `created_at`,
+`updated_at` (cambia solo quando cambia qualcosa: la rilettura periodica
+guarda gli ordini fermi).
 
-**`webhook_events`** — `id`, `delivery_id` UNIQUE, `event`,
-`signature_valid`, `supplier_order_id` NULL, `payload`, `received_at`,
-`processed_at`, `error`.
+**`webhook_events`** (migrazione 0005) — `id`, `delivery_id` UNIQUE
+(`X-WTB-Delivery`; `sim-…` per gli eventi simulati), `event`,
+`signature_valid` (sempre 1: le firme non valide non si salvano),
+`supplier_order_id` NULL, `payload` (corpo grezzo, **riservato**: contiene
+costi), `simulated`, `received_at`, `processed_at`, `outcome`
+(`applied`|`stale`|`unknown_order`|`ping`|`ignored`|`error`; vuoto = in
+elaborazione), `error`. Conservati 90 giorni (job `cleanup`).
 
 **`receipt_counters`** — `year` PK, `last_number`: numerazione
 `PFW-<anno>-<NNNN>` (D-015), assegnata alla conferma.

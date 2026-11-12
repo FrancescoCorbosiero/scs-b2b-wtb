@@ -25,6 +25,8 @@ final class OrderService
         private readonly OrderRepository $orders,
         private readonly ReceiptNumberer $receipts,
         private readonly OrderMailer $mailer,
+        private readonly SupplierOrderService $supplierOrders,
+        private readonly TrackingPresenter $tracking,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -184,8 +186,10 @@ final class OrderService
         $this->logger->info('Ordine confermato', ['order' => $orderId, 'receipt' => $receipt, 'by' => $by]);
         $confirmed = $this->orders->find($orderId) ?? $order;
         $mailed = $this->mailer->orderConfirmed($confirmed, $this->orders->lines($orderId));
+        // Con WTB_ORDER_TRIGGER=on_confirm parte l'ordine al fornitore; se non riesce la conferma resta valida.
+        $messages = $this->supplierOrders->afterConfirm($orderId, $by);
 
-        return ['status' => 'ok', 'receipt' => $receipt, 'mailed' => $mailed, 'messages' => []];
+        return ['status' => 'ok', 'receipt' => $receipt, 'mailed' => $mailed, 'messages' => $messages];
     }
 
     /** Clienti UE con righe ordinarie: alla conferma serve la spunta "P.IVA verificata su VIES" (docs/04). @param array<string, mixed> $order */
@@ -292,14 +296,52 @@ final class OrderService
         return ['status' => 'ok', 'changed' => $changed, 'mailed' => $mailed];
     }
 
+    /**
+     * "Segna come spedito" a mano, con tracking: ripiego se il webhook del fornitore non arriva (docs/06).
+     * Da confermato a spedito con email al cliente; su un ordine già spedito aggiunge il numero e avvisa solo di quello.
+     *
+     * @return array{status: 'ok'|'not_allowed'|'invalid', mailed?: bool}
+     */
+    public function markShipped(int $orderId, string $carrier, string $number, string $url, string $by): array
+    {
+        $order = $this->orders->find($orderId);
+        if ($order === null || !in_array($order['status'], ['confirmed', 'shipped'], true)) {
+            return ['status' => 'not_allowed'];
+        }
+        $carrier = trim($carrier);
+        $number = trim($number);
+        $url = trim($url);
+        if (preg_match('/^[A-Za-z0-9][A-Za-z0-9 .\/\-]{2,99}$/', $number) !== 1 || mb_strlen($carrier) > 60
+            || ($url !== '' && preg_match('#^https://[^\s"<>]{4,500}$#', $url) !== 1)) {
+            return ['status' => 'invalid'];
+        }
+        $item = ['carrier' => $carrier, 'number' => $number, 'url' => $url];
+        $existing = array_values(array_filter((array) json_decode((string) ($order['manual_tracking'] ?? ''), true), 'is_array'));
+        foreach ($existing as $known) {
+            if (($known['number'] ?? null) === $number) {
+                return ['status' => 'ok', 'mailed' => false];
+            }
+        }
+        $existing[] = $item;
+        $wasShipped = $order['status'] === 'shipped';
+        $now = $this->clock->iso();
+        $this->db->update('orders', [
+            'manual_tracking' => (string) json_encode($existing, JSON_UNESCAPED_SLASHES),
+            'status' => 'shipped',
+            'shipped_at' => $order['shipped_at'] ?? $now,
+            'updated_at' => $now,
+        ], 'id = :id', ['id' => $orderId]);
+        $this->logger->info('Ordine segnato come spedito a mano', ['order' => $orderId, 'by' => $by]);
+        $fresh = $this->orders->find($orderId) ?? $order;
+        $mailed = $this->mailer->orderShipped($fresh, $wasShipped ? [$this->tracking->safe($item)] : $this->tracking->forOrder($orderId), $wasShipped);
+
+        return ['status' => 'ok', 'mailed' => $mailed];
+    }
+
     /** Esiste un ordine al fornitore ancora valido (non annullato, non in errore)? */
     public function hasLiveSupplierOrder(int $orderId): bool
     {
-        try {
-            return $this->db->int("SELECT COUNT(*) FROM supplier_orders WHERE order_id = :o AND status NOT IN ('cancelled', 'error')", ['o' => $orderId]) > 0;
-        } catch (\PDOException) {
-            return false;
-        }
+        return $this->supplierOrders->live($orderId) !== null;
     }
 
     /**

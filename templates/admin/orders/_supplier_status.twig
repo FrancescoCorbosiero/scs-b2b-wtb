@@ -1,0 +1,2 @@
+{%- set tone = status in ['error'] ? 'badge-danger' : (status in ['cancelled', 'simulated'] ? 'badge-muted' : (status in ['paid', 'shipped'] ? 'badge-ok' : 'badge-warn')) -%}
+<span class="badge {{ tone }}">{{ t('admin.supplier.status.' ~ status) }}</span>

@@ -5,6 +5,18 @@ o per i suoi clienti. Le più recenti in alto.
 
 ## 12/11/2026
 
+- Ordini al fornitore automatici: alla conferma del bonifico (o alla
+  richiesta del cliente, o solo a mano: si sceglie nel `.env`) la piattaforma
+  ordina al fornitore in dropship, senza doppioni anche se si ritenta, con
+  interruttore di emergenza e tetto di spesa; nell'ordine e in dashboard
+  ("Da pagare al fornitore") IBAN, causale e importo da copiare; stati,
+  pagamento e spedizione arrivano dai webhook firmati (con rilettura ogni ora
+  come rete di sicurezza); il cliente riceve l'email col tracking del
+  corriere, mai link o nomi del fornitore; nuove pagine Admin › Ordini
+  fornitore e Admin › Webhook con "Simula evento" per le prove; avvisi in
+  dashboard per errori, annullamenti e differenze; "Segna come spedito" a
+  mano come ripiego. Pagine più comode su telefono: le tabelle scorrono
+  senza allargare la pagina.
 - I clienti ordinano: carrello con le fasce pronta consegna / stock esteso,
   "Prendi tutto" e "Svuota", spedizione e IVA stimate per paese, ordine
   minimo; richiesta d'ordine con verifica della disponibilità presso il

@@ -1,0 +1,79 @@
+{#- Ordine al fornitore collegato all'ordine (solo admin: costi e nome del fornitore ammessi). -#}
+{% import 'admin/macros.twig' as m %}
+<p class="text-sm text-muted">{{ t('admin.supplier.trigger.' ~ supplier_trigger) }}</p>
+{% for so in supplier_orders %}
+  <article class="border border-line p-3 space-y-3 {{ loop.first ? '' : 'opacity-75' }}">
+    <div class="flex flex-wrap items-center gap-2">
+      {% include 'admin/orders/_supplier_status.twig' with {status: so.status} only %}
+      <span class="badge badge-muted">{{ so.mode|upper }}</span>
+      {% if so.is_paid %}<span class="badge badge-ok">{{ t('admin.supplier.paid') }}</span>{% elseif so.status in ['received', 'confirmed'] %}<span class="badge badge-warn">{{ t('admin.supplier.to_pay') }}</span>{% endif %}
+      <span class="text-sm">{{ t('admin.supplier.reference') }} {{ m.copy(so.reference) }}</span>
+      {% if so.wtb_number %}<span class="text-sm">{{ t('admin.supplier.number') }} <strong>{{ so.wtb_number }}</strong></span>{% endif %}
+      {% if so.wtb_order_id %}<a class="link text-sm" href="/admin/ordini-fornitore/{{ so.wtb_order_id }}">{{ t('admin.supplier.live_detail') }}</a>{% endif %}
+    </div>
+    {% if so.last_error %}<p class="alert alert-error text-sm">{{ so.last_error }}</p>{% endif %}
+    {% for w in so.warnings_list %}<p class="alert alert-warning text-sm">{{ w }}</p>{% endfor %}
+    {% if so.total_cents is not null %}
+      <dl class="dl">
+        <dt>{{ t('admin.supplier.subtotal') }}</dt><dd>{{ money(so.subtotal_cents) }}</dd>
+        <dt>{{ t('admin.supplier.shipping') }}</dt><dd>{{ money(so.shipping_cents) }}</dd>
+        <dt>{{ t('admin.supplier.vat') }}</dt><dd>{{ money(so.vat_cents) }}</dd>
+        <dt>{{ t('admin.supplier.total') }}</dt><dd>{{ money(so.total_cents) }}{% if so.expected_total_cents is not null %} <span class="text-muted font-normal">({{ t('admin.supplier.quote_total', {total: money(so.expected_total_cents)}) }})</span>{% endif %}</dd>
+        <dt>{{ t('admin.supplier.payment_method') }}</dt><dd>{{ t('admin.supplier.methods.' ~ so.payment_method) }}</dd>
+      </dl>
+    {% endif %}
+    {% if so.payment_method == 'bank_transfer' and so.status in ['received', 'confirmed', 'paid', 'shipped', 'simulated'] %}
+      <div class="space-y-1">
+        <h3 class="font-semibold text-sm">{{ t('admin.supplier.instructions_title') }}</h3>
+        {% if so.instructions is not empty %}
+          <dl class="dl">
+            {% for i in so.instructions %}
+              <dt>{{ i.kind == 'other' ? i.key : t('admin.supplier.instructions.' ~ i.kind) }}</dt>
+              <dd>{% if i.highlight %}{{ m.copy(i.value) }}{% else %}{{ i.value }}{% endif %}</dd>
+            {% endfor %}
+          </dl>
+        {% else %}
+          <p class="text-sm text-muted">{{ t('admin.supplier.no_instructions') }}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+    {% if so.tracking_list is not empty %}
+      <div class="space-y-1">
+        <h3 class="font-semibold text-sm">{{ t('orders.tracking') }}</h3>
+        {% for tr in so.tracking_list %}
+          <p class="text-sm">{{ tr.carrier }} · <code>{{ tr.number }}</code>{% if tr.url %} · <a class="link" href="{{ tr.url }}" rel="noopener noreferrer" target="_blank">{{ t('admin.supplier.track') }}</a>{% endif %}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <p class="text-xs text-muted">{{ t('admin.supplier.created', {date: so.created_at|local_datetime, by: so.created_by ?: '—', attempt: so.attempt}) }}{% if so.last_event_at %} · {{ t('admin.supplier.last_event', {date: so.last_event_at|local_datetime}) }}{% endif %}</p>
+    {% if so.events is not empty %}
+      <details>
+        <summary class="cursor-pointer text-sm">{{ t('admin.supplier.events', {n: so.events|length}) }}</summary>
+        <ul class="text-xs mt-2 space-y-1">
+          {% for e in so.events %}
+            <li>{{ e.received_at|local_datetime }} · <code>{{ e.event }}</code> · {{ t('admin.webhooks.outcomes.' ~ (e.outcome ?: 'pending')) }}{% if e.simulated %} · {{ t('admin.webhooks.simulated_badge') }}{% endif %}{% if e.error %} · {{ e.error }}{% endif %}</li>
+          {% endfor %}
+        </ul>
+      </details>
+    {% endif %}
+    {% if loop.first and so.mode == 'live' and so.status not in ['cancelled'] %}
+      <form method="post" action="/admin/ordini/{{ order.id }}/fornitore/rileggi">
+        {{ csrf_field() }}
+        <button class="btn btn-sm btn-ghost" type="submit">{{ t('admin.supplier.refresh') }}</button>
+      </form>
+    {% endif %}
+  </article>
+{% else %}
+  <p class="text-sm text-muted">{{ t('admin.supplier.none') }}</p>
+{% endfor %}
+
+{% set waiting_confirm = supplier_trigger == 'on_confirm' and order.status == 'pending' and supplier_orders is empty %}
+{% if supplier_blocker is null and not waiting_confirm %}
+  <form method="post" action="/admin/ordini/{{ order.id }}/fornitore" data-confirm="{{ t('admin.supplier.create_question', {mode: order.mode|upper}) }}">
+    {{ csrf_field() }}
+    <button type="submit" class="btn btn-primary">{{ t(supplier_orders is not empty and supplier_orders[0].status in ['error', 'pending'] ? 'admin.supplier.retry' : 'admin.supplier.create') }}</button>
+    <p class="text-xs text-muted mt-1">{{ t('admin.supplier.create_hint') }}</p>
+  </form>
+{% elseif supplier_blocker in ['disabled', 'other_mode'] %}
+  <p class="alert alert-warning text-sm">{{ t('admin.supplier.blocked.' ~ supplier_blocker) }}</p>
+{% endif %}

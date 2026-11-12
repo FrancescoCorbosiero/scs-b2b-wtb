@@ -135,6 +135,7 @@ npm ci && npm run build          # asset in public/assets (non versionati)
 php bin/migrate.php              # applica le migrazioni
 php bin/sync.php products        # sync completo del catalogo (idempotente)
 php bin/sync.php stock           # sync rapido di stock e prezzi
+php bin/wtb-webhook.php order.shipped 1001   # evento del fornitore simulato (solo fixture/test)
 php bin/scheduler.php            # ciclo dei job periodici (container scheduler)
 php bin/hash-password.php        # hash Argon2id per ADMIN_PASSWORD_HASH
 php bin/dev-customer.php         # cliente di prova con password (solo sviluppo)
@@ -154,7 +155,7 @@ composer check                   # test + PHPStan (con COMPOSER_ALLOW_SUPERUSER=
 | Account clienti e admin | `src/Accounts/` (utenti, token d'invito/reset, lockout, P.IVA), `src/Http/Controller/Site/AuthController.php`, `AccountController.php`, `src/Http/Controller/Admin/CustomersController.php` |
 | Email | `src/Support/Mail/` (trasporti `log`/`smtp`), template in `templates/emails/` |
 | Zone e paesi | `src/Shipping/CountryRepository.php`, `ZoneRepository.php` |
-| Fornitore (unico punto che conosce WTB) | `src/Supplier/` (interfacce e modelli interni), `src/Supplier/Wtb/` (client, mapper, catalogo, ordini, firma webhook), `src/Supplier/Wtb/Fixture/` (modalità fixture e simulatore) |
+| Fornitore (unico punto che conosce WTB) | `src/Supplier/` (interfacce e modelli interni), `src/Supplier/Wtb/` (client, mapper, catalogo, ordini, webhook: busta, intestazioni, firma ed eventi simulati in `WtbWebhooks.php`), `src/Supplier/Wtb/Fixture/` (modalità fixture e simulatore) |
 | Sync del catalogo | `src/Catalog/ProductSync.php` (completo, tutto o niente), `StockSync.php` (rapido), `CatalogWriter.php`, `SizeCategory.php`, `ProductAggregates.php` |
 | Immagini | `src/Catalog/ImageService.php`, `src/Http/Controller/Site/ImageController.php` |
 | Prezzi e margini | `src/Pricing/` (`Rounding` = unico punto degli arrotondamenti, `PricingService`, `MarginRule*`, `MarginResolver`, `RepriceService`, `TierCalculator` per le fasce), `src/Http/Controller/Admin/MarginsController.php` |
@@ -164,9 +165,10 @@ composer check                   # test + PHPStan (con COMPOSER_ALLOW_SUPERUSER=
 | IVA | `src/Tax/TaxPolicy.php` (unico posto delle regole IVA, proposta da validare), `TaxResult.php` |
 | Spedizione al cliente | `src/Shipping/ShippingCalculator.php` (tariffa e gratuità), `DeliveryEstimate.php`, `ZoneRepository.php` |
 | Carrello e checkout | `src/Orders/Cart.php` (sessione), `CartService.php` (riepilogo autorevole), `QuoteReconciler.php`, `CheckoutService.php`, controller `Site/CartController.php`, `Site/CheckoutController.php`, template `templates/cart/`, `templates/checkout/` |
-| Ordini, pro-forma, email | `src/Orders/OrderService.php` (crea, conferma, riallinea, annulla), `OrderPresenter.php` (dati sicuri per il cliente), `ReceiptNumberer.php`, `ProformaPdf.php` + `templates/pdf/`, `OrderMailer.php` + `templates/emails/order_*`, controller `Site/OrdersController.php`, `Admin/OrdersController.php` |
-| Job e scheduler | `src/Jobs/`, `bin/scheduler.php`, `bin/sync.php`, `bin/backup.php` |
-| Dashboard e avvisi admin | `src/Admin/Alerts.php`, `src/Admin/DashboardCards.php`, `src/Http/Controller/Admin/SyncController.php` |
+| Ordini, pro-forma, email | `src/Orders/OrderService.php` (crea, conferma, riallinea, annulla, segna spedito), `OrderPresenter.php` (dati sicuri per il cliente), `ReceiptNumberer.php`, `ProformaPdf.php` + `templates/pdf/`, `OrderMailer.php` + `templates/emails/order_*`, controller `Site/OrdersController.php`, `Admin/OrdersController.php` |
+| Ordini al fornitore e webhook | `src/Orders/SupplierOrderService.php` (trigger, controlli, reference, creazione), `SupplierOrderUpdater.php` (stati monotoni, tracking, differenze: stesso codice per webhook e rilettura), `WebhookProcessor.php` (firma, duplicati, esiti), `PaymentInstructions.php`, `SupplierOrderMailer.php` + `templates/emails/supplier_order_admin.twig`, `TrackingPresenter.php` (solo link di corrieri), `src/Jobs/OrdersPollJob.php`, controller `SupplierWebhookController.php` (`/webhooks/wtb`), `Admin/SupplierOrdersController.php`, `Admin/WebhooksController.php`, template `admin/orders/_supplier.twig`, `admin/supplier_orders/`, `admin/webhooks/`, CLI `bin/wtb-webhook.php` |
+| Job e scheduler | `src/Jobs/` (sync, `OrdersPollJob`, immagini, pulizia, backup), `bin/scheduler.php`, `bin/sync.php`, `bin/backup.php`; lavori dopo la risposta in `src/Support/Deferred.php` |
+| Dashboard e avvisi admin | `src/Admin/Alerts.php` (avvisi, compresi ordini al fornitore e webhook), `src/Admin/DashboardCards.php` (riquadri e "Da pagare al fornitore"), `src/Http/Controller/Admin/SyncController.php` |
 | Testi | `lang/it.php` (fonte, admin compreso), `lang/en.php` |
 | Template e stile | `templates/` (sito in `layout/`, `site/`, `auth/`, `account/`; admin in `admin/`), `assets/css/app.css`, `assets/js/app.js`, `tailwind.config.js` |
 | Funzioni dei template | `src/Http/TwigExtension.php` (`t`, `money`, `csrf_field`, `query_url`…), `src/Http/AdminMenu.php` |

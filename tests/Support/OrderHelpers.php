@@ -23,6 +23,27 @@ trait OrderHelpers
         $http->post('/carrello/aggiungi', ['qty' => $qty]);
     }
 
+    /**
+     * Cliente, carrello e richiesta d'ordine (n. 1001) via HTTP; restituisce i client di cliente e admin.
+     *
+     * @param array<int, int> $cart id variante del fornitore => paia
+     * @return array{0: HttpClient, 1: HttpClient}
+     */
+    protected function placeOrder(TestApp $app, array $cart = [90011 => 3, 90014 => 2]): array
+    {
+        $app->syncCatalog();
+        $app->createCustomer();
+        $http = $app->http();
+        $http->loginCustomer();
+        $this->fillCart($app, $http, $cart);
+        $http->post('/checkout', $this->checkoutForm($http));
+        \PHPUnit\Framework\Assert::assertSame(1, $app->db->int('SELECT COUNT(*) FROM orders'), 'Ordine creato');
+        $admin = $app->http('198.51.100.200');
+        $admin->loginAdmin();
+
+        return [$http, $admin];
+    }
+
     /** @return array<string, string> */
     protected function checkoutForm(HttpClient $http, array $extra = []): array
     {

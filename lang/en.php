@@ -475,6 +475,16 @@ return [
             'proforma' => 'Please find attached pro-forma invoice :number.',
             'next' => 'When the parcel leaves we will send you the tracking.',
         ],
+        'order_shipped' => [
+            'subject' => 'Order no. :id shipped · :site',
+            'subject_update' => 'Order no. :id: new tracking number · :site',
+            'intro' => 'your order no. :id is on its way.',
+            'intro_update' => 'there is a new tracking number for your order no. :id.',
+            'tracking_intro' => 'You can track the shipment with:',
+            'track' => 'Track the shipment',
+            'no_tracking' => 'As soon as the tracking number is available you will find it in your reserved area.',
+            'address' => 'Destination: :address.',
+        ],
         'order_updated' => [
             'subject' => 'Order no. :id updated · :site',
             'intro' => 'we updated your order no. :id based on availability. Here is the new summary:',

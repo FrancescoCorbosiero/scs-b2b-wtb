@@ -116,13 +116,31 @@ Banner permanente con la **modalità WTB** (`FIXTURE` / `TEST` / `LIVE`).
   spedizioni 30 giorni, stato degli ultimi sync, avvisi (chiave WTB
   rifiutata, sync bloccato per calo prodotti, webhook sconosciuti, ordini
   `quote_unverified`, ordini WTB in errore).
+  Implementazione (`src/Admin/`): sezione "Da pagare al fornitore" (ordini
+  al fornitore ricevuti o confermati, non pagati, a bonifico) con IBAN,
+  causale e importo da copiare; avvisi in più: ordini al fornitore spenti
+  (`WTB_ORDERS_ENABLED=0`), annullati dal fornitore mentre l'ordine è aperto,
+  confermati senza ordine al fornitore, differenze segnalate dal fornitore,
+  webhook non elaborati. Il menu mostra i contatori di "Ordini fornitore" (da
+  pagare) e "Webhook" (sconosciuti o in errore negli ultimi 7 giorni).
 - **Ordini** (`/admin/ordini`): elenco con filtri per stato e ricerca;
   dettaglio con righe (vendita, costo, margine), totali, spedizione incassata
   vs costo WTB, preventivo, azioni (conferma, riallinea, crea/ritenta ordine
   WTB, annulla, segna spedito), ordine WTB collegato con istruzioni di
   pagamento, stati, tracking ed eventi webhook.
+  Implementazione: la sezione "Ordine al fornitore" mostra tutti i tentativi
+  (stato, reference e numero da copiare, costi, totale rispetto al
+  preventivo, errori e differenze, eventi ricevuti), il bottone "Crea" /
+  "Ritenta" (nascosto con `on_confirm` finché l'ordine è in attesa) e, per gli
+  ordini live, "Rileggi dal fornitore". "Segna come spedito" (ordine
+  confermato o già spedito) chiede corriere, numero e link facoltativo.
 - **Ordini WTB** (`/admin/ordini-fornitore`): elenco dall'API
   (`GET /orders/`) collegato agli ordini della piattaforma, dettaglio live.
+  Implementazione: elenco paginato letto al momento (con la chiave di prova
+  WTB non salva gli ordini, quindi l'elenco mostra solo quelli veri
+  dell'account); ogni riga col nostro ordine collegato dal reference o
+  "Non nostro" (es. ordini fatti dal portale); dettaglio con righe, costi,
+  istruzioni di pagamento (bottoni "copia") e tracking.
 - **Clienti** (`/admin/clienti`): crea con invito, reinvia invito, reset,
   disattiva, export Excel (mai hash o token).
 - **Richieste di profilo** (`/admin/richieste-profilo`).
@@ -136,6 +154,12 @@ Banner permanente con la **modalità WTB** (`FIXTURE` / `TEST` / `LIVE`).
   (catalogo, stock), profilo WTB e fotografia delle tariffe.
 - **Webhook** (`/admin/webhook`): eventi ricevuti con esito; "Simula evento"
   solo nelle modalità `fixture` e `test`.
+  Implementazione: ultimi 100 eventi con filtro per esito, contenuto
+  dell'evento, collegamento all'ordine, data dell'ultimo `ping` vero
+  (checklist del live); "Simula evento" sceglie evento e reference (anche
+  sconosciuto, per provare l'avviso) e richiede `WTB_WEBHOOK_SECRET`
+  impostato. Le email partono davvero. Da riga di comando:
+  `php bin/wtb-webhook.php <evento> <ordine|reference> [--url=…]`.
 - **Prodotti** (`/admin/prodotti`): catalogo con costo, prezzo di vendita,
   margine lordo, stima netta e regola applicata per ogni offerta; da qui il
   flag **In evidenza**.

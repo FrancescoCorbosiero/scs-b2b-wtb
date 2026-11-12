@@ -139,6 +139,19 @@ Dall'admin (`/admin/sync`) e da CLI (`php bin/sync.php products|stock|images
 lock: mai due esecuzioni sovrapposte. `php bin/scheduler.php --once` fa un
 solo giro.
 
+**Lavori dopo la risposta** (`src/Support/Deferred.php`): ciò che non deve
+far aspettare chi ha fatto la richiesta (email dei webhook, ordine al
+fornitore con `WTB_ORDER_TRIGGER=on_request`) si accoda e parte dopo la
+risposta (`fastcgi_finish_request` in `public/index.php`); in CLI e nei test
+si esegue chiamando `run()`. Un errore di un lavoro rinviato finisce nel log
+e non tocca gli altri.
+
+**Eventi del fornitore simulati** (solo `fixture` e `test`, serve
+`WTB_WEBHOOK_SECRET` anche finto): `php bin/wtb-webhook.php <evento>
+<ordine|reference>` elabora in processo un evento firmato costruito dalla
+risposta salvata; con `--url=http://127.0.0.1:8080` lo manda via HTTP al
+server di sviluppo (prova anche rotta e middleware).
+
 ## Test e qualità
 
 - **Unit** (`tests/Unit`): servizi puri (fasce e prezzi, margini,
