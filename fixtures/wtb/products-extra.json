@@ -1,0 +1,46 @@
+{
+  "count": 1,
+  "page": 1,
+  "page_size": 50,
+  "has_more": false,
+  "currency": "EUR",
+  "results": [
+    {
+      "sku": "ZX1011-110",
+      "name": "ASICS Gel-NYC Demo Graphite Grey",
+      "brand": "ASICS",
+      "category": "Sneakers",
+      "line": "Gel-NYC",
+      "gender": "unisex",
+      "category_path": [
+        "Sneakers",
+        "ASICS",
+        "Gel-NYC",
+        "Unisex"
+      ],
+      "description": "Runner ibrida, colorazione dimostrativa.",
+      "images": [
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1011-a.jpg"
+      ],
+      "total_available": 3,
+      "sizes": [
+        {
+          "variant_id": 90111,
+          "size_eu": "41.5",
+          "size_us": "8",
+          "size_uk": "7.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 3,
+              "price": "102.57",
+              "ships_in_days": "3-5"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

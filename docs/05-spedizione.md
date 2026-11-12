@@ -20,7 +20,10 @@ fatturazione, docs/04). Zone e tariffe si modificano da `/admin/spedizione`
   documentazione WTB (15 € il primo paio + 4 € ogni paio in più): 5 paia =
   31 € ⇒ tariffa 35 €. I costi WTB reali usati per il calcolo si riportano al
   titolare in chat, non nei file (D-016); le tariffe decise per i clienti
-  vivono nel database (sono comunque pubbliche su `/spedizioni`).
+  vivono nel database (sono comunque pubbliche su `/spedizioni`). Fatto il
+  12/11/2026: proposta inviata in chat, insieme al caso peggiore degli ordini
+  misti pronta + estesa (le paia estese pagano un trasporto a parte, vedi
+  sotto).
 - "Gratis da N paia" è facoltativo per zona (vuoto = mai).
 - La spedizione è una riga del totale, col trattamento IVA di docs/04.
 - I paesi fuori dalle zone non sono serviti: non compaiono nei selettori.
@@ -32,6 +35,18 @@ più; profilo Wholesaler: tariffe del portale), più `extended_stock_transport`
 per le paia da stock esteso (gratis oltre una soglia di paia), più un
 eventuale addebito per mancata consegna.
 
+Come lo calcola davvero (M0, docs/03 § Esiti M0):
+
+- la tariffa di zona conta **solo le paia in pronta consegna**;
+- le paia da stock esteso pagano solo `extended_stock_transport`, a scaglioni
+  per numero di paia estese, uguale per tutte le zone e gratis da una soglia;
+- con almeno una riga in regime ordinario WTB applica l'IVA anche a tutta la
+  spedizione; un ordine solo a margine non ha IVA nemmeno sulla spedizione.
+
+Il nostro costo di spedizione di un ordine è quindi
+`shipping` + `extended_stock_transport` del preventivo (= `shipping_total`),
+IVA esclusa.
+
 - Il costo esatto di ogni ordine arriva da `POST /quote/` (checkout e
   creazione ordine) e si salva sull'ordine.
 - Ogni ordine in admin mostra **"Spedizione incassata / costo WTB / differenza"**;
@@ -39,6 +54,20 @@ eventuale addebito per mancata consegna.
   negativo, è il segnale per ritoccare le tariffe.
 - `/admin/spedizione` mostra le tariffe WTB correnti (dall'ultimo
   `GET /shipping/`) accanto alle nostre.
+
+Implementazione (`src/Http/Controller/Admin/ShippingController.php`,
+`templates/admin/shipping/`): una scheda per zona con nome IT/EN, tariffa,
+"gratis da" (vuoto = mai), transito da/a e ordine di elenco; accanto, il costo
+del fornitore per un ordine minimo (`orders.min_items` paia tutte in pronta
+consegna) sui paesi serviti della zona (da–a se i paesi stanno in zone diverse
+del fornitore) e il margine sulla spedizione, in rosso se negativo; i paesi
+della zona che il fornitore non serve sono segnalati. Sotto: le tariffe del
+fornitore (solo admin), la tabella dei paesi (zona e "servito", l'Italia resta
+sempre servita) e "Nuova zona" (si elimina solo una zona senza paesi). Le
+modifiche valgono per i nuovi carrelli e ordini: gli ordini salvati hanno
+tariffa e soglia congelate. Ogni modifica finisce nel log con il nome
+dell'admin. La fotografia delle tariffe la legge `ShippingSnapshot`
+(`src/Supplier/`), usata anche da `/admin/sync` e per i paesi con i dazi.
 
 ## Tempi
 

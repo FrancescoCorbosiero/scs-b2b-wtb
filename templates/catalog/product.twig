@@ -1,0 +1,8 @@
+{% extends 'layout/base.twig' %}
+{% block title %}{{ product.name }} · {{ parent() }}{% endblock %}
+{% block content %}
+  <section class="container-page py-6 space-y-4">
+    <p><a href="{{ base_path }}" class="link text-sm">← {{ show_prices ? t('catalog.title') : t('catalog.showcase_title') }}</a></p>
+    <div class="card">{% include 'catalog/_product.twig' %}</div>
+  </section>
+{% endblock %}

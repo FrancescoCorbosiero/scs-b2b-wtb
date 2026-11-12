@@ -1,0 +1,78 @@
+{% extends 'layout/base.twig' %}
+{% block title %}{{ show_prices ? t('catalog.title') : t('catalog.showcase_title') }} · {{ parent() }}{% endblock %}
+{% block content %}
+  {% set f = filters %}
+  <section class="container-page py-6 space-y-5">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div class="space-y-1">
+        <h1 class="h1">{{ show_prices ? t('catalog.title') : t('catalog.showcase_title') }}</h1>
+        <p class="text-sm text-muted">{{ tc('catalog.results', total) }}{% if not show_prices %} · {{ t('catalog.showcase_intro') }}{% endif %}</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        {% if not show_prices %}
+          <a href="/login?next={{ ('/catalogo?' ~ (f.toQuery()|url_encode))|url_encode }}" class="btn btn-ghost btn-sm">{{ t('nav.login') }}</a>
+          <a href="/richiedi-accesso" class="btn btn-primary btn-sm">{{ t('nav.request') }}</a>
+        {% else %}
+          <a href="/catalogo/export.xlsx?{{ f.toQuery()|url_encode }}" class="btn btn-ghost btn-sm">{{ t('catalog.export') }}</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <form method="get" action="{{ base_path }}" class="flex flex-wrap gap-2" role="search">
+      <input class="input flex-1 min-w-[12rem]" type="search" name="q" value="{{ f.q }}" placeholder="{{ t('catalog.search_placeholder') }}" aria-label="{{ t('common.search') }}">
+      {% for key, value in f.toQuery() %}
+        {% if key != 'q' %}
+          {% if value is iterable %}{% for v in value %}<input type="hidden" hidden name="{{ key }}[]" value="{{ v }}">{% endfor %}
+          {% else %}<input type="hidden" hidden name="{{ key }}" value="{{ value }}">{% endif %}
+        {% endif %}
+      {% endfor %}
+      <button class="btn btn-primary" type="submit">{{ t('common.search') }}</button>
+    </form>
+
+    <div class="grid gap-6 lg:grid-cols-[16rem,1fr]">
+      {% include 'catalog/_filters.twig' %}
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 text-sm">
+          <form method="get" action="{{ base_path }}" class="flex items-center gap-2" data-autosubmit>
+            {% for key, value in f.toQuery() %}
+              {% if key != 'ordina' %}
+                {% if value is iterable %}{% for v in value %}<input type="hidden" hidden name="{{ key }}[]" value="{{ v }}">{% endfor %}
+                {% else %}<input type="hidden" hidden name="{{ key }}" value="{{ value }}">{% endif %}
+              {% endif %}
+            {% endfor %}
+            <label for="sort" class="text-muted">{{ t('catalog.sort') }}</label>
+            <select id="sort" name="ordina" class="input w-auto py-1.5">
+              {% for s in sorts %}<option value="{{ s }}" {{ f.sort == s ? 'selected' }}>{{ t('catalog.sorts.' ~ s) }}</option>{% endfor %}
+            </select>
+            <noscript><button class="btn btn-ghost btn-sm" type="submit">{{ t('common.apply') }}</button></noscript>
+          </form>
+          <div class="flex items-center gap-3">
+            <span class="text-muted">{{ t('catalog.size_system') }}</span>
+            {% for s in ['eu', 'us', 'uk'] %}<a href="{{ query_url({sistema: s}) }}" class="lang-link {{ size_system == s ? 'is-active' }}">{{ s|upper }}</a>{% endfor %}
+            <span class="text-muted hidden sm:inline">·</span>
+            {% for d in ['comoda', 'compatta'] %}<a href="{{ query_url({densita: d}) }}" class="hidden sm:inline lang-link {{ density == d ? 'is-active' }}">{{ t('catalog.density.' ~ d) }}</a>{% endfor %}
+          </div>
+        </div>
+
+        {% if cards is empty %}
+          <div class="card text-center space-y-3 py-12">
+            <p>{{ t('catalog.empty') }}</p>
+            {% if f.isFiltered() %}<a href="{{ base_path }}" class="btn btn-ghost">{{ t('catalog.reset') }}</a>{% endif %}
+          </div>
+        {% else %}
+          <div id="product-grid" data-total="{{ total }}" class="grid gap-4 {{ density == 'compatta' ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-5' : 'grid-cols-1 min-[420px]:grid-cols-2 xl:grid-cols-3' }}">
+            {% include 'catalog/_cards.twig' %}
+          </div>
+          {% if has_more %}
+            <p class="text-center">
+              <a href="{{ next_url }}" class="btn btn-ghost" data-load-more="{{ next_url }}&partial=1">{{ t('catalog.load_more') }}</a>
+            </p>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </section>
+  <dialog id="quickview" class="quickview" aria-label="{{ t('product.quick_view') }}">
+    <div class="quickview-body" data-quickview-body></div>
+  </dialog>
+{% endblock %}

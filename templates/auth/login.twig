@@ -1,0 +1,27 @@
+{% extends 'layout/base.twig' %}
+{% import 'partials/forms.twig' as f %}
+{% block title %}{{ t('auth.login_title') }} · {{ parent() }}{% endblock %}
+{% block content %}
+  <section class="container-narrow py-12">
+    <div class="card space-y-6">
+      <div class="space-y-2">
+        <h1 class="h2">{{ t('auth.login_title') }}</h1>
+        <p class="text-muted">{{ t('auth.login_intro') }}</p>
+      </div>
+      <form method="post" action="/login" class="space-y-4">
+        {{ csrf_field() }}
+        {% if next %}<input type="hidden" hidden name="next" value="{{ next }}">{% endif %}
+        {{ f.input('email', t('auth.email'), '', 'email', {required: true, autocomplete: 'email', autofocus: true}) }}
+        <div class="field">
+          <label class="label" for="f-password">{{ t('auth.password') }}</label>
+          <input class="input" id="f-password" name="password" type="password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary w-full">{{ t('auth.submit_login') }}</button>
+      </form>
+      <div class="flex flex-wrap justify-between gap-2 text-sm">
+        <a href="/password-dimenticata" class="link">{{ t('auth.forgot_link') }}</a>
+        <span>{{ t('auth.no_account') }} <a href="/richiedi-accesso" class="link">{{ t('auth.request_link') }}</a></span>
+      </div>
+    </div>
+  </section>
+{% endblock %}

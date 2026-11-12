@@ -15,3 +15,8 @@
 .DS_Store
 .idea/
 .vscode/
+
+# Asset compilati (npm run build) e cache degli strumenti
+/public/assets/
+/.phpunit.cache/
+/.phpunit.result.cache

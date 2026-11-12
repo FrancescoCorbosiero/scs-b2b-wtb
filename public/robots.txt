@@ -1,0 +1,8 @@
+# Indicizzabili solo le pagine di presentazione (docs/09). Catalogo e prezzi sono riservati.
+User-agent: *
+Allow: /$
+Allow: /come-ordinare
+Allow: /spedizioni
+Allow: /contatti
+Allow: /richiedi-accesso
+Disallow: /

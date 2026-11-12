@@ -1,0 +1,147 @@
+{% extends 'admin/layout.twig' %}
+{% import 'admin/macros.twig' as m %}
+{% block title %}{{ t('admin.orders.order', {id: order.id}) }}{% endblock %}
+{% block content %}
+  {% set o = order %}
+  <p class="mb-2"><a href="/admin/ordini" class="link text-sm">← {{ t('admin.orders.title') }}</a></p>
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
+    <div>
+      <h1 class="h1">{{ t('admin.orders.order', {id: o.id}) }}</h1>
+      <p class="text-sm text-muted">{% include 'admin/orders/_status.twig' with {status: o.status} %} {{ o.created_at|local_datetime }} · {{ o.company }} · {{ t('admin.orders.mode_badge', {mode: o.mode|upper}) }}{% if o.receipt_number %} · {{ o.receipt_number }}{% endif %}</p>
+    </div>
+    {% if o.receipt_number %}<a href="/admin/ordini/{{ o.id }}/proforma.pdf" class="btn btn-ghost">{{ t('admin.orders.proforma') }}</a>{% endif %}
+  </div>
+
+  <div class="space-y-2 mb-6">
+    {% if other_mode %}<p class="alert alert-warning">{{ t('admin.orders.other_mode', {mode: o.mode|upper}) }}</p>{% endif %}
+    {% if o.quote_unverified %}<p class="alert alert-warning">{{ t('admin.orders.quote_unverified') }}</p>{% endif %}
+    {% if not o.email_customer_sent %}<p class="alert alert-error">{{ t('admin.orders.email_not_sent') }}</p>{% endif %}
+    {% if o.notes %}<p class="alert alert-info"><strong>{{ t('admin.orders.customer_notes') }}:</strong> {{ o.notes }}</p>{% endif %}
+  </div>
+
+  <div class="grid gap-6 xl:grid-cols-[1fr,24rem] items-start">
+    <div class="space-y-6">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr>
+            <th>{{ t('orders.item') }}</th><th>{{ t('admin.margins.regime') }}</th><th>{{ t('orders.tiers') }}</th>
+            <th class="num">{{ t('admin.products.sale') }}</th><th class="num">{{ t('admin.products.cost') }}</th><th class="num">{{ t('admin.products.margin') }}</th><th class="num">{{ t('admin.products.net') }}</th>
+          </tr></thead>
+          <tbody>
+            {% for l in lines %}
+              <tr>
+                <td><span class="font-semibold">{{ l.name }}</span><span class="block text-xs text-muted"><code>{{ l.sku }}</code> · EU {{ l.size_eu }} · #{{ l.wtb_variant_id }}</span></td>
+                <td>{{ t('catalog.regime.' ~ l.vat_regime) }}</td>
+                <td class="text-sm whitespace-nowrap">
+                  {% if l.qty_immediate > 0 %}<span class="block">{{ l.qty_immediate }} × {{ money(l.unit_price_immediate_cents) }} <span class="text-muted">({{ t('admin.products.cost')|lower }} {{ money(l.unit_cost_immediate_cents) }})</span></span>{% endif %}
+                  {% if l.qty_extended > 0 %}<span class="block">{{ l.qty_extended }} × {{ money(l.unit_price_extended_cents) }} <span class="text-muted">({{ t('admin.products.cost')|lower }} {{ money(l.unit_cost_extended_cents) }}, {{ t('product.extended')|lower }})</span></span>{% endif %}
+                </td>
+                <td class="num">{{ money(l.line_total_cents) }}</td>
+                <td class="num">{{ money(l.cost_total) }}</td>
+                <td class="num {{ l.margin < 0 ? 'text-accent font-semibold' }}">{{ money(l.margin) }}</td>
+                <td class="num">{{ money(l.net) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if can_realign %}
+        <details class="card">
+          <summary class="cursor-pointer font-semibold">{{ t('admin.orders.realign_title') }}</summary>
+          <form method="post" action="/admin/ordini/{{ o.id }}/riallinea" class="space-y-3 mt-3">
+            {{ csrf_field() }}
+            <p class="text-sm text-muted">{{ t('admin.orders.realign_text') }}</p>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>{{ t('orders.item') }}</th><th class="num">{{ t('admin.orders.ordered') }}</th><th class="num">{{ t('admin.orders.stock_now') }}</th><th>{{ t('admin.orders.new_qty') }}</th></tr></thead>
+                <tbody>
+                  {% for l in lines %}
+                    <tr>
+                      <td>{{ l.name }} · EU {{ l.size_eu }} · {{ t('catalog.regime.' ~ l.vat_regime) }}</td>
+                      <td class="num">{{ l.qty_immediate + l.qty_extended }}</td>
+                      <td class="num {{ stock[l.id] < l.qty_immediate + l.qty_extended ? 'text-accent font-semibold' }}">{{ stock[l.id] }}</td>
+                      <td><input class="input w-24" type="number" min="0" max="{{ l.qty_immediate + l.qty_extended }}" name="qty[{{ l.id }}]" value="{{ min(l.qty_immediate + l.qty_extended, stock[l.id]) }}"></td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <label class="check"><input type="checkbox" name="notify" value="1" checked> {{ t('admin.orders.realign_notify') }}</label>
+            <button type="submit" class="btn btn-primary">{{ t('admin.orders.realign_submit') }}</button>
+          </form>
+        </details>
+      {% endif %}
+
+      {% if quote %}
+        <details class="card">
+          <summary class="cursor-pointer font-semibold">{{ t('admin.orders.quote_title') }}</summary>
+          <dl class="dl mt-3">
+            {% for k in ['subtotal', 'shipping', 'extended_stock_transport', 'shipping_total', 'vat', 'total', 'vat_note', 'ship_to_country', 'pieces'] %}
+              {% if attribute(quote, k) is defined %}<dt>{{ k }}</dt><dd>{{ attribute(quote, k) }}</dd>{% endif %}
+            {% endfor %}
+          </dl>
+          <ul class="text-xs mt-2 space-y-1">{% for ql in quote.lines ?? [] %}<li>{{ ql.quantity }} × {{ ql.sku }} EU {{ ql.size_eu }} · {{ ql.vat_regime }} · {{ ql.stock_type }} · {{ ql.unit_price }}</li>{% endfor %}</ul>
+        </details>
+      {% endif %}
+
+      <section class="card space-y-3" id="fornitore">
+        <h2 class="h3">{{ t('admin.orders.supplier_title') }}</h2>
+        {% include 'admin/orders/_supplier.twig' ignore missing %}
+      </section>
+    </div>
+
+    <aside class="space-y-4">
+      <div class="card space-y-3">
+        <h2 class="h3">{{ t('admin.orders.totals') }}</h2>
+        <dl class="totals">
+          <dt>{{ t('cart.subtotal_margin') }}</dt><dd>{{ money(o.subtotal_margin_cents) }}</dd>
+          <dt>{{ t('cart.subtotal_ordinary') }}</dt><dd>{{ money(o.subtotal_ordinary_cents) }}</dd>
+          <dt>{{ t('admin.orders.shipping_collected') }}</dt><dd>{{ money(o.shipping_cents) }}</dd>
+          <dt>{{ t('cart.vat_rate', {rate: o.vat_rate_bp // 100}) }}</dt><dd>{{ money(o.vat_cents) }}</dd>
+          <dt class="total">{{ t('orders.total') }}</dt><dd class="total">{{ money(o.total_cents) }}</dd>
+        </dl>
+        <dl class="totals border-t border-line pt-3">
+          <dt>{{ t('admin.orders.goods_cost') }}</dt><dd>{{ money(o.expected_cost_cents) }}</dd>
+          <dt>{{ t('admin.orders.goods_margin') }}</dt><dd class="{{ goods_margin < 0 ? 'text-accent' }}">{{ money(goods_margin) }}</dd>
+          <dt>{{ t('admin.orders.shipping_cost') }}</dt><dd>{{ o.wtb_shipping_cost_cents is null ? '—' : money(o.wtb_shipping_cost_cents) }}</dd>
+          <dt>{{ t('admin.orders.shipping_diff') }}</dt><dd class="{{ shipping_diff is not null and shipping_diff < 0 ? 'text-accent font-semibold' }}">{{ shipping_diff is null ? '—' : money(shipping_diff) }}</dd>
+        </dl>
+        <p class="text-xs text-muted">{{ t('admin.orders.vat_scheme', {scheme: t('admin.orders.schemes.' ~ o.vat_scheme), regime: o.shipping_regime}) }}</p>
+      </div>
+
+      <div class="card space-y-3">
+        <h2 class="h3">{{ t('admin.orders.actions') }}</h2>
+        {% if o.status == 'pending' %}
+          <form method="post" action="/admin/ordini/{{ o.id }}/conferma" class="space-y-2" data-confirm="{{ t('admin.orders.confirm_question', {total: money(o.total_cents)}) }}">
+            {{ csrf_field() }}
+            {% if requires_vies %}<label class="check"><input type="checkbox" name="vies" value="1" required> {{ t('admin.orders.vies') }}</label>{% endif %}
+            <button type="submit" class="btn btn-primary w-full">{{ t('admin.orders.confirm') }}</button>
+            <p class="text-xs text-muted">{{ t('admin.orders.confirm_hint') }}</p>
+          </form>
+        {% endif %}
+        {% if o.status in ['pending', 'confirmed'] %}
+          <form method="post" action="/admin/ordini/{{ o.id }}/annulla" data-confirm="{{ t('admin.orders.cancel_question') }}">
+            {{ csrf_field() }}
+            <button type="submit" class="btn btn-danger w-full">{{ t('admin.orders.cancel') }}</button>
+          </form>
+        {% endif %}
+        {% include 'admin/orders/_ship_manual.twig' ignore missing %}
+      </div>
+
+      <div class="card space-y-1 text-sm">
+        <h2 class="h3 mb-1">{{ t('admin.orders.customer') }}</h2>
+        <p><a href="/admin/clienti/{{ o.user_id }}" class="link">{{ o.company }}</a> · {{ o.vat_number }}</p>
+        <p>{{ o.contact_name }} · <a class="link" href="mailto:{{ o.email }}">{{ o.email }}</a> · {{ o.phone }}</p>
+        <p class="text-muted">{{ o.billing_street }}, {{ o.billing_zip }} {{ o.billing_city }} {{ o.billing_province }} ({{ o.billing_country }})</p>
+        <h3 class="font-semibold pt-2">{{ t('checkout.shipping_to') }}</h3>
+        <p>{{ o.ship_name }}{% if o.ship_company %} · {{ o.ship_company }}{% endif %}</p>
+        <p class="text-muted">{{ o.ship_street }}, {{ o.ship_zip }} {{ o.ship_city }} {{ o.ship_province }} ({{ o.ship_country }}) {{ o.ship_phone }}</p>
+        {% if tracking is not empty %}
+          <h3 class="font-semibold pt-2">{{ t('orders.tracking') }}</h3>
+          {% for tr in tracking %}<p>{{ tr.carrier }} · <code>{{ tr.number }}</code></p>{% endfor %}
+        {% endif %}
+      </div>
+    </aside>
+  </div>
+{% endblock %}

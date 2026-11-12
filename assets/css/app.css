@@ -1,0 +1,176 @@
+/* Stili dell'app (Tailwind). Niente stili inline nei template: la CSP li blocca. */
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/inter-400.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 500; font-display: swap; src: url('fonts/inter-500.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url('fonts/inter-600.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 700; font-display: swap; src: url('fonts/inter-700.woff2') format('woff2'); }
+@font-face { font-family: 'Archivo'; font-style: normal; font-weight: 600; font-display: swap; src: url('fonts/archivo-600.woff2') format('woff2'); }
+@font-face { font-family: 'Archivo'; font-style: normal; font-weight: 700; font-display: swap; src: url('fonts/archivo-700.woff2') format('woff2'); }
+@font-face { font-family: 'Archivo'; font-style: normal; font-weight: 800; font-display: swap; src: url('fonts/archivo-800.woff2') format('woff2'); }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  [x-cloak] { display: none !important; }
+  :focus-visible { outline: 2px solid #111111; outline-offset: 2px; }
+}
+
+@layer components {
+  .container-page { @apply mx-auto w-full max-w-page px-4 sm:px-6; }
+  .container-wide { @apply mx-auto w-full max-w-[96rem] px-4 sm:px-6; }
+  .container-narrow { @apply mx-auto w-full max-w-md px-4; }
+  .skip-link { @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-ink focus:text-paper focus:px-4 focus:py-2; }
+
+  .h1 { @apply font-display text-3xl font-extrabold tracking-tight sm:text-4xl; }
+  .h2 { @apply font-display text-2xl font-bold tracking-tight; }
+  .h3 { @apply font-display text-lg font-bold; }
+  .link { @apply underline decoration-1 underline-offset-2 hover:text-accent; }
+
+  .site-header { @apply sticky top-0 z-30 border-b border-line bg-paper/95 backdrop-blur; }
+  .brand { @apply font-display text-lg font-extrabold tracking-tight whitespace-nowrap; }
+  .nav-link { @apply border-b-2 border-transparent py-1 hover:border-ink; }
+  .nav-link.is-active { @apply border-ink; }
+  .lang-link { @apply rounded px-1.5 py-0.5 text-muted hover:text-ink; }
+  .lang-link.is-active { @apply bg-ink text-paper; }
+
+  .site-footer { @apply mt-16 bg-ink text-paper; }
+  .footer-link { @apply text-paper/70 hover:text-paper; }
+
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-md border border-ink px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply bg-ink text-paper hover:bg-black; }
+  .btn-ghost { @apply border-line bg-white text-ink hover:border-ink; }
+  .btn-invert { @apply border-paper/40 text-paper hover:bg-paper hover:text-ink; }
+  .btn-danger { @apply border-accent bg-white text-accent hover:bg-accent hover:text-white; }
+  .btn-sm { @apply px-3 py-1.5 text-xs; }
+  .btn-xs { @apply px-2 py-0.5 text-xs; }
+
+  .badge { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold; }
+  .badge-ink { @apply bg-ink text-paper; }
+  .badge-ok { @apply bg-ok/10 text-ok; }
+  .badge-warn { @apply bg-warn/10 text-warn; }
+  .badge-muted { @apply bg-line text-muted; }
+  .badge-danger { @apply bg-accent/10 text-accent; }
+
+  .alert { @apply rounded-md border px-4 py-3 text-sm; }
+  .alert-success { @apply border-ok/30 bg-ok/5 text-ok; }
+  .alert-error { @apply border-accent/30 bg-accent/5 text-accent; }
+  .alert-warning { @apply border-warn/30 bg-warn/5 text-warn; }
+  .alert-info { @apply border-line bg-white text-ink; }
+
+  .card { @apply rounded-lg border border-line bg-white p-5; }
+  .card-link { @apply block transition-colors hover:border-ink; }
+
+  .field { @apply space-y-1; }
+  .label { @apply block text-sm font-semibold; }
+  .input { @apply block w-full rounded-md border border-line bg-white px-3 py-2 text-sm placeholder:text-muted/70 focus:border-ink focus:outline-none; }
+  .input-error { @apply border-accent; }
+  .hint { @apply text-xs text-muted; }
+  .field-error { @apply text-xs font-semibold text-accent; }
+
+  .dl { @apply grid grid-cols-[auto,1fr] gap-x-4 gap-y-1 text-sm; }
+  .dl dt { @apply text-muted; }
+  .dl dd { @apply font-medium; }
+
+  .dropdown { @apply relative; }
+  .dropdown > summary { @apply list-none cursor-pointer; }
+  .dropdown > summary::-webkit-details-marker { display: none; }
+  .dropdown-panel { @apply absolute right-0 mt-2 w-56 rounded-md border border-line bg-white py-1 shadow-lg; }
+  .dropdown-item { @apply block px-4 py-2 text-sm hover:bg-paper; }
+  .mobile-menu > summary { @apply list-none cursor-pointer; }
+  .mobile-menu > summary::-webkit-details-marker { display: none; }
+  .mobile-menu-panel { @apply absolute inset-x-0 top-16 flex flex-col gap-3 border-b border-line bg-paper px-4 py-4 text-base font-medium shadow-lg; }
+
+  .table-wrap { @apply overflow-x-auto rounded-lg border border-line bg-white; }
+  /* Le colonne di una griglia possono restringersi sotto il contenuto: le tabelle scorrono dentro .table-wrap
+     invece di allargare la pagina su mobile. */
+  .grid > * { @apply min-w-0; }
+  .table { @apply min-w-full text-sm; }
+  .table th { @apply whitespace-nowrap border-b border-line bg-paper/60 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted; }
+  .table td { @apply border-b border-line px-3 py-2 align-top; }
+  .table tr:last-child td { @apply border-b-0; }
+  .row-link { @apply cursor-pointer hover:bg-paper/60; }
+  .num { @apply text-right tabular-nums whitespace-nowrap; }
+
+  .mode-banner { @apply px-4 py-1.5 text-center text-xs; }
+  .mode-fixture { @apply bg-line text-ink; }
+  .mode-test { @apply bg-warn text-white; }
+  .mode-live { @apply bg-accent text-white; }
+  .admin-header { @apply bg-ink text-paper; }
+  .admin-nav { @apply flex gap-1 overflow-x-auto pb-2 text-sm; }
+  .admin-nav a { @apply whitespace-nowrap rounded px-3 py-1.5 text-paper/70 hover:bg-paper/10 hover:text-paper; }
+  .admin-nav a.is-active { @apply bg-paper text-ink; }
+  .copyable { @apply inline-flex max-w-full flex-wrap items-center gap-1; }
+  .copyable code { @apply break-all; }
+
+  .pill { @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold; }
+  .pill-high { @apply bg-ok/10 text-ok; }
+  .pill-medium { @apply bg-ink/5 text-ink; }
+  .pill-low { @apply bg-warn/10 text-warn; }
+  .pill-out { @apply bg-line text-muted; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+@layer components {
+  .product-card { @apply flex flex-col overflow-hidden rounded-lg border border-line bg-white transition-shadow hover:shadow-md; }
+  .product-card.is-sold-out { @apply opacity-70; }
+  .product-card-media { @apply block aspect-[4/3] overflow-hidden bg-white; }
+  .product-card-media img { @apply h-full w-full object-contain; }
+  .product-card-noimg { @apply block h-full w-full bg-paper; }
+  .product-card-body { @apply flex flex-1 flex-col gap-1.5 p-3; }
+  .product-card-title { @apply font-semibold leading-snug; }
+  .product-card-title a { @apply hover:underline; }
+  .product-card-footer { @apply mt-auto flex flex-wrap items-end justify-between gap-2 pt-2; }
+  .price { @apply font-display text-lg font-bold tabular-nums; }
+  .size-chips { @apply flex flex-wrap gap-1; }
+  .size-chips li { @apply rounded border border-line px-1.5 py-0.5 text-[11px] tabular-nums; }
+  .size-chips li.more { @apply border-transparent text-muted; }
+
+  .filters { @apply self-start rounded-lg border border-line bg-white lg:sticky lg:top-20; }
+  .filters-summary { @apply cursor-pointer list-none px-4 py-3 font-semibold lg:hidden; }
+  .filters-summary::-webkit-details-marker { display: none; }
+  .filters-form { @apply max-h-[75vh] space-y-4 overflow-y-auto border-t border-line p-4 lg:max-h-[calc(100vh-7rem)] lg:border-t-0; }
+  .filter-group { @apply space-y-1.5; }
+  .filter-group legend { @apply mb-1 text-xs font-semibold uppercase tracking-wide text-muted; }
+  .filter-options { @apply max-h-48 space-y-1 overflow-y-auto; }
+  .check { @apply flex items-center gap-2 text-sm; }
+  .size-picker { @apply flex flex-wrap gap-1; }
+  .size-picker input { @apply sr-only; }
+  .size-picker span { @apply inline-block cursor-pointer rounded border border-line px-2 py-1 text-xs tabular-nums; }
+  .size-picker input:checked + span { @apply border-ink bg-ink text-paper; }
+  .size-picker input:focus-visible + span { @apply outline outline-2 outline-ink; }
+
+  .quickview { @apply m-auto w-[min(64rem,calc(100vw-1.5rem))] max-w-none rounded-lg border border-line bg-white p-0 shadow-2xl; }
+  .quickview::backdrop { background: rgb(17 17 17 / 0.55); }
+  .quickview-body { @apply max-h-[85vh] overflow-y-auto p-4 sm:p-6; }
+  .product-detail-image { @apply w-full rounded border border-line bg-white object-contain; }
+  .units-table td { @apply py-3; }
+}
+
+@media (min-width: 1024px) {
+  .filters > .filters-summary { display: none; }
+}
+
+@layer components {
+  .hero { @apply bg-ink text-paper; }
+  .btn-light { @apply border-paper bg-paper text-ink hover:bg-white; }
+  .step-number { @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink font-display text-sm font-bold text-paper; }
+  .hp { @apply absolute -left-[9999px] h-px w-px overflow-hidden; }
+}
+
+@layer components {
+  .stepper { @apply inline-flex items-stretch overflow-hidden rounded-md border border-line bg-white; }
+  .stepper-btn { @apply w-8 text-lg leading-none hover:bg-paper; }
+  .stepper-input { @apply w-14 border-x border-line px-1 py-1.5 text-center tabular-nums focus:outline-none; appearance: textfield; }
+  .stepper-input::-webkit-outer-spin-button, .stepper-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .totals { @apply grid grid-cols-[1fr,auto] gap-x-4 gap-y-1 text-sm; }
+  .totals dd { @apply text-right tabular-nums; }
+  .totals .total { @apply border-t border-line pt-2 text-base font-bold; }
+  .rethink-overlay { @apply fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4; }
+  .rethink-box { @apply w-full max-w-sm rounded-lg bg-white p-6 text-center shadow-2xl; }
+  .ship-mode:has(input[value="billing"]:checked) .ship-other-fields { display: none; }
+}

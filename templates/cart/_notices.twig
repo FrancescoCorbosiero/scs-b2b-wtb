@@ -1,0 +1,14 @@
+{% if notices is not empty %}
+  <div class="alert alert-warning space-y-1" role="status">
+    <p class="font-semibold">{{ t('cart.changes_title') }}</p>
+    <ul class="list-disc pl-5">
+      {% for n in notices %}
+        <li>
+          {% if n.type == 'prices_updated' %}{{ t('cart.notice.prices_updated', {from: money(n.from), to: money(n.to)}) }}
+          {% elseif n.type == 'unavailable' %}{{ t('cart.notice.unavailable') }}
+          {% else %}{{ t('cart.notice.' ~ n.type, {name: n.name ?? '', size: n.size ?? '', regime: t('catalog.regime.' ~ (n.regime ?? 'margin')), from: n.from ?? 0, to: n.to ?? 0}) }}{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}

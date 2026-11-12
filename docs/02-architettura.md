@@ -17,6 +17,14 @@
 Rendering server-side con progressive enhancement; le interazioni (carrello,
 scheda rapida) usano endpoint JSON interni con sessione e CSRF.
 
+### Sessioni
+
+Sessioni server-side nella tabella `sessions` (dati in JSON, mai
+`unserialize`; a DB solo lo sha256 dell'id del cookie). Cookie `scs_session`
+per il sito e `scs_admin` (Path `/admin`) per l'area admin: due sessioni
+distinte. Il carrello vive nella sessione del sito. Webhook, immagini e asset
+non aprono sessioni.
+
 ### SQLite: regole
 
 - Un solo file (`DB_PATH`, default `var/db.sqlite`) su disco locale, mai su
@@ -96,6 +104,7 @@ Voci iniziali (i nomi sono indicativi, il significato no):
 | `catalog.sell_extended` | true | vendere anche lo stock esteso (D-005) |
 | `catalog.regimes` | `margin,ordinary` | regimi IVA in vendita (docs/04) |
 | `catalog.per_page` | 24 | prodotti per pagina |
+| `catalog.sold_out_days` | 30 | giorni in cui un prodotto sparito dal feed resta visibile come esaurito (D-017) |
 | `catalog.availability_high_min` / `_low_max` | 60 / 20 | soglie della pillola disponibilità |
 | `prices.rounding` | `whole` | `whole` / `half` / `none`, sempre per eccesso |
 | `prices.default_margin_type` / `_value` | `percent` / 5 | margine di default (D-014) |
@@ -120,11 +129,28 @@ job dichiarati in `src/Jobs/` secondo il loro intervallo, con un lock per job
 |---|---|---|
 | `stock_sync` | `WTB_STOCK_SYNC_INTERVAL=900` (15 min, come consiglia WTB) | `GET /stock/`: disponibilità e costi, ricalcolo prezzi |
 | `products_sync` | `WTB_PRODUCTS_SYNC_INTERVAL=10800` (3 h) | `GET /products/`: catalogo completo |
-| `orders_poll` | 3600 (1 h) | rete di sicurezza ai webhook: rilegge gli ordini WTB non conclusi |
-| `cleanup` | giornaliero | eventi webhook vecchi, tentativi di login, cache immagini orfane |
-| `backup` | giornaliero | copia consistente del database (`VACUUM INTO`), conserva 14 giorni |
+| `orders_poll` | `WTB_ORDERS_POLL_INTERVAL=3600` (1 h) | rete di sicurezza ai webhook: rilegge gli ordini WTB non conclusi |
+| `image_prefetch` | 600 (10 min) | scarica in anticipo le immagini dei prodotti nuovi |
+| `cleanup` | giornaliero | sessioni scadute, eventi webhook vecchi, tentativi di login, token, storico job, cache immagini orfane |
+| `backup` | giornaliero | copia consistente del database (`VACUUM INTO`), conserva `BACKUP_KEEP_DAYS` giorni |
 
-Dall'admin: "Sincronizza ora" per catalogo e stock.
+Dall'admin (`/admin/sync`) e da CLI (`php bin/sync.php products|stock|images
+[--force]`, `php bin/backup.php`) i job si lanciano subito, con lo stesso
+lock: mai due esecuzioni sovrapposte. `php bin/scheduler.php --once` fa un
+solo giro.
+
+**Lavori dopo la risposta** (`src/Support/Deferred.php`): ciò che non deve
+far aspettare chi ha fatto la richiesta (email dei webhook, ordine al
+fornitore con `WTB_ORDER_TRIGGER=on_request`) si accoda e parte dopo la
+risposta (`fastcgi_finish_request` in `public/index.php`); in CLI e nei test
+si esegue chiamando `run()`. Un errore di un lavoro rinviato finisce nel log
+e non tocca gli altri.
+
+**Eventi del fornitore simulati** (solo `fixture` e `test`, serve
+`WTB_WEBHOOK_SECRET` anche finto): `php bin/wtb-webhook.php <evento>
+<ordine|reference>` elabora in processo un evento firmato costruito dalla
+risposta salvata; con `--url=http://127.0.0.1:8080` lo manda via HTTP al
+server di sviluppo (prova anche rotta e middleware).
 
 ## Test e qualità
 
@@ -150,17 +176,25 @@ Dall'admin: "Sincronizza ora" per catalogo e stock.
   chiave vuota è un errore di configurazione bloccante.
 - **Composer**: se i download dei pacchetti da GitHub rispondono 403 (il proxy
   GitHub della sessione blocca gli archivi dei repository non collegati),
-  usare `composer install --prefer-source`.
+  usare `composer install --prefer-source`. PHPStan esiste solo come
+  archivio: `sh bin/dev-composer-install.sh` lo scarica da
+  raw.githubusercontent.com, lo mette nella cache di Composer e poi installa
+  tutto da sorgente.
+- **Asset**: `npm run build` compila CSS, JS e font in `public/assets/`, che
+  non è versionata (la build di produzione la rifà nell'immagine Docker).
 - **Niente Docker per sviluppare**: `php -S` con un router che serve i file
   statici, SQLite su file, email col trasporto `log` (file `.eml` in
   `var/mail/`). Docker serve solo per la produzione.
 - **Browser**: Playwright con Chromium per le verifiche dell'interfaccia
   (in Claude Code web di solito in `/opt/pw-browsers/`).
+- **Cliente di prova**: `php bin/dev-customer.php email 'password' [paese]`
+  (solo con `APP_ENV=development`).
 - **Mai** `WTB_MODE=live` e mai la chiave reale in una sessione di sviluppo.
 
 ## Deploy (VPS del titolare)
 
-Stesso schema di scs-b2b, stack separato:
+Stesso schema di scs-b2b, stack separato (`docker-compose.yml`,
+`docker/php/Dockerfile` con i target `app` e `web`, `docker/nginx/default.conf`):
 
 - Servizi: `web` (nginx, document root `public/`), `php` (php-fpm 8.3),
   `scheduler` (php cli). Volume `data` montato su `var/` (database, cache
@@ -173,6 +207,14 @@ Stesso schema di scs-b2b, stack separato:
 - L'endpoint `/webhooks/wtb` deve essere raggiungibile da internet.
 - README con: setup, build, deploy, rotazione chiavi, passaggio test → live,
   backup e ripristino.
+
+## Testi e lingue
+
+Tutti i testi stanno in `lang/`: `it.php` è la fonte, `en.php` ha le stesse
+chiavi (un test lo verifica, insieme ai parametri `:nome`). L'area admin è
+solo in italiano: i suoi testi stanno in `lang/it.php` sotto `admin.*` e non
+hanno la versione inglese (ricadono sull'italiano). Le etichette delle
+impostazioni stanno nel registro (`src/Settings/Registry.php`).
 
 ## Identità visiva
 

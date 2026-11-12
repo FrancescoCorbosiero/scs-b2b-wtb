@@ -1,0 +1,29 @@
+{# Campi di una regola margine (nuova o esistente). r = regola o null; v = valore per il campo. #}
+<div class="grid gap-2 md:grid-cols-[5rem,10rem,1fr,9rem,9rem,10rem,7rem] items-end">
+  <label class="field"><span class="label text-xs">{{ t('admin.margins.priority') }}</span>
+    <input class="input" name="priority" inputmode="numeric" value="{{ r ? r.priority : old('priority', '100') }}"></label>
+  <label class="field"><span class="label text-xs">{{ t('admin.margins.match_type') }}</span>
+    <select class="input" name="match_type">
+      {% for k in ['sku', 'brand', 'name', 'line', 'gender', 'category', 'size_category'] %}<option value="{{ k }}" {{ (r ? r.matchType : old('match_type', 'brand')) == k ? 'selected' }}>{{ t('admin.margins.types.' ~ k) }}</option>{% endfor %}
+    </select></label>
+  <label class="field"><span class="label text-xs">{{ t('admin.margins.match_value') }}</span>
+    <input class="input" name="match_value" value="{{ r ? r.matchValue : old('match_value') }}" placeholder="{{ t('admin.margins.match_value_hint') }}"></label>
+  <label class="field"><span class="label text-xs">{{ t('admin.margins.regime') }}</span>
+    <select class="input" name="regime">
+      <option value="">{{ t('common.all') }}</option>
+      {% for k in ['margin', 'ordinary'] %}<option value="{{ k }}" {{ (r ? r.regime : old('regime')) == k ? 'selected' }}>{{ t('catalog.regime.' ~ k) }}</option>{% endfor %}
+    </select></label>
+  <label class="field"><span class="label text-xs">{{ t('admin.margins.stock_type') }}</span>
+    <select class="input" name="stock_type">
+      <option value="">{{ t('common.all') }}</option>
+      {% for k in ['immediate', 'extended'] %}<option value="{{ k }}" {{ (r ? r.stockType : old('stock_type')) == k ? 'selected' }}>{{ t('product.' ~ k) }}</option>{% endfor %}
+    </select></label>
+  <label class="field"><span class="label text-xs">{{ t('admin.margins.margin_type') }}</span>
+    <select class="input" name="margin_type">
+      {% for k in ['percent', 'fixed', 'fixed_price'] %}<option value="{{ k }}" {{ (r ? r.marginType : old('margin_type', 'percent')) == k ? 'selected' }}>{{ t('admin.margins.margin_types.' ~ k) }}</option>{% endfor %}
+    </select></label>
+  <label class="field"><span class="label text-xs">{{ t('admin.margins.value') }}</span>
+    <input class="input" name="margin_value" value="{{ r ? v : old('margin_value') }}" placeholder="7,5"></label>
+</div>
+<label class="field mt-2 block"><span class="label text-xs">{{ t('admin.margins.note') }}</span>
+  <input class="input" name="note" maxlength="500" value="{{ r ? r.note : old('note') }}"></label>

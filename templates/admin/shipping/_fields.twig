@@ -1,0 +1,30 @@
+{#- Campi di una zona di spedizione (modifica e nuova zona). -#}
+{% set id = z ? z.zone : 'new' %}
+<div>
+  <label class="label" for="name-it-{{ id }}">{{ t('admin.shipping.name_it') }}</label>
+  <input class="input" id="name-it-{{ id }}" name="name_it" required maxlength="60" value="{{ z ? z.name_it : '' }}">
+</div>
+<div>
+  <label class="label" for="name-en-{{ id }}">{{ t('admin.shipping.name_en') }}</label>
+  <input class="input" id="name-en-{{ id }}" name="name_en" required maxlength="60" value="{{ z ? z.name_en : '' }}">
+</div>
+<div>
+  <label class="label" for="fee-{{ id }}">{{ t('admin.shipping.fee') }}</label>
+  <input class="input" id="fee-{{ id }}" name="fee" required inputmode="decimal" value="{{ z ? z.fee_cents|money_input : '' }}">
+</div>
+<div>
+  <label class="label" for="free-{{ id }}">{{ t('admin.shipping.free_from') }}</label>
+  <input class="input" id="free-{{ id }}" name="free_from_items" inputmode="numeric" placeholder="{{ t('admin.shipping.never') }}" value="{{ z and z.free_from_items ? z.free_from_items : '' }}">
+</div>
+<div>
+  <label class="label" for="tmin-{{ id }}">{{ t('admin.shipping.transit_min') }}</label>
+  <input class="input" id="tmin-{{ id }}" name="transit_days_min" required inputmode="numeric" value="{{ z ? z.transit_days_min : '2' }}">
+</div>
+<div>
+  <label class="label" for="tmax-{{ id }}">{{ t('admin.shipping.transit_max') }}</label>
+  <input class="input" id="tmax-{{ id }}" name="transit_days_max" required inputmode="numeric" value="{{ z ? z.transit_days_max : '4' }}">
+</div>
+<div>
+  <label class="label" for="sort-{{ id }}">{{ t('admin.shipping.sort') }}</label>
+  <input class="input" id="sort-{{ id }}" name="sort_order" inputmode="numeric" value="{{ z ? z.sort_order : '100' }}">
+</div>

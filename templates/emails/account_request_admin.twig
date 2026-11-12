@@ -1,0 +1,24 @@
+{% extends 'emails/layout.twig' %}
+{% block subject %}{{ t('admin.emails.request.subject', {company: request.company}) }}{% endblock %}
+{% block body %}
+  <p>{{ t('admin.emails.request.intro') }}</p>
+  <table role="presentation" cellpadding="4" cellspacing="0" style="font-size:14px;">
+    {% for field in ['company', 'vat_number', 'name', 'email', 'phone', 'address_street', 'address_zip', 'address_city', 'address_province'] %}
+      <tr><td style="color:#6b665e;">{{ t('fields.' ~ field) }}</td><td><strong>{{ attribute(request, field) }}</strong></td></tr>
+    {% endfor %}
+    <tr><td style="color:#6b665e;">{{ t('fields.country_code') }}</td><td><strong>{{ country_name(request.country_code) }}</strong></td></tr>
+    {% if request.notes %}<tr><td style="color:#6b665e;">{{ t('fields.notes') }}</td><td>{{ request.notes }}</td></tr>{% endif %}
+  </table>
+  {% include 'emails/_button.twig' with {href: link, label: t('admin.emails.request.button')} only %}
+{% endblock %}
+{% block footer_note %}{{ t('admin.emails.footer') }}{% endblock %}
+{% block text %}
+{{ t('admin.emails.request.intro') }}
+
+{{ request.company }} · {{ request.vat_number }}
+{{ request.name }} · {{ request.email }} · {{ request.phone }}
+{{ request.address_street }}, {{ request.address_zip }} {{ request.address_city }} {{ request.address_province }} ({{ request.country_code }})
+{{ request.notes }}
+
+{{ link }}
+{% endblock %}

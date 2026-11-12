@@ -1,0 +1,35 @@
+{% extends 'emails/layout.twig' %}
+{#- Spedizione al cliente: solo corriere, numero e link di corrieri ammessi (tracking già filtrato). -#}
+{% block subject %}{{ t(update ? 'emails.order_shipped.subject_update' : 'emails.order_shipped.subject', {id: order.id, site: setting('company.site_name')}) }}{% endblock %}
+{% block body %}
+  <p>{{ t('emails.greeting', {name: order.contact_name}) }}</p>
+  <p>{{ t(update ? 'emails.order_shipped.intro_update' : 'emails.order_shipped.intro', {id: order.id}) }}</p>
+  {% if tracking is not empty %}
+    <p>{{ t('emails.order_shipped.tracking_intro') }}</p>
+    <table role="presentation" width="100%" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-size:14px;margin:0 0 12px;">
+      {% for tr in tracking %}
+        <tr style="border-bottom:1px solid #e4dfd6;">
+          <td>{% if tr.carrier %}<strong>{{ tr.carrier }}</strong> · {% endif %}<code>{{ tr.number }}</code></td>
+          <td align="right">{% if tr.url %}<a href="{{ tr.url }}" style="color:#c8102e;">{{ t('emails.order_shipped.track') }}</a>{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>{{ t('emails.order_shipped.no_tracking') }}</p>
+  {% endif %}
+  <p>{{ t('emails.order_shipped.address', {address: order.ship_name ~ ', ' ~ order.ship_street ~ ', ' ~ order.ship_zip ~ ' ' ~ order.ship_city}) }}</p>
+  {% include 'emails/_button.twig' with {href: link, label: t('emails.order_received.button')} only %}
+{% endblock %}
+{% block text %}
+{{ t('emails.greeting', {name: order.contact_name}) }}
+
+{{ t(update ? 'emails.order_shipped.intro_update' : 'emails.order_shipped.intro', {id: order.id}) }}
+{% for tr in tracking %}
+- {% if tr.carrier %}{{ tr.carrier }} · {% endif %}{{ tr.number }}{% if tr.url %} · {{ tr.url }}{% endif %}
+
+{% else %}
+{{ t('emails.order_shipped.no_tracking') }}
+{% endfor %}
+
+{{ link }}
+{% endblock %}

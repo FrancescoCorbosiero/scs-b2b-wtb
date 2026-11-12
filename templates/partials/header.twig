@@ -1,0 +1,61 @@
+{% set _customer = ctx.customer %}
+<header class="site-header">
+  <div class="container-page flex items-center justify-between gap-4 h-16">
+    <a href="/" class="brand">{{ setting('company.site_name') }}</a>
+    <nav class="hidden lg:flex items-center gap-6 text-sm font-medium" aria-label="{{ t('common.menu') }}">
+      {% if _customer %}
+        <a href="/catalogo" class="nav-link {{ path_is('/catalogo') ? 'is-active' }}">{{ t('nav.catalog') }}</a>
+      {% else %}
+        <a href="/vetrina" class="nav-link {{ path_is('/vetrina') ? 'is-active' }}">{{ t('nav.showcase') }}</a>
+      {% endif %}
+      <a href="/come-ordinare" class="nav-link {{ path_is('/come-ordinare') ? 'is-active' }}">{{ t('nav.how') }}</a>
+      <a href="/spedizioni" class="nav-link {{ path_is('/spedizioni') ? 'is-active' }}">{{ t('nav.shipping') }}</a>
+      <a href="/contatti" class="nav-link {{ path_is('/contatti') ? 'is-active' }}">{{ t('nav.contacts') }}</a>
+    </nav>
+    <div class="flex items-center gap-3">
+      <div class="hidden sm:flex items-center gap-1 text-xs font-semibold" aria-label="{{ t('common.language') }}">
+        {% for l in locales %}
+          <a href="{{ lang_url(l) }}" class="lang-link {{ locale() == l ? 'is-active' }}" hreflang="{{ l }}" lang="{{ l }}">{{ l|upper }}</a>
+        {% endfor %}
+      </div>
+      {% if _customer %}
+        <a href="/carrello" class="btn btn-ghost btn-sm" data-cart-link>{{ t('nav.cart') }}{% if ctx.cartCount > 0 %} <span class="badge badge-ink" data-cart-count>{{ ctx.cartCount }}</span>{% endif %}</a>
+        <details class="dropdown hidden lg:block">
+          <summary class="btn btn-ghost btn-sm">{{ t('nav.reserved_area') }}</summary>
+          <div class="dropdown-panel">
+            <a href="/account" class="dropdown-item">{{ t('nav.account') }}</a>
+            <a href="/account/ordini" class="dropdown-item">{{ t('nav.orders') }}</a>
+            <form method="post" action="/logout">{{ csrf_field() }}<button type="submit" class="dropdown-item w-full text-left">{{ t('nav.logout') }}</button></form>
+          </div>
+        </details>
+      {% else %}
+        <a href="/login" class="btn btn-ghost btn-sm hidden sm:inline-flex">{{ t('nav.login') }}</a>
+        <a href="/richiedi-accesso" class="btn btn-primary btn-sm hidden sm:inline-flex">{{ t('nav.request') }}</a>
+      {% endif %}
+      <details class="mobile-menu lg:hidden">
+        <summary class="btn btn-ghost btn-sm" aria-label="{{ t('common.menu') }}">☰</summary>
+        <div class="mobile-menu-panel">
+          {% if _customer %}
+            <a href="/catalogo">{{ t('nav.catalog') }}</a>
+            <a href="/carrello">{{ t('nav.cart') }}</a>
+            <a href="/account">{{ t('nav.account') }}</a>
+            <a href="/account/ordini">{{ t('nav.orders') }}</a>
+          {% else %}
+            <a href="/vetrina">{{ t('nav.showcase') }}</a>
+            <a href="/login">{{ t('nav.login') }}</a>
+            <a href="/richiedi-accesso">{{ t('nav.request') }}</a>
+          {% endif %}
+          <a href="/come-ordinare">{{ t('nav.how') }}</a>
+          <a href="/spedizioni">{{ t('nav.shipping') }}</a>
+          <a href="/contatti">{{ t('nav.contacts') }}</a>
+          <div class="flex gap-3 pt-2">
+            {% for l in locales %}<a href="{{ lang_url(l) }}" class="lang-link {{ locale() == l ? 'is-active' }}" hreflang="{{ l }}">{{ l|upper }}</a>{% endfor %}
+          </div>
+          {% if _customer %}
+            <form method="post" action="/logout">{{ csrf_field() }}<button type="submit" class="text-left">{{ t('nav.logout') }}</button></form>
+          {% endif %}
+        </div>
+      </details>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,51 @@
+{% extends 'admin/layout.twig' %}
+{% import 'partials/forms.twig' as f %}
+{% set c = customer %}
+{% block title %}{{ c ? c.company : t('admin.customers.new') }}{% endblock %}
+{% block content %}
+  <p class="mb-2"><a href="/admin/clienti" class="link text-sm">← {{ t('admin.customers.title') }}</a></p>
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+    <h1 class="h1">{{ c ? c.company : t('admin.customers.new') }}</h1>
+    {% if c %}
+      <div class="flex flex-wrap gap-2">
+        {% if c.is_active and not c.has_password %}
+          <form method="post" action="/admin/clienti/{{ c.id }}/invito">{{ csrf_field() }}<button class="btn btn-ghost" type="submit">{{ t('admin.customers.resend_invite') }}</button></form>
+        {% elseif c.is_active %}
+          <form method="post" action="/admin/clienti/{{ c.id }}/reset">{{ csrf_field() }}<button class="btn btn-ghost" type="submit">{{ t('admin.customers.send_reset') }}</button></form>
+        {% endif %}
+        <form method="post" action="/admin/clienti/{{ c.id }}/stato" data-confirm="{{ c.is_active ? t('admin.customers.confirm_deactivate') : t('admin.customers.confirm_activate') }}">
+          {{ csrf_field() }}
+          <button class="btn {{ c.is_active ? 'btn-danger' : 'btn-ghost' }}" type="submit">{{ c.is_active ? t('admin.customers.deactivate') : t('admin.customers.activate') }}</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+  {% if c %}
+    <p class="text-sm text-muted mb-4">
+      {% if not c.is_active %}{{ t('admin.customers.status.inactive') }}{% elseif not c.has_password %}{{ t('admin.customers.status.invited') }}{% else %}{{ t('admin.customers.status.active') }}{% endif %}
+      · {{ t('admin.customers.created') }} {{ c.created_at|local_datetime }}
+      {% if c.last_login_at %} · {{ t('admin.customers.last_login') }} {{ c.last_login_at|local_datetime }}{% endif %}
+    </p>
+  {% endif %}
+  <form method="post" action="{{ c ? '/admin/clienti/' ~ c.id : '/admin/clienti' }}" class="card space-y-4 max-w-4xl">
+    {{ csrf_field() }}
+    <div class="grid gap-4 md:grid-cols-2">
+      {{ f.input('company', t('fields.company'), c.company ?? '', 'text', {required: true}) }}
+      {{ f.input('vat_number', t('fields.vat_number'), c.vat_number ?? '', 'text', {required: true}) }}
+      {{ f.input('name', t('fields.name'), c.name ?? '', 'text', {required: true}) }}
+      {{ f.input('email', t('fields.email'), c.email ?? '', 'email', {required: true}) }}
+      {{ f.input('phone', t('fields.phone'), c.phone ?? '', 'tel', {required: true}) }}
+      {{ f.select('country_code', t('fields.country_code'), country_options(), c.country_code ?? 'IT', {required: true}) }}
+      {{ f.input('address_street', t('fields.address_street'), c.address_street ?? '', 'text', {required: true}) }}
+      {{ f.input('address_city', t('fields.address_city'), c.address_city ?? '', 'text', {required: true}) }}
+      {{ f.input('address_zip', t('fields.address_zip'), c.address_zip ?? '', 'text', {required: true}) }}
+      {{ f.input('address_province', t('fields.address_province'), c.address_province ?? '', 'text', {hint: t('fields.address_province_hint')}) }}
+      {{ f.select('locale', t('fields.locale'), {it: t('common.lang_it'), en: t('common.lang_en')}, c.locale ?? 'it') }}
+    </div>
+    {{ f.textarea('admin_notes', t('admin.customers.notes'), c.admin_notes ?? '', {rows: 3}) }}
+    <div class="flex flex-wrap items-center gap-3">
+      <button type="submit" class="btn btn-primary">{{ c ? t('common.save') : t('admin.customers.create_and_invite') }}</button>
+      {% if not c %}<p class="text-sm text-muted">{{ t('admin.customers.invite_hint') }}</p>{% endif %}
+    </div>
+  </form>
+{% endblock %}

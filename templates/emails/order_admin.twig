@@ -1,0 +1,30 @@
+{% extends 'emails/layout.twig' %}
+{% block subject %}{{ t('admin.emails.order.subject', {id: order.id, company: order.company, total: money(order.total_cents)}) }}{% endblock %}
+{% block body %}
+  <p>{{ t('admin.emails.order.intro', {id: order.id, mode: order.mode|upper}) }}</p>
+  {% if order.quote_unverified %}<p style="color:#c8102e;font-weight:bold;">{{ t('admin.orders.quote_unverified') }}</p>{% endif %}
+  {% if order.notes %}<p><strong>{{ t('admin.orders.customer_notes') }}:</strong> {{ order.notes }}</p>{% endif %}
+  <p>{{ order.company }} · {{ order.vat_number }} · {{ order.contact_name }} · {{ order.email }} · {{ order.phone }}<br>
+     {{ t('checkout.shipping_to') }}: {{ order.ship_name }}, {{ order.ship_street }}, {{ order.ship_zip }} {{ order.ship_city }} ({{ order.ship_country }})</p>
+  <table role="presentation" width="100%" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:13px;">
+    <tr style="background:#f5f2ec;"><th align="left">{{ t('orders.item') }}</th><th align="left">{{ t('orders.tiers') }}</th><th align="right">{{ t('admin.products.sale') }}</th><th align="right">{{ t('admin.products.cost') }}</th></tr>
+    {% for l in lines %}
+      <tr style="border-bottom:1px solid #e4dfd6;">
+        <td>{{ l.name }} · EU {{ l.size_eu }} · {{ t('catalog.regime.' ~ l.vat_regime) }}<br><span style="color:#6b665e;">{{ l.sku }} · #{{ l.wtb_variant_id }}</span></td>
+        <td>{% if l.qty_immediate > 0 %}{{ l.qty_immediate }} × {{ money(l.unit_price_immediate_cents) }} <span style="color:#6b665e;">({{ t('admin.products.cost')|lower }} {{ money(l.unit_cost_immediate_cents) }})</span><br>{% endif %}{% if l.qty_extended > 0 %}{{ l.qty_extended }} × {{ money(l.unit_price_extended_cents) }} <span style="color:#6b665e;">({{ t('product.extended')|lower }}, {{ t('admin.products.cost')|lower }} {{ money(l.unit_cost_extended_cents) }})</span>{% endif %}</td>
+        <td align="right">{{ money(l.line_total_cents) }}</td>
+        <td align="right">{{ money(l.qty_immediate * (l.unit_cost_immediate_cents ?? 0) + l.qty_extended * (l.unit_cost_extended_cents ?? 0)) }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+  <p>{{ t('orders.total') }}: <strong>{{ money(order.total_cents) }}</strong> ({{ t('admin.orders.shipping_collected') }} {{ money(order.shipping_cents) }}, {{ t('cart.vat') }} {{ money(order.vat_cents) }})<br>
+     {{ t('admin.orders.goods_cost') }}: {{ money(order.expected_cost_cents) }} · {{ t('admin.orders.shipping_cost') }}: {{ order.wtb_shipping_cost_cents is null ? '—' : money(order.wtb_shipping_cost_cents) }}</p>
+  {% if quote %}<p style="font-size:12px;color:#6b665e;">{{ t('admin.orders.quote_title') }}: {{ quote.subtotal ?? '' }} + {{ quote.shipping_total ?? '' }} + IVA {{ quote.vat ?? '' }} = {{ quote.total ?? '' }}</p>{% endif %}
+  {% include 'emails/_button.twig' with {href: link, label: t('admin.emails.order.button')} only %}
+{% endblock %}
+{% block footer_note %}{{ t('admin.emails.footer') }}{% endblock %}
+{% block text %}
+{{ t('admin.emails.order.intro', {id: order.id, mode: order.mode|upper}) }}
+{{ order.company }} · {{ money(order.total_cents) }}
+{{ link }}
+{% endblock %}

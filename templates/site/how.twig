@@ -1,0 +1,26 @@
+{% extends 'layout/base.twig' %}
+{% block title %}{{ t('how.title') }} · {{ parent() }}{% endblock %}
+{% block description %}{{ t('how.lead', {min: min_items}) }}{% endblock %}
+{% block content %}
+  <section class="container-page py-12 space-y-8 max-w-4xl">
+    <div class="space-y-3">
+      <h1 class="h1">{{ t('how.title') }}</h1>
+      <p class="text-lg text-muted">{{ t('how.lead', {min: min_items}) }}</p>
+    </div>
+    <ol class="space-y-4">
+      {% for i in 1..5 %}
+        <li class="card flex gap-4">
+          <span class="step-number">{{ i }}</span>
+          <div class="space-y-1">
+            <h2 class="h3">{{ t('how.steps.' ~ i ~ '.title') }}</h2>
+            <p class="text-muted">{{ t('how.steps.' ~ i ~ '.text', {min: min_items}) }}</p>
+          </div>
+        </li>
+      {% endfor %}
+    </ol>
+    <div class="flex flex-wrap gap-3">
+      <a href="/richiedi-accesso" class="btn btn-primary">{{ t('nav.request') }}</a>
+      <a href="/vetrina" class="btn btn-ghost">{{ t('home.cta_showcase') }}</a>
+    </div>
+  </section>
+{% endblock %}

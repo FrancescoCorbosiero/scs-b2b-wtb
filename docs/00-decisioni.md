@@ -170,3 +170,18 @@ Formato:
 - Come si torna indietro: rendere il repository privato dalle impostazioni
   GitHub; la regola sui dati reali conviene mantenerla comunque (ciò che è
   stato pubblicato può essere già stato copiato).
+
+### D-017 · 12/11/2026 · Esauriti visibili per 30 giorni *(default)*
+- Decisione: un prodotto che sparisce dal feed di WTB resta in catalogo come
+  "esaurito" (in fondo alla griglia, senza CTA) per `catalog.sold_out_days`
+  giorni (default 30) dall'ultima volta che è comparso; poi diventa inattivo.
+  Il controllo sul calo del catalogo (`WTB_SYNC_MAX_DROP_PERCENT`) confronta
+  il feed nuovo con quello precedente.
+- Perché: in M0 si è visto che WTB toglie dal feed i prodotti esauriti invece
+  di elencarli con disponibilità 0; con la regola originale ("assente ⇒
+  inattivo") gli esauriti sparirebbero al sync successivo, mentre docs/07
+  chiede che restino visibili.
+- Dove vive: impostazione `catalog.sold_out_days`, `ProductSync`
+  (docs/03 § Sync completo).
+- Come si torna indietro: `catalog.sold_out_days = 0` (assente dal feed ⇒
+  subito inattivo, la regola originale).

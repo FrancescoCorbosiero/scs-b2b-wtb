@@ -1,0 +1,33 @@
+{% extends 'layout/base.twig' %}
+{% block title %}{{ t('contacts.title') }} · {{ parent() }}{% endblock %}
+{% block content %}
+  <section class="container-page py-12 space-y-6 max-w-4xl">
+    <h1 class="h1">{{ t('contacts.title') }}</h1>
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="card space-y-3">
+        <h2 class="h3">{{ t('contacts.write_us') }}</h2>
+        <p><a class="link" href="mailto:{{ setting('company.email') }}">{{ setting('company.email') }}</a></p>
+        <p><a class="link" href="tel:{{ setting('company.phone')|replace({' ': ''}) }}">{{ setting('company.phone') }}</a></p>
+        {% if whatsapp_url() %}<p><a class="btn btn-primary" href="{{ whatsapp_url() }}" rel="noopener">{{ t('common.whatsapp') }}</a></p>{% endif %}
+      </div>
+      <div class="card space-y-1">
+        <h2 class="h3 mb-2">{{ t('footer.company') }}</h2>
+        <p>{{ setting('company.name') }}</p>
+        <p class="text-muted">{{ setting('company.address') }}</p>
+        <p class="text-muted">{{ t('footer.vat', {vat: setting('company.vat')}) }}</p>
+      </div>
+      {% if bank.iban %}
+        <div class="card space-y-2 md:col-span-2">
+          <h2 class="h3">{{ t('contacts.bank_title') }}</h2>
+          <p class="text-sm text-muted">{{ t('contacts.bank_text') }}</p>
+          <dl class="dl">
+            <dt>{{ t('bank.holder') }}</dt><dd>{{ bank.holder }}</dd>
+            {% if bank.bank %}<dt>{{ t('bank.bank') }}</dt><dd>{{ bank.bank }}</dd>{% endif %}
+            <dt>IBAN</dt><dd><code>{{ bank.iban }}</code></dd>
+            {% if bank.bic %}<dt>BIC/SWIFT</dt><dd><code>{{ bank.bic }}</code></dd>{% endif %}
+          </dl>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

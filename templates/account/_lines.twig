@@ -1,0 +1,26 @@
+{# Righe dell'ordine divise per regime, con la loro dicitura (docs/04). Solo prezzi di vendita. #}
+{% for block in [{key: 'margin', lines: order.lines_margin}, {key: 'ordinary', lines: order.lines_ordinary}] %}
+  {% if block.lines is not empty %}
+    <div class="space-y-2">
+      <h3 class="font-semibold">{{ t('orders.block_' ~ block.key) }}</h3>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>{{ t('orders.item') }}</th><th>{{ t('product.size') }}</th><th>{{ t('orders.tiers') }}</th><th class="num">{{ t('cart.total') }}</th></tr></thead>
+          <tbody>
+            {% for l in block.lines %}
+              <tr>
+                <td><span class="font-semibold">{{ l.name }}</span><span class="block text-xs text-muted">SKU {{ l.sku }}{% if l.ean %} · EAN {{ l.ean }}{% endif %}</span></td>
+                <td class="whitespace-nowrap">EU {{ l.size_eu }}{% if l.size_us %}<span class="block text-xs text-muted">US {{ l.size_us }}</span>{% endif %}</td>
+                <td class="text-sm">
+                  {% if l.qty_immediate > 0 %}<span class="block">{{ l.qty_immediate }} × {{ money(l.unit_price_immediate_cents) }} · {{ t('product.immediate')|lower }}</span>{% endif %}
+                  {% if l.qty_extended > 0 %}<span class="block">{{ l.qty_extended }} × {{ money(l.unit_price_extended_cents) }} · {{ t('product.extended')|lower }}</span>{% endif %}
+                </td>
+                <td class="num">{{ money(l.line_total_cents) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+{% endfor %}

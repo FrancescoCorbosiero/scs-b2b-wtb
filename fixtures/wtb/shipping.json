@@ -1,0 +1,48 @@
+{
+  "profile": "retail",
+  "currency": "EUR",
+  "extended_stock_transport": {
+    "by_pieces": [
+      {"pieces": 1, "amount": "8.40"},
+      {"pieces": 2, "amount": "11.70"},
+      {"pieces": 3, "amount": "13.90"},
+      {"pieces": 4, "amount": "13.90"},
+      {"pieces": 5, "amount": "13.90"}
+    ],
+    "free_from_pieces": 6
+  },
+  "zones": [
+    {
+      "name": "Zona Italia",
+      "countries": ["IT", "SM", "VA"],
+      "first_piece": "9.30",
+      "each_additional_piece": "2.40",
+      "failed_delivery_fee": "12.00",
+      "duties_paid_by_recipient": false
+    },
+    {
+      "name": "Zona UE A",
+      "countries": ["AT", "BE", "DE", "ES", "FR", "LU", "MC", "NL", "PT", "SI"],
+      "first_piece": "16.20",
+      "each_additional_piece": "3.80",
+      "failed_delivery_fee": "18.00",
+      "duties_paid_by_recipient": false
+    },
+    {
+      "name": "Zona UE B",
+      "countries": ["BG", "CY", "CZ", "DK", "EE", "FI", "GR", "HR", "HU", "IE", "LT", "LV", "MT", "PL", "RO", "SE", "SK"],
+      "first_piece": "21.40",
+      "each_additional_piece": "4.60",
+      "failed_delivery_fee": "18.00",
+      "duties_paid_by_recipient": false
+    },
+    {
+      "name": "Zona Extra UE",
+      "countries": ["CH", "GB", "LI", "NO"],
+      "first_piece": "29.10",
+      "each_additional_piece": "6.30",
+      "failed_delivery_fee": "24.00",
+      "duties_paid_by_recipient": true
+    }
+  ]
+}

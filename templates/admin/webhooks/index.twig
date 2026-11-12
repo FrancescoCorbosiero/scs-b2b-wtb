@@ -1,0 +1,66 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ t('admin.webhooks.title') }}{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-2">
+    <h1 class="h1">{{ t('admin.webhooks.title') }}</h1>
+    <span class="badge badge-muted">{{ mode|upper }}</span>
+  </div>
+  <p class="text-sm text-muted mb-4">{{ t('admin.webhooks.intro') }}</p>
+  <div class="space-y-2 mb-6">
+    {% if not configured %}<p class="alert alert-warning">{{ t('admin.webhooks.no_secret') }}</p>{% endif %}
+    <p class="text-sm">{{ last_ping ? t('admin.webhooks.last_ping', {date: last_ping|local_datetime}) : t('admin.webhooks.no_ping') }}</p>
+  </div>
+
+  {% if can_simulate %}
+    <section class="card space-y-3 mb-6" aria-labelledby="simulate-title">
+      <h2 class="h3" id="simulate-title">{{ t('admin.webhooks.simulate_title') }}</h2>
+      <p class="text-sm text-muted">{{ t('admin.webhooks.simulate_text') }}</p>
+      <form method="post" action="/admin/webhook/simula" class="flex flex-wrap items-end gap-3">
+        {{ csrf_field() }}
+        <div>
+          <label class="label" for="sim-event">{{ t('admin.webhooks.event') }}</label>
+          <select class="input w-auto" id="sim-event" name="event">
+            {% for e in event_names %}<option value="{{ e }}">{{ e }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="label" for="sim-reference">{{ t('admin.supplier.reference') }}</label>
+          <input class="input w-56" id="sim-reference" name="reference" list="sim-references" value="{{ references|first ?: '' }}" maxlength="60">
+          <datalist id="sim-references">{% for r in references %}<option value="{{ r }}"></option>{% endfor %}</datalist>
+        </div>
+        <button type="submit" class="btn btn-primary" {{ configured ? '' : 'disabled' }}>{{ t('admin.webhooks.simulate_submit') }}</button>
+      </form>
+    </section>
+  {% endif %}
+
+  <nav class="flex flex-wrap gap-1 text-sm mb-4">
+    <a href="/admin/webhook" class="lang-link {{ outcome == '' ? 'is-active' }}">{{ t('admin.orders.status.all') }}</a>
+    {% for o in outcomes %}
+      <a href="/admin/webhook?esito={{ o }}" class="lang-link {{ outcome == o ? 'is-active' }}">{{ t('admin.webhooks.outcomes.' ~ o) }}</a>
+    {% endfor %}
+  </nav>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>{{ t('admin.webhooks.received') }}</th><th>{{ t('admin.webhooks.event') }}</th><th>{{ t('admin.webhooks.outcome') }}</th><th>{{ t('admin.supplier.reference') }}</th><th>{{ t('admin.webhooks.delivery') }}</th></tr></thead>
+      <tbody>
+        {% for e in events %}
+          <tr>
+            <td class="whitespace-nowrap">{{ e.received_at|local_datetime }}</td>
+            <td><code>{{ e.event }}</code>{% if e.simulated %} <span class="badge badge-muted">{{ t('admin.webhooks.simulated_badge') }}</span>{% endif %}</td>
+            <td>
+              <span class="badge {{ e.outcome in ['error', 'unknown_order'] ? 'badge-danger' : (e.outcome in ['applied', 'ping'] ? 'badge-ok' : 'badge-muted') }}">{{ t('admin.webhooks.outcomes.' ~ (e.outcome ?: 'pending')) }}</span>
+              {% if e.error %}<span class="block text-xs text-accent">{{ e.error }}</span>{% endif %}
+            </td>
+            <td>{% if e.order_id %}<a class="link" href="/admin/ordini/{{ e.order_id }}#fornitore">{{ e.reference }}</a>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            <td class="text-xs">
+              <code>{{ e.delivery_id }}</code>
+              <details><summary class="cursor-pointer">{{ t('admin.webhooks.payload') }}</summary><pre class="text-xs whitespace-pre-wrap break-all max-w-xl">{{ e.payload|slice(0, 4000) }}</pre></details>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-muted">{{ t('admin.webhooks.none') }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

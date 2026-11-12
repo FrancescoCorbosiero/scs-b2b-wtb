@@ -1,0 +1,46 @@
+{# Taglie × regimi con le fasce (pronta consegna, poi stock esteso). Con i prezzi: quantità per taglia e "Aggiungi al carrello". #}
+{% set in_cart = cart_items ?? {} %}
+{% if show_prices %}<form method="post" action="/carrello/aggiungi" data-qty-form>{{ csrf_field() }}{% endif %}
+<div class="table-wrap">
+  <table class="table units-table">
+    <thead><tr>
+      <th>{{ t('product.size') }} ({{ size_system|upper }})</th>
+      <th>{{ t('product.tiers') }}</th>
+      {% if show_prices %}<th class="text-right">{{ t('cart.quantity') }}</th>{% endif %}
+    </tr></thead>
+    <tbody>
+      {% for u in product.units %}
+        <tr>
+          <td class="whitespace-nowrap">
+            <span class="font-semibold text-base">{{ u.size }}</span>
+            {% if size_system != 'eu' %}<span class="block text-xs text-muted">EU {{ u.size_eu }}</span>{% endif %}
+            <span class="block text-xs {{ u.regime == 'margin' ? 'text-muted' : 'text-warn' }}">{{ t('catalog.regime_label.' ~ u.regime) }}</span>
+          </td>
+          <td>
+            <ul class="space-y-1 text-sm">
+              {% for tier in u.tiers %}
+                <li>
+                  <span class="badge {{ tier.stock_type == 'immediate' ? 'badge-ok' : 'badge-muted' }}">{{ t('product.' ~ tier.stock_type) }}</span>
+                  {{ tc('product.pairs_available', tier.available) }}{% if tier.price is not null %} × <strong>{{ money(tier.price) }}</strong>{% endif %}
+                  <span class="text-muted">· {{ t('product.ships', {days: tier.ships_in_days}) }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          </td>
+          {% if show_prices %}
+            <td class="text-right">
+              {% include 'partials/_stepper.twig' with {key: u.key, max: u.max, value: in_cart[u.key] ?? 0, tiers: u.tiers} only %}
+            </td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if show_prices %}
+  <div class="flex flex-wrap items-center justify-between gap-3 pt-3">
+    <p class="text-sm"><span data-form-pairs>0</span> {{ t('cart.pairs_short') }} · <strong class="price" data-form-total>—</strong></p>
+    <button type="submit" class="btn btn-primary">{{ in_cart is empty ? t('cart.add') : t('cart.update_cart') }}</button>
+  </div>
+</form>
+{% endif %}

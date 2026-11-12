@@ -31,8 +31,10 @@ vive in `src/Supplier/Wtb/` e nei job di sync.
 
 - `User-Agent` identificativo, `Accept: application/json`, timeout da `.env`.
 - **Limite**: al massimo ~100 richieste al minuto per processo (margine sotto
-  120). Su 429: attesa di `Retry-After` se presente, altrimenti 30 s, poi
-  nuovo tentativo (max 3).
+  120). Su 429: attesa di `Retry-After` se presente (M0: c'è, in secondi),
+  altrimenti 30 s, poi nuovo tentativo (max 3). Durante una richiesta del
+  cliente (preventivo al checkout) non si aspetta più di 5 s: oltre, si
+  rinuncia e vale il solo controllo locale (docs/06).
 - **Letture e preventivi** (`GET`, `POST /quote/`): fino a 2 nuovi tentativi
   con backoff su errori di rete e 5xx.
 - **Creazione ordine** (`POST /orders/`): i nuovi tentativi sono sicuri perché
@@ -80,34 +82,42 @@ vive in `src/Supplier/Wtb/` e nei job di sync.
 
 1. `GET /shipping/` → salva profilo, zone, tariffe e ordine minimo WTB
    (fotografia in `wtb_snapshots`, mostrata in `/admin/spedizione`).
-2. Scarica **tutte** le pagine di `/products/` e valida tutto in memoria.
-   Qualsiasi errore HTTP o di formato ⇒ nessuna scrittura, job in errore.
-3. Se i prodotti attivi calerebbero oltre `WTB_SYNC_MAX_DROP_PERCENT` ⇒ stop e
-   avviso in dashboard (un admin può forzare dal pannello sync).
-4. Una transazione: upsert di prodotti, varianti e offerte; prodotti assenti
-   ⇒ `is_active=0` (mai cancellati: gli ordini passati li citano); varianti
-   assenti ⇒ inattive; offerte assenti ⇒ disponibilità 0.
+2. Scarica **tutte** le pagine di `/products/` seguendo solo `has_more` (M0:
+   `count` non è affidabile e le pagine possono essere corte) e valida tutto
+   in memoria. Qualsiasi errore HTTP o di formato ⇒ nessuna scrittura, job in
+   errore.
+3. Se i prodotti del feed calerebbero oltre `WTB_SYNC_MAX_DROP_PERCENT`
+   rispetto al feed precedente ⇒ stop e avviso in dashboard (un admin può
+   forzare dal pannello sync).
+4. Una transazione: upsert di prodotti, varianti e offerte. Prodotti assenti
+   dal feed (M0: WTB toglie dal feed anche gli esauriti) ⇒ offerte a 0, il
+   prodotto resta visibile come **esaurito** per `catalog.sold_out_days`
+   giorni dall'ultima volta che è comparso, poi `is_active=0` (mai
+   cancellati: gli ordini passati li citano) (D-017). Varianti assenti da un
+   prodotto presente ⇒ inattive; offerte assenti ⇒ disponibilità 0.
 5. Ricalcolo di categoria di taglia, totali, prezzi di vendita (reprice).
 
 ## Sync rapido (`stock_sync`)
 
-1. `GET /stock/` (tutte le pagine, se paginato: da verificare in M0).
+1. `GET /stock/` (M0: non paginato, sempre tutte le righe).
 2. Aggiorna le offerte per (variante, regime, tipo di stock): disponibilità,
    costo, tempi di partenza. Solo se il payload è completo, le offerte non
    presenti delle varianti note vanno a 0.
 3. Varianti sconosciute ⇒ import mirato con `GET /products/?sku=…`; se
    fallisce, ci pensa il prossimo sync completo.
-4. Reprice delle sole offerte cambiate. Se `updated_at` non è cambiato dal
-   giro precedente, il job finisce subito.
+4. Reprice delle sole offerte cambiate. Se l'impronta (hash) del payload è
+   uguale a quella del giro precedente, il job finisce subito (M0:
+   `updated_at` è l'ora della risposta e cambia sempre).
 
 ## Categoria di taglia
 
 - `gender` = `men` / `women` / `unisex` ⇒ adulto.
-- `gender` = `kids` ⇒ **GS** se la taglia US finisce con `Y` (es. `5.5Y`),
-  **PS** se finisce con `C` (es. `10.5C`, anche toddler); in mancanza, sigle
-  nel nome (`(GS)`, `(PS)`, `(TD)`).
-- Da verificare sui dati reali in M0; il risultato alimenta filtro catalogo e
-  regole margine.
+- `gender` = `kids` ⇒ prima la sigla nel nome (`(GS)` ⇒ GS; `(PS)` o `(TD)`
+  ⇒ PS), poi il suffisso delle taglie US (`Y` ⇒ GS, `C` ⇒ PS, es. `5.5Y`,
+  `10.5C`); senza alcun segnale ⇒ GS.
+- M0: tutti i prodotti `kids` osservati hanno `(GS)` nel nome, ma non tutti
+  hanno taglie US con `Y`: per questo la sigla nel nome viene prima. Il
+  risultato alimenta filtro catalogo e regole margine.
 
 ## Immagini (D-011)
 
@@ -117,14 +127,18 @@ vive in `src/Supplier/Wtb/` e nei job di sync.
   5 MB, solo `image/*`), crea le miniature (400/800 px se GD è disponibile) e
   lo serve con cache lunga. In errore: segnaposto.
 - La chiave WTB si allega al download solo se l'host dell'immagine è quello
-  dell'API e M0 ha dimostrato che serve.
+  dell'API e `WTB_IMAGE_SEND_KEY=1`; M0 ha dimostrato che non serve (default 0).
 - Dopo ogni sync un job scarica in anticipo le immagini dei prodotti nuovi.
 
 ## Fixture e modalità test
 
 - **fixture**: un trasporto finto legge `fixtures/wtb/` (`products-page-1.json`,
-  `stock.json`, `shipping.json`, `quote.json`, `order-created.json`,
-  `order-detail.json`, `webhooks/*.json`). Le fixture partono dagli esempi di
+  `products-page-2.json`, `products-extra.json`, `stock.json`,
+  `shipping.json`, `quote.json`, `order-created.json`, `order-test.json`,
+  `order-detail.json`, `orders-list.json`, `webhooks/*.json`, `errors/*.json`,
+  `images/*.jpg`; dettagli in `fixtures/wtb/README.md`). Preventivi e ordini
+  in modalità fixture sono calcolati da un piccolo simulatore con le stesse
+  regole osservate in M0 (ripartizione, spedizione, IVA, errori). Le fixture partono dagli esempi di
   `docs/wtb-api.md`; dopo M0 riproducono la **forma** esatta delle risposte
   reali (campi, tipi, paginazione, casi limite) ma con **valori inventati**:
   prezzi, disponibilità, tariffe, ordine minimo, numeri d'ordine (D-016,
@@ -141,6 +155,12 @@ vive in `src/Supplier/Wtb/` e nei job di sync.
 - In `fixture` e `test` l'admin ha "Simula evento": costruisce un webhook
   firmato col segreto di sviluppo e lo manda al nostro endpoint, per provare
   tutto il percorso (anche da CLI: `php bin/wtb-webhook.php <evento> <ordine>`).
+  L'evento parte dalla risposta salvata dell'ordine al fornitore (o da un
+  ordine minimo se manca) con lo stato dell'evento; `order.shipped` e
+  `order.tracking_updated` aggiungono un numero di spedizione finto (`DEMO…`,
+  link di un corriere). Senza `WTB_WEBHOOK_SECRET` non si simula nulla: in
+  sviluppo basta un valore qualsiasi nel `.env`. Solo `src/Supplier/Wtb/`
+  conosce busta, intestazioni e firma (`WtbWebhooks`).
 
 ## Ricognizione M0 (con la chiave di prova)
 
@@ -162,8 +182,143 @@ Prima di scrivere codice applicativo, eseguire e annotare in § Esiti M0:
 
 ## Esiti M0
 
-_(da compilare con data, comportamenti osservati e differenze dalla
-documentazione: forma delle risposte, paginazione, host delle immagini,
-errori. **Niente valori commerciali reali** (prezzi, tariffe, disponibilità,
-ordine minimo): il repository è pubblico, quei numeri vanno al titolare in
-chat.)_
+Ricognizione del 12/11/2026 con la chiave di prova (iniettata dal proxy di
+Claude Code web). Qui solo forma e comportamenti: i valori commerciali
+(costi, tariffe, disponibilità) sono stati riferiti al titolare in chat e le
+risposte vere stanno solo in `var/wtb-captures/` (fuori da git).
+
+**Accesso**
+- API raggiungibile; senza chiave risponde 401. Risposte dietro Cloudflare,
+  `Content-Language: it`, nessuna intestazione sul limite nelle risposte 200.
+- In Claude Code web il proxy **sostituisce sempre** `X-API-Key`: anche una
+  chiave sbagliata inviata dal client diventa quella di prova. I casi 401 si
+  provano quindi solo con le fixture.
+
+**`GET /shipping/`**
+- Campi: `profile` (il nostro account è `retail`), `currency` (non
+  documentato), `zones[]` (`name`, `countries`, `first_piece`,
+  `each_additional_piece`, `failed_delivery_fee`, `duties_paid_by_recipient`),
+  `extended_stock_transport` con `by_pieces` (una voce per ogni numero di paia
+  fino alla soglia) e `free_from_pieces`.
+- Cinque zone WTB: Italia (con San Marino e Vaticano), tre zone UE con
+  tariffe diverse, una zona extra UE (CH, LI, GB, NO) con
+  `duties_paid_by_recipient: true`. Coprono tutti i paesi che serviamo, ma
+  non coincidono con le nostre tre zone: la UE è divisa in tre fasce.
+- Profilo Retailer: nessun ordine minimo nella risposta (esiste solo per
+  Wholesaler; la forma di quel campo non è osservabile con il nostro profilo).
+
+**`GET /products/`**
+- Campi come da documentazione; `content` e `images_formatted` assenti
+  (schede Retailer non attive). `page_size` di default 50; `all=1` per ora
+  non cambia nulla.
+- `count` conta anche prodotti che poi non vengono consegnati: i prodotti
+  senza paia disponibili sono tolti dalla pagina **dopo** la paginazione, per
+  cui una pagina può essere più corta di `page_size` anche con
+  `has_more: true`. Il sync segue solo `has_more`.
+- Un prodotto esaurito **sparisce** da `/products/` e da `/products/<sku>/`
+  (404 `"Product not found or not available."`): "assente dal feed" vuol dire
+  anche "esaurito", non solo "tolto dal catalogo" (vedi § Sync completo e
+  D-017).
+- `?sku=A,B` funziona; gli SKU sconosciuti sono ignorati senza errore.
+- `line` può essere una stringa vuota. `category_path` =
+  `["Sneakers", brand, linea (se c'è), genere in italiano]` (es. "Unisex",
+  "Bambino", "Donna"). `description` è testo semplice e breve, anche vuoto.
+- Generi presenti: `kids`, `unisex`, `women` (`men` è documentato ma al
+  momento assente).
+- Taglie sempre stringhe: EU con frazioni scritte `36 2/3`, `37 1/3` (spazio e
+  barra: vanno codificate negli URL e ordinate come numeri); US con suffissi
+  `Y` e `W` e a volte vuote; UK a volte vuote; `ean` al momento sempre
+  stringa vuota.
+- Ogni taglia ha una o due offerte; al momento nessuna taglia ha entrambi i
+  regimi e le offerte `ordinary` sono solo `immediate`. Il costo della pronta
+  consegna e quello dello stock esteso possono coincidere.
+- Bambino: il suffisso `Y` non basta (alcuni prodotti GS hanno taglie US senza
+  `Y`); la sigla `(GS)` nel nome c'è in tutti i prodotti `kids` osservati.
+  Nessun PS (suffisso `C`) osservato.
+- `total_available` = somma delle offerte del prodotto.
+
+**Immagini**
+- Stesso host dell'API (`b2b.wtbsnkrs.it`), percorso `/media/models/<hash>.jpg`,
+  JPEG di circa 800 px, `Cache-Control: max-age=2592000` ed `ETag`; da 1 a 8
+  immagini per prodotto.
+- Si scaricano **senza chiave**: verificato da fuori dal proxy (200
+  `image/jpeg`, stesso file ottenuto con la chiave). Il proxy immagini non
+  allega quindi mai la chiave (`WTB_IMAGE_SEND_KEY=0`).
+
+**`GET /stock/`**
+- **Non paginato**: restituisce sempre tutte le righe (`page` e `page_size`
+  ignorati) con `count`, `currency`, `updated_at`, `results`.
+- Una riga per taglia × regime × tipo di stock; le righe a 0 non compaiono:
+  il payload è completo, quindi un'offerta assente vale 0.
+- `updated_at` è l'ora in cui è stata generata la risposta (cambia a ogni
+  chiamata anche a dati identici): per saltare i giri senza novità si
+  confronta l'impronta (hash) del payload.
+
+**`POST /quote/`**
+- Righe accettate: `variant_id` + `vat_regime` ✔, `sku` + `size_eu` +
+  `vat_regime` ✔, `variant_id` senza regime (sceglie il margine). Senza
+  `ship_to` usa l'Italia.
+- Risposta: `currency`, `ship_to_country`, `pieces`, `subtotal`, `shipping`,
+  `extended_stock_transport`, `shipping_total`, `vat`, `total`, `vat_note`,
+  `lines[]` (`sku`, `size_eu`, `vat_regime`, `quantity`, `unit_price`,
+  `stock_type`): una riga per fascia.
+- La ripartizione pronta/estesa segue lo stock reale di WTB e può dare alla
+  pronta consegna **più** paia di quelle indicate da `available`. Il
+  preventivo resta la fonte della ripartizione (docs/06).
+- Spedizione: `shipping` è la tariffa di zona (primo paio + paia aggiuntive)
+  calcolata **solo sulle paia in pronta consegna**; le paia da stock esteso
+  pagano solo `extended_stock_transport` secondo `by_pieces` (gratis da
+  `free_from_pieces`), uguale per tutte le zone. Ordine tutto esteso ⇒
+  `"shipping": "0"` (senza decimali: il parser accetta entrambe le forme).
+- IVA di WTB verso di noi: aliquota ordinaria su righe `ordinary` **e su tutta
+  la spedizione** (zona + trasporto esteso) se c'è almeno una riga ordinaria;
+  ordine solo a margine ⇒ IVA 0 anche sulla spedizione. Non dipende dal paese
+  di destinazione. `vat_note` in italiano; più note unite da `" · "`.
+- Errori 400: `{"stock": ["<sku> EU <taglia> (<regime>): only N available."]}`
+  oppure `"...: not available."`; paese non servito
+  `{"ship_to": "Shipping to US is not available for retailers. Countries served: ..."}`
+  (stringa, non lista); variante inesistente ⇒ 400 con il corpo del preventivo
+  tutto `null` e `lines: []`, **senza messaggio**.
+
+**`POST /orders/` (chiave di prova)**
+- 201 con `"test": true`, `"number": "TEST"`, `"id": null`,
+  `"status": "received"` e `"payment_instructions": null` anche con
+  `bank_transfer`: la forma delle istruzioni di pagamento **non è osservabile**
+  con la chiave di prova. Le fixture usano una forma presunta (`iban`,
+  `beneficiary`, `reason`, `amount`) e il codice mostra qualunque chiave
+  arrivi.
+- Campi non documentati: `created_at`, `hand_delivery`, `test`. Le righe hanno
+  `name` ma **non** `stock_type` (sono comunque divise per fascia: stessa
+  taglia su due righe). `shipping` dell'ordine = tariffa di zona + trasporto
+  esteso (= `shipping_total` del preventivo).
+- Lo stesso `reference` rinviato in prova risponde di nuovo 201 (non si salva
+  nulla): l'idempotenza (200) si verifica solo in live.
+- Errori 400 per campo: `{"reference": "..."}`,
+  `{"ship_to": "Missing field: full_name"}`, `{"payment_method": "..."}`,
+  `{"stock": [...]}`.
+- `GET /orders/` con la chiave di prova: lista vuota (`count`, `page`,
+  `has_more`, `results`: niente `page_size`); `?reference=` sconosciuto ⇒
+  lista vuota; `/orders/<id>/` sconosciuto ⇒ 404 `{"detail": "Order not found."}`.
+
+**Limite di frequenza**
+- Oltre il limite: 429 con intestazione `Retry-After` (secondi) e corpo
+  `{"detail": "La richiesta è stata limitata (throttled). Expected available in N seconds."}`.
+  La finestra è scorrevole.
+
+**Errori in generale**
+- Corpo JSON in stile Django REST: `{"detail": "..."}` per 401/404/429; per i
+  400 un oggetto campo → messaggio (stringa o lista di stringhe). Messaggi in
+  inglese per i 400, in italiano per 401 e 429.
+
+**Differenze dalla documentazione (riassunto)**
+1. `count` dei prodotti non affidabile e pagine corte con `has_more: true`.
+2. Prodotti esauriti assenti dal feed (non elencati con offerte a 0).
+3. `/stock/` non paginato; `updated_at` = ora della risposta.
+4. Tariffa di zona solo sulle paia in pronta consegna; stock esteso con il
+   solo trasporto dedicato; `shipping` a volte `"0"`.
+5. IVA di WTB anche sulla spedizione quando c'è una riga ordinaria.
+6. Ordini di prova: `id` nullo, nessuna istruzione di pagamento, idempotenza
+   non verificabile; righe d'ordine senza `stock_type`.
+7. Campi in più: `currency` in `/shipping/` e `/stock/`, `created_at`,
+   `hand_delivery`, `test` negli ordini, `name` nelle righe d'ordine.
+8. Variante inesistente nel preventivo: 400 senza messaggio.

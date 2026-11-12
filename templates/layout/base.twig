@@ -1,0 +1,23 @@
+{# Layout del sito (pubblico e area clienti). Niente stili o script inline (CSP). #}
+<!doctype html>
+<html lang="{{ locale() }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ setting('company.site_name') }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ t('meta.description') }}{% endblock %}">
+  {% if not (indexable ?? false) %}<meta name="robots" content="noindex, nofollow">{% endif %}
+  <link rel="stylesheet" href="{{ asset('app.css') }}">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script src="{{ asset('app.js') }}" defer></script>
+</head>
+<body class="min-h-screen flex flex-col bg-paper text-ink font-sans antialiased">
+  <a href="#main" class="skip-link">{{ t('common.skip') }}</a>
+  {% include 'partials/header.twig' %}
+  <main id="main" class="flex-1">
+    {% include 'partials/flash.twig' %}
+    {% block content %}{% endblock %}
+  </main>
+  {% include 'partials/footer.twig' %}
+</body>
+</html>

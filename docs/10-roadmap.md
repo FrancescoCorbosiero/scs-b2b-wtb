@@ -4,6 +4,13 @@ Ogni milestone è uno o più PR piccoli, ognuno con test, documenti aggiornati e
 una riga in `CHANGELOG.md`. A fine milestone: riepilogo al titolare e
 controlli di "fatto".
 
+## Stato
+
+Al 12/11/2026: **M0–M5 fatte** (branch `claude/sleepy-bardeen-5fqztr`, CI
+verde), più la pagina `/admin/spedizione`. Prossima: **M6**, la messa in
+produzione sulla VPS del titolare, che aspetta le risposte alle domande qui
+sotto (dominio, tariffe, coordinate bancarie, email, commercialista, WTB).
+
 ## Milestone
 
 **M0 — Ricognizione dell'API (nessun codice applicativo)**

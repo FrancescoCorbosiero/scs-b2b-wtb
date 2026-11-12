@@ -1,0 +1,54 @@
+# Produzione sulla VPS del titolare, dietro Caddy Docker Proxy (network esterna "caddy").
+# Stack separato da scs-b2b. Nessuna porta pubblicata: entra tutto da Caddy.
+#   docker compose up -d --build
+# APP_DOMAIN (es. b2b.esempio.it) va nel .env accanto a questo file.
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+    target: app
+  image: scs-b2b-wtb-app
+  env_file: .env
+  restart: unless-stopped
+  volumes:
+    - data:/var/www/var
+  networks:
+    - internal
+
+services:
+  php:
+    <<: *app
+    environment:
+      RUN_MIGRATIONS: "1"
+
+  scheduler:
+    <<: *app
+    command: ["php", "bin/scheduler.php"]
+    depends_on:
+      - php
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: web
+    image: scs-b2b-wtb-web
+    restart: unless-stopped
+    depends_on:
+      - php
+    networks:
+      - internal
+      - caddy
+    labels:
+      caddy: ${APP_DOMAIN:?imposta APP_DOMAIN nel .env}
+      caddy.reverse_proxy: "{{upstreams 80}}"
+      caddy.encode: gzip
+
+volumes:
+  data: {}
+
+networks:
+  internal: {}
+  caddy:
+    external: true

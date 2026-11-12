@@ -1,0 +1,41 @@
+{% extends 'layout/base.twig' %}
+{% block title %}{{ t('orders.number', {id: order.id}) }} · {{ parent() }}{% endblock %}
+{% block content %}
+  <section class="container-page py-8 space-y-6">
+    <p><a href="/account/ordini" class="link text-sm">← {{ t('orders.title') }}</a></p>
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div class="space-y-1">
+        <h1 class="h1">{{ t('orders.number', {id: order.id}) }}</h1>
+        <p class="text-sm text-muted">{{ t('orders.placed_on', {date: order.created_at|local_datetime}) }} · {% include 'account/_status.twig' with {status: order.status} %}</p>
+      </div>
+      {% if order.receipt_number and order.status != 'pending' %}
+        <a href="/account/ordini/{{ order.id }}/proforma.pdf" class="btn btn-ghost">{{ t('orders.download_proforma', {number: order.receipt_number}) }}</a>
+      {% endif %}
+    </div>
+    <p class="alert alert-info">{{ t('orders.status_text.' ~ order.status) }}</p>
+    {% if tracking is not empty %}
+      <div class="card space-y-2">
+        <h2 class="h3">{{ t('orders.tracking') }}</h2>
+        <ul class="space-y-1">
+          {% for tr in tracking %}
+            <li>{{ tr.carrier }} · <code>{{ tr.number }}</code>{% if tr.url %} · <a href="{{ tr.url }}" class="link" rel="noopener noreferrer" target="_blank">{{ t('orders.track_link') }}</a>{% endif %}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+    <div class="grid gap-6 lg:grid-cols-[1fr,22rem] items-start">
+      <div class="space-y-6">{% include 'account/_lines.twig' %}</div>
+      <aside class="space-y-4">
+        <div class="card space-y-3">{% include 'account/_totals.twig' %}
+          {% if order.delivery_days %}<p class="text-sm">{{ t('cart.delivery', {min: order.delivery_days|split('-')|first, max: order.delivery_days|split('-')|last}) }}</p>{% endif %}
+        </div>
+        <div class="card space-y-1 text-sm">
+          <h2 class="h3 mb-1">{{ t('checkout.shipping_to') }}</h2>
+          <p>{{ order.ship_name }}{% if order.ship_company %} · {{ order.ship_company }}{% endif %}</p>
+          <p>{{ order.ship_street }}, {{ order.ship_zip }} {{ order.ship_city }}{% if order.ship_province %} ({{ order.ship_province }}){% endif %}</p>
+          <p>{{ country_name(order.ship_country) }}</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+{% endblock %}

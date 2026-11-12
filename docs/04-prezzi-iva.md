@@ -47,6 +47,15 @@ a ogni sync e a ogni modifica delle regole (reprice).
    (`category_path` contiene), **categoria di taglia** (adulto/GS/PS);
 3. nessuna regola ⇒ **margine di default** (impostazione, 5% di partenza).
 
+Implementazione (`src/Pricing/`): ogni regola ha un numero di priorità (più
+basso = valutata prima); le regole SKU vengono comunque prima di tutte; a
+parità di priorità conta il tipo nell'ordine dell'elenco qui sopra, poi la
+regola più vecchia. Vale la **prima** che combacia. Brand e linea combaciano
+per intero (senza distinguere maiuscole), "nome" e "categoria" per
+contenuto. Ogni offerta ricorda la regola applicata (`offers.margin_rule_id`):
+da lì l'admin vede quanti prodotti tocca ogni regola, un esempio di prezzo e
+quante offerte un prezzo fisso porta sotto costo.
+
 Ogni regola può valere per un solo regime e/o un solo tipo di stock (default:
 tutti). Tipi:
 

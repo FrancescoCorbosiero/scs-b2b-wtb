@@ -1,0 +1,29 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ t('admin.requests.title') }}{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+    <h1 class="h1">{{ t('admin.requests.title') }}</h1>
+    <nav class="flex gap-1 text-sm">
+      {% for s in ['pending', 'approved', 'rejected', 'all'] %}<a href="/admin/richieste-profilo?stato={{ s }}" class="lang-link {{ status == s ? 'is-active' }}">{{ t('admin.requests.status.' ~ s) }}</a>{% endfor %}
+    </nav>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>{{ t('admin.requests.date') }}</th><th>{{ t('fields.company') }}</th><th>{{ t('fields.vat_number') }}</th><th>{{ t('fields.email') }}</th><th>{{ t('fields.country_code') }}</th><th>{{ t('admin.customers.state') }}</th></tr></thead>
+      <tbody>
+        {% for r in requests %}
+          <tr class="row-link" data-href="/admin/richieste-profilo/{{ r.id }}">
+            <td class="whitespace-nowrap">{{ r.created_at|local_datetime }}</td>
+            <td><a class="font-semibold" href="/admin/richieste-profilo/{{ r.id }}">{{ r.company }}</a><br><span class="text-xs text-muted">{{ r.name }}</span></td>
+            <td>{{ r.vat_number }}</td>
+            <td>{{ r.email }}</td>
+            <td>{{ r.country_code }}</td>
+            <td><span class="badge {{ r.status == 'pending' ? 'badge-warn' : (r.status == 'approved' ? 'badge-ok' : 'badge-muted') }}">{{ t('admin.requests.status.' ~ r.status) }}</span></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="text-muted">{{ t('admin.requests.empty') }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

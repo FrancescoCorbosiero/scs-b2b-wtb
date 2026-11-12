@@ -1,0 +1,46 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+  {% set p = product %}
+  <p class="mb-2"><a href="/admin/prodotti" class="link text-sm">← {{ t('admin.products.title') }}</a></p>
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+    <div>
+      <h1 class="h1">{{ p.name }}</h1>
+      <p class="text-sm text-muted"><code>{{ p.sku }}</code> · {{ p.brand }}{% if p.line %} · {{ p.line }}{% endif %} · {{ p.gender }} · {{ t('catalog.size_category.' ~ p.size_category) }} · {{ p.category_path_list|join(' / ') }}</p>
+      <p class="text-sm text-muted">{{ t('admin.products.seen', {first: p.first_seen_at|local_date, last: p.last_seen_at|local_datetime}) }}</p>
+    </div>
+    <form method="post" action="/admin/prodotti/{{ p.id }}/evidenza">{{ csrf_field() }}
+      <button class="btn {{ p.is_featured ? 'btn-primary' : 'btn-ghost' }}" type="submit">{{ p.is_featured ? t('admin.products.remove_featured') : t('admin.products.make_featured') }}</button>
+    </form>
+  </div>
+  {% if images is not empty %}
+    <div class="flex gap-2 mb-6 overflow-x-auto">
+      {% for i in images %}<img src="{{ i.url }}" alt="{{ p.name }}" width="160" height="120" class="rounded border border-line bg-white" title="{{ i.status }}">{% endfor %}
+    </div>
+  {% endif %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr>
+        <th>{{ t('product.size') }}</th><th>{{ t('admin.margins.regime') }}</th><th>{{ t('admin.margins.stock_type') }}</th><th class="num">{{ t('admin.products.available') }}</th>
+        <th class="num">{{ t('admin.products.cost') }}</th><th class="num">{{ t('admin.products.sale') }}</th><th class="num">{{ t('admin.products.margin') }}</th><th class="num">{{ t('admin.products.net') }}</th><th>{{ t('admin.products.rule') }}</th><th>{{ t('admin.products.ships') }}</th>
+      </tr></thead>
+      <tbody>
+        {% for o in offers %}
+          <tr class="{{ o.available == 0 or not o.variant_active ? 'text-muted' }}">
+            <td class="whitespace-nowrap">EU {{ o.size_eu }}<span class="block text-xs text-muted">US {{ o.size_us ?: '—' }} · UK {{ o.size_uk ?: '—' }} · #{{ o.wtb_variant_id }}</span></td>
+            <td>{{ t('catalog.regime.' ~ o.vat_regime) }}</td>
+            <td>{{ t('product.' ~ o.stock_type) }}</td>
+            <td class="num">{{ o.available }}</td>
+            <td class="num">{{ money(o.cost_cents) }}</td>
+            <td class="num font-semibold">{{ o.sale_price_cents is null ? '—' : money(o.sale_price_cents) }}</td>
+            <td class="num {{ o.margin is not null and o.margin < 0 ? 'text-accent font-semibold' }}">{{ o.margin is null ? '—' : money(o.margin) }}</td>
+            <td class="num">{{ o.net is null ? '—' : money(o.net) }}</td>
+            <td class="text-xs">{{ o.margin_rule_id ? '#' ~ o.margin_rule_id ~ ' ' ~ o.match_type ~ ': ' ~ o.match_value : t('admin.products.default_rule') }}</td>
+            <td class="text-xs">{{ o.ships_in_days }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="text-xs text-muted mt-2">{{ t('admin.products.net_hint') }}</p>
+{% endblock %}

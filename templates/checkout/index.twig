@@ -1,0 +1,84 @@
+{% extends 'layout/base.twig' %}
+{% import 'partials/forms.twig' as f %}
+{% block title %}{{ t('checkout.title') }} · {{ parent() }}{% endblock %}
+{% block content %}
+  <section class="container-page py-8 space-y-6">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <h1 class="h1">{{ t('checkout.title') }}</h1>
+      <a href="/carrello" class="link text-sm">← {{ t('checkout.back_to_cart') }}</a>
+    </div>
+    {% include 'cart/_notices.twig' with {notices: notices} %}
+    <form method="post" action="/checkout" class="grid gap-6 lg:grid-cols-[1fr,24rem] items-start" x-data="rethink" data-rethink="{{ rethink_seconds }}" x-on:submit="start" novalidate>
+      {{ csrf_field() }}
+      <input type="hidden" hidden name="checkout_token" value="{{ token }}">
+      <div class="hp" aria-hidden="true"><label for="f-website">Website</label><input id="f-website" name="website" tabindex="-1" autocomplete="off"></div>
+      <div class="space-y-6">
+        <div class="card space-y-3">
+          <h2 class="h3">{{ t('checkout.billing') }}</h2>
+          <dl class="dl">
+            <dt>{{ t('fields.company') }}</dt><dd>{{ customer.company }}</dd>
+            <dt>{{ t('fields.vat_number') }}</dt><dd>{{ customer.vat_number }}</dd>
+            <dt>{{ t('fields.address_street') }}</dt><dd>{{ customer.address_street }}, {{ customer.address_zip }} {{ customer.address_city }}{% if customer.address_province %} ({{ customer.address_province }}){% endif %} · {{ country_name(customer.country_code) }}</dd>
+          </dl>
+          <p class="text-xs text-muted">{{ t('checkout.billing_hint') }} <a href="/account" class="link">{{ t('nav.account') }}</a></p>
+        </div>
+        <div class="card space-y-4">
+          <h2 class="h3">{{ t('checkout.contact') }}</h2>
+          <div class="grid gap-4 sm:grid-cols-3">
+            {{ f.input('contact_name', t('fields.name'), customer.name, 'text', {required: true, autocomplete: 'name'}) }}
+            {{ f.input('email', t('fields.email'), customer.email, 'email', {required: true, autocomplete: 'email'}) }}
+            {{ f.input('phone', t('fields.phone'), customer.phone, 'tel', {required: true, autocomplete: 'tel'}) }}
+          </div>
+        </div>
+        <div class="card space-y-4">
+          <h2 class="h3">{{ t('checkout.shipping_to') }}</h2>
+          {% set mode = old('ship_to_mode', 'billing') %}
+          <div class="space-y-2 ship-mode">
+            <label class="check"><input type="radio" name="ship_to_mode" value="billing" {{ mode != 'other' ? 'checked' }}> {{ t('checkout.ship_billing') }}</label>
+            <label class="check"><input type="radio" name="ship_to_mode" value="other" {{ mode == 'other' ? 'checked' }} id="ship-other"> {{ t('checkout.ship_other') }}</label>
+            <div class="ship-other-fields grid gap-4 sm:grid-cols-2 pt-2">
+              {{ f.input('ship_name', t('checkout.ship_name'), '', 'text', {autocomplete: 'shipping name'}) }}
+              {{ f.input('ship_company', t('fields.company') ~ ' (' ~ t('common.optional') ~ ')', '', 'text') }}
+              {{ f.input('ship_street', t('fields.address_street'), '', 'text', {autocomplete: 'shipping street-address'}) }}
+              {{ f.input('ship_city', t('fields.address_city'), '', 'text', {autocomplete: 'shipping address-level2'}) }}
+              {{ f.input('ship_zip', t('fields.address_zip'), '', 'text', {autocomplete: 'shipping postal-code'}) }}
+              {{ f.input('ship_province', t('fields.address_province'), '', 'text', {hint: t('fields.address_province_hint')}) }}
+              {{ f.select('ship_country', t('fields.country_code'), country_options(), cart.destination) }}
+              {{ f.input('ship_phone', t('fields.phone') ~ ' (' ~ t('common.optional') ~ ')', '', 'tel') }}
+            </div>
+          </div>
+          <p class="text-xs text-muted">{{ t('checkout.dropship_note') }}</p>
+        </div>
+        <div class="card space-y-3">
+          {{ f.textarea('notes', t('checkout.notes'), '', {rows: 3, maxlength: 1000}) }}
+          <p class="text-xs text-muted">{{ t('checkout.notes_hint') }}</p>
+        </div>
+      </div>
+      <aside class="card space-y-4 lg:sticky lg:top-20">
+        <h2 class="h3">{{ t('cart.summary') }}</h2>
+        <ul class="space-y-2 text-sm">
+          {% for line in cart.lines %}
+            <li class="flex justify-between gap-3">
+              <span>{{ line.product.name }} · EU {{ line.unit.size_eu }} · {{ t('catalog.regime.' ~ line.unit.regime) }}<br>
+                <span class="text-xs text-muted">{% for l in line.unit.split.lines %}{{ l.quantity }} × {{ money(l.unit_price_cents) }} ({{ t('product.' ~ l.stock_type)|lower }}){{ not loop.last ? ' + ' }}{% endfor %}</span></span>
+              <span class="whitespace-nowrap tabular-nums">{{ money(line.unit.split.total_cents) }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        {% include 'cart/_totals.twig' with {cart: cart} %}
+        {% if duties %}<p class="alert alert-info text-xs">{{ t('checkout.duties') }}</p>{% endif %}
+        <p class="text-xs text-muted">{{ t('checkout.payment_note') }}</p>
+        <button type="submit" class="btn btn-primary w-full" {{ cart.meets_minimum ? '' : 'disabled' }}>{{ t('checkout.submit') }}</button>
+        {% if not cart.meets_minimum %}<p class="alert alert-warning">{{ t('cart.minimum', {min: cart.min_items, missing: cart.min_items - cart.pairs}) }}</p>{% endif %}
+      </aside>
+      <div class="rethink-overlay" x-show="active" x-cloak role="alertdialog" aria-live="assertive">
+        <div class="rethink-box">
+          <p class="h3">{{ t('checkout.rethink_title') }}</p>
+          <p class="text-5xl font-bold tabular-nums my-4" x-text="seconds"></p>
+          <p class="text-sm text-muted">{{ t('checkout.rethink_text') }}</p>
+          <button type="button" class="btn btn-ghost mt-4" x-on:click="cancel">{{ t('common.cancel') }}</button>
+        </div>
+      </div>
+    </form>
+  </section>
+{% endblock %}

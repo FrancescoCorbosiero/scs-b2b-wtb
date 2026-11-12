@@ -1,0 +1,45 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ t('admin.margins.title') }}{% endblock %}
+{% block content %}
+  <div class="mb-6 space-y-2">
+    <h1 class="h1">{{ t('admin.margins.title') }}</h1>
+    <p class="text-sm text-muted">{{ t('admin.margins.intro') }}</p>
+    <p class="text-sm">{{ t('admin.margins.default', {value: default_input, type: t('admin.margins.margin_types.' ~ default.type), rounding: t('admin.margins.rounding.' ~ rounding)}) }}
+      <a href="/admin/impostazioni#prices.default_margin_value" class="link">{{ t('admin.margins.change_default') }}</a></p>
+  </div>
+
+  <section class="space-y-3 mb-10">
+    {% for item in rules %}
+      {% set r = item.rule %}
+      <form method="post" action="/admin/margini/{{ r.id }}" class="card space-y-3 {{ not r.isActive ? 'opacity-60' }}" id="regola-{{ r.id }}">
+        {{ csrf_field() }}
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <p class="font-semibold">#{{ r.id }} · {{ t('admin.margins.types.' ~ r.matchType) }}: {{ r.matchValue }}
+            {% if not r.isActive %}<span class="badge badge-muted">{{ t('admin.margins.inactive') }}</span>{% endif %}</p>
+          <p class="text-sm text-muted">{{ tc('admin.margins.touches', item.impact.products, {offers: item.impact.offers}) }}
+            {% if item.impact.below_cost > 0 %}<span class="badge badge-danger">{{ t('admin.margins.below_cost', {n: item.impact.below_cost}) }}</span>{% endif %}</p>
+        </div>
+        {% include 'admin/margins/_form.twig' with {r: r, v: item.value_input} %}
+        {% if item.impact.example %}
+          {% set e = item.impact.example %}
+          <p class="text-sm text-muted">{{ t('admin.margins.example', {sku: e.sku, cost: money(e.cost_cents), sale: money(e.sale_price_cents), margin: money(e.sale_price_cents - e.cost_cents), net: money(e.net), regime: t('catalog.regime.' ~ e.vat_regime)}) }}</p>
+        {% endif %}
+        <div class="flex flex-wrap gap-2">
+          <button type="submit" class="btn btn-primary btn-sm">{{ t('common.save') }}</button>
+          <button type="submit" formaction="/admin/margini/{{ r.id }}/stato" class="btn btn-ghost btn-sm">{{ r.isActive ? t('admin.margins.deactivate') : t('admin.margins.activate') }}</button>
+          <button type="submit" formaction="/admin/margini/{{ r.id }}/elimina" class="btn btn-danger btn-sm" data-confirm-click="{{ t('admin.margins.confirm_delete') }}">{{ t('admin.margins.delete') }}</button>
+        </div>
+      </form>
+    {% else %}
+      <p class="text-muted">{{ t('admin.margins.none') }}</p>
+    {% endfor %}
+  </section>
+
+  <form method="post" action="/admin/margini" class="card space-y-3" id="nuova">
+    {{ csrf_field() }}
+    <h2 class="h3">{{ t('admin.margins.new') }}</h2>
+    {% include 'admin/margins/_form.twig' with {r: null, v: ''} %}
+    <p class="text-xs text-muted">{{ t('admin.margins.order_hint') }}</p>
+    <button type="submit" class="btn btn-primary">{{ t('admin.margins.create') }}</button>
+  </form>
+{% endblock %}

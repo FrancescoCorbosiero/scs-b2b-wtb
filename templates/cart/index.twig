@@ -1,0 +1,82 @@
+{% extends 'layout/base.twig' %}
+{% block title %}{{ t('cart.title') }} · {{ parent() }}{% endblock %}
+{% block content %}
+  <section class="container-page py-8 space-y-6">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <h1 class="h1">{{ t('cart.title') }}</h1>
+      {% if not cart.empty %}
+        <form method="post" action="/carrello/svuota" data-confirm="{{ t('cart.confirm_clear') }}">{{ csrf_field() }}<button class="btn btn-ghost btn-sm" type="submit">{{ t('cart.clear_all') }}</button></form>
+      {% endif %}
+    </div>
+    {% include 'cart/_notices.twig' with {notices: cart.notices} %}
+    {% if cart.empty %}
+      <div class="card text-center space-y-3 py-12">
+        <p>{{ t('cart.empty') }}</p>
+        <a href="/catalogo" class="btn btn-primary">{{ t('nav.catalog') }}</a>
+      </div>
+    {% else %}
+      <form method="post" action="/carrello/aggiorna" class="grid gap-6 lg:grid-cols-[1fr,22rem] items-start" data-qty-form>
+        {{ csrf_field() }}
+        <div class="space-y-4">
+          {% for p in cart.products %}
+            <article class="card space-y-3">
+              <div class="flex gap-3 items-start">
+                {% if p.image %}<img src="{{ p.image }}" alt="{{ p.name }}" width="96" height="72" class="w-24 rounded border border-line bg-white object-contain">{% endif %}
+                <div class="flex-1">
+                  <p class="text-xs uppercase tracking-wide text-muted">{{ p.brand }}</p>
+                  <h2 class="font-semibold">{{ p.name }}</h2>
+                  <p class="text-xs text-muted">SKU <code>{{ p.sku }}</code> · {{ tc('common.pairs', p.quantity) }} · {{ money(p.total_cents) }}</p>
+                </div>
+                <div class="flex flex-col gap-1">
+                  <button type="submit" name="take_all" value="{{ p.id }}" class="btn btn-ghost btn-xs">{{ t('cart.take_all') }}</button>
+                  <button type="submit" name="clear_product" value="{{ p.id }}" class="btn btn-ghost btn-xs">{{ t('cart.clear_product') }}</button>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table class="table units-table">
+                  <thead><tr><th>{{ t('product.size') }}</th><th>{{ t('product.tiers') }}</th><th class="text-right">{{ t('cart.quantity') }}</th></tr></thead>
+                  <tbody>
+                    {% for u in p.units %}
+                      <tr class="{{ u.quantity > 0 ? 'bg-paper/40' }}">
+                        <td class="whitespace-nowrap"><span class="font-semibold">EU {{ u.size_eu }}</span>
+                          {% if u.size_us %}<span class="block text-xs text-muted">US {{ u.size_us }}{% if u.size_uk %} · UK {{ u.size_uk }}{% endif %}</span>{% endif %}
+                          <span class="block text-xs {{ u.regime == 'margin' ? 'text-muted' : 'text-warn' }}">{{ t('catalog.regime_label.' ~ u.regime) }}</span></td>
+                        <td>
+                          <ul class="space-y-1 text-sm">
+                            {% for tier in u.tiers %}
+                              <li><span class="badge {{ tier.stock_type == 'immediate' ? 'badge-ok' : 'badge-muted' }}">{{ t('product.' ~ tier.stock_type) }}</span>
+                                {{ tc('product.pairs_available', tier.available) }} × <strong>{{ money(tier.price) }}</strong> <span class="text-muted">· {{ t('product.ships', {days: tier.ships_in_days}) }}</span></li>
+                            {% endfor %}
+                          </ul>
+                        </td>
+                        <td class="text-right">{% include 'partials/_stepper.twig' with {key: u.key, max: u.max, value: u.quantity, tiers: u.tiers} only %}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          {% endfor %}
+          <p><button type="submit" class="btn btn-ghost">{{ t('cart.update') }}</button></p>
+        </div>
+        <aside class="card space-y-4 lg:sticky lg:top-20">
+          <h2 class="h3">{{ t('cart.summary') }}</h2>
+          <div class="field">
+            <label class="label" for="destination">{{ t('cart.destination') }}</label>
+            <select id="destination" name="destination" class="input" data-autosubmit-field>
+              {% for code, name in country_options() %}<option value="{{ code }}" {{ cart.destination == code ? 'selected' }}>{{ name }}</option>{% endfor %}
+            </select>
+          </div>
+          {% include 'cart/_totals.twig' with {cart: cart} %}
+          {% if not cart.meets_minimum %}
+            <p class="alert alert-warning">{{ t('cart.minimum', {min: cart.min_items, missing: cart.min_items - cart.pairs}) }}</p>
+            <button type="button" class="btn btn-primary w-full" disabled>{{ t('cart.checkout') }}</button>
+          {% else %}
+            <a href="/checkout" class="btn btn-primary w-full">{{ t('cart.checkout') }}</a>
+          {% endif %}
+          <button type="submit" class="btn btn-ghost w-full">{{ t('cart.update') }}</button>
+        </aside>
+      </form>
+    {% endif %}
+  </section>
+{% endblock %}

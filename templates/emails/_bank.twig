@@ -1,0 +1,9 @@
+<table role="presentation" width="100%" cellpadding="6" cellspacing="0" style="border:2px solid #111111;margin:16px 0;font-size:14px;">
+  <tr><td colspan="2" style="font-weight:bold;">{{ t('orders.bank_title') }}</td></tr>
+  <tr><td style="color:#6b665e;">{{ t('bank.holder') }}</td><td>{{ bank.holder }}</td></tr>
+  {% if bank.bank %}<tr><td style="color:#6b665e;">{{ t('bank.bank') }}</td><td>{{ bank.bank }}</td></tr>{% endif %}
+  <tr><td style="color:#6b665e;">IBAN</td><td style="font-family:monospace;">{{ bank.iban }}</td></tr>
+  {% if bank.bic %}<tr><td style="color:#6b665e;">BIC/SWIFT</td><td style="font-family:monospace;">{{ bank.bic }}</td></tr>{% endif %}
+  <tr><td style="color:#6b665e;">{{ t('orders.amount') }}</td><td style="font-weight:bold;">{{ money(order.total_cents) }}</td></tr>
+  <tr><td style="color:#6b665e;">{{ t('orders.reason') }}</td><td style="font-family:monospace;">{{ t('orders.reference', {id: order.id}) }}</td></tr>
+</table>

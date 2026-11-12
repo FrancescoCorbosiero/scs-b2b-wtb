@@ -1,0 +1,54 @@
+{% extends 'layout/base.twig' %}
+{% block content %}
+  <section class="hero">
+    <div class="container-page py-16 sm:py-24 grid gap-10 lg:grid-cols-[3fr,2fr] items-center">
+      <div class="space-y-6">
+        <p class="text-sm font-semibold uppercase tracking-widest text-paper/60">{{ t('home.kicker') }}</p>
+        <h1 class="font-display text-4xl sm:text-6xl font-extrabold tracking-tight">{{ t('home.title') }}</h1>
+        <p class="text-lg text-paper/80 max-w-2xl">{{ t('home.lead', {min: min_items}) }}</p>
+        <div class="flex flex-wrap gap-3">
+          {% if ctx.customer %}
+            <a href="/catalogo" class="btn btn-light">{{ t('nav.catalog') }}</a>
+          {% else %}
+            <a href="/vetrina" class="btn btn-light">{{ t('home.cta_showcase') }}</a>
+            <a href="/richiedi-accesso" class="btn btn-invert">{{ t('nav.request') }}</a>
+          {% endif %}
+        </div>
+      </div>
+      <ul class="grid gap-3 text-sm">
+        {% for k in ['catalog', 'prices', 'dropship', 'transfer'] %}
+          <li class="rounded-lg border border-paper/15 p-4"><strong class="block font-display text-base">{{ t('home.points.' ~ k ~ '.title') }}</strong><span class="text-paper/70">{{ t('home.points.' ~ k ~ '.text') }}</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <section class="container-page py-14 space-y-8">
+    <h2 class="h2">{{ t('home.steps_title') }}</h2>
+    <ol class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      {% for i in 1..5 %}
+        <li class="card space-y-2"><span class="step-number">{{ i }}</span><p class="font-semibold">{{ t('how.steps.' ~ i ~ '.title') }}</p><p class="text-sm text-muted">{{ t('how.steps.' ~ i ~ '.short', {min: min_items}) }}</p></li>
+      {% endfor %}
+    </ol>
+    <p><a href="/come-ordinare" class="link">{{ t('home.how_link') }}</a></p>
+  </section>
+
+  <section class="container-page py-6 space-y-4">
+    <h2 class="h2">{{ t('home.shipping_title') }}</h2>
+    <p class="text-muted">{{ t('home.shipping_lead', {immediate: departure.immediate, extended: departure.extended}) }}</p>
+    {% include 'site/_zones.twig' %}
+    <p><a href="/spedizioni" class="link">{{ t('home.shipping_link') }}</a></p>
+  </section>
+
+  <section class="container-page py-14 space-y-4">
+    <h2 class="h2">{{ t('home.faq_title') }}</h2>
+    <div class="space-y-2">
+      {% for k in ['who', 'vat', 'regimes', 'payment', 'tracking', 'min'] %}
+        <details class="card">
+          <summary class="cursor-pointer font-semibold">{{ t('home.faq.' ~ k ~ '.q') }}</summary>
+          <p class="mt-2 text-sm text-muted">{{ t('home.faq.' ~ k ~ '.a', {min: min_items}) }}</p>
+        </details>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}
