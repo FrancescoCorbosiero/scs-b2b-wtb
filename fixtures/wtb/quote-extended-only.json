@@ -1,0 +1,15 @@
+{
+  "currency": "EUR",
+  "ship_to_country": "FR",
+  "pieces": 2,
+  "subtotal": "236.86",
+  "shipping": "0",
+  "extended_stock_transport": "11.70",
+  "shipping_total": "11.70",
+  "vat": "0.00",
+  "total": "248.56",
+  "vat_note": "Operazione soggetta al regime del margine (art. 36 e ss. DL 41/1995): IVA non esposta in fattura e non detraibile dal cessionario.",
+  "lines": [
+    {"sku": "ZX1004-400", "size_eu": "40", "vat_regime": "margin", "quantity": 2, "unit_price": "118.43", "stock_type": "extended"}
+  ]
+}

@@ -1,0 +1,582 @@
+{
+  "count": 12,
+  "page": 1,
+  "page_size": 6,
+  "has_more": true,
+  "currency": "EUR",
+  "results": [
+    {
+      "sku": "ZX1001-100",
+      "name": "Nike Air Force 1 Low Demo Triple White (GS)",
+      "brand": "Nike",
+      "category": "Sneakers",
+      "line": "Air Force 1",
+      "gender": "kids",
+      "category_path": [
+        "Sneakers",
+        "Nike",
+        "Air Force 1",
+        "Bambino"
+      ],
+      "description": "Sneaker bassa in pelle, colorazione dimostrativa.",
+      "images": [
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1001-a.jpg",
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1001-b.jpg"
+      ],
+      "total_available": 21,
+      "sizes": [
+        {
+          "variant_id": 90011,
+          "size_eu": "36",
+          "size_us": "4Y",
+          "size_uk": "3.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 3,
+              "price": "71.37",
+              "ships_in_days": "1-2"
+            },
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 6,
+              "price": "73.19",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90012,
+          "size_eu": "36.5",
+          "size_us": "4.5Y",
+          "size_uk": "4",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 1,
+              "price": "71.37",
+              "ships_in_days": "1-2"
+            },
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 4,
+              "price": "73.19",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90013,
+          "size_eu": "37.5",
+          "size_us": "5Y",
+          "size_uk": "4.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 5,
+              "price": "73.19",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90014,
+          "size_eu": "38",
+          "size_us": "5.5Y",
+          "size_uk": "5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 2,
+              "price": "71.37",
+              "ships_in_days": "1-2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "ZX1002-200",
+      "name": "New Balance 530 Demo Pink Sugar (GS)",
+      "brand": "New Balance",
+      "category": "Sneakers",
+      "line": "530",
+      "gender": "kids",
+      "category_path": [
+        "Sneakers",
+        "New Balance",
+        "530",
+        "Bambino"
+      ],
+      "description": "Running retro in mesh, colorazione dimostrativa.",
+      "images": [
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1002-a.jpg"
+      ],
+      "total_available": 6,
+      "sizes": [
+        {
+          "variant_id": 90021,
+          "size_eu": "36",
+          "size_us": "4.5",
+          "size_uk": "4",
+          "ean": "2000000900213",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 4,
+              "price": "84.61",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90022,
+          "size_eu": "37.5",
+          "size_us": "5.5",
+          "size_uk": "5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 2,
+              "price": "84.61",
+              "ships_in_days": "3-5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "ZX1003-300",
+      "name": "Nike Air Max Demo Black (PS)",
+      "brand": "Nike",
+      "category": "Sneakers",
+      "line": "Air Max",
+      "gender": "kids",
+      "category_path": [
+        "Sneakers",
+        "Nike",
+        "Air Max",
+        "Bambino"
+      ],
+      "description": "",
+      "images": [
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1003-a.jpg"
+      ],
+      "total_available": 8,
+      "sizes": [
+        {
+          "variant_id": 90031,
+          "size_eu": "27.5",
+          "size_us": "10.5C",
+          "size_uk": "10",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 2,
+              "price": "52.13",
+              "ships_in_days": "1-2"
+            }
+          ]
+        },
+        {
+          "variant_id": 90032,
+          "size_eu": "28",
+          "size_us": "11C",
+          "size_uk": "10.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 1,
+              "price": "52.13",
+              "ships_in_days": "1-2"
+            },
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 3,
+              "price": "53.77",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90033,
+          "size_eu": "29.5",
+          "size_us": "12C",
+          "size_uk": "11.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 2,
+              "price": "53.77",
+              "ships_in_days": "3-5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "ZX1004-400",
+      "name": "ASICS Gel-Kayano 14 Demo Cream Silver",
+      "brand": "ASICS",
+      "category": "Sneakers",
+      "line": "Gel-Kayano 14",
+      "gender": "unisex",
+      "category_path": [
+        "Sneakers",
+        "ASICS",
+        "Gel-Kayano 14",
+        "Unisex"
+      ],
+      "description": "Runner anni 2000, colorazione dimostrativa.",
+      "images": [
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1004-a.jpg",
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1004-b.jpg",
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1004-c.jpg"
+      ],
+      "total_available": 35,
+      "sizes": [
+        {
+          "variant_id": 90041,
+          "size_eu": "39.5",
+          "size_us": "6.5",
+          "size_uk": "6",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 3,
+              "price": "118.43",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90042,
+          "size_eu": "40",
+          "size_us": "7",
+          "size_uk": "6.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 5,
+              "price": "118.43",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90043,
+          "size_eu": "40.5",
+          "size_us": "7.5",
+          "size_uk": "7",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 7,
+              "price": "118.43",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90044,
+          "size_eu": "41.5",
+          "size_us": "8",
+          "size_uk": "7.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 4,
+              "price": "118.43",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90045,
+          "size_eu": "42",
+          "size_us": "8.5",
+          "size_uk": "8",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 4,
+              "price": "116.29",
+              "ships_in_days": "1-2"
+            },
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 6,
+              "price": "118.43",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90046,
+          "size_eu": "42.5",
+          "size_us": "9",
+          "size_uk": "8.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 2,
+              "price": "118.43",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90047,
+          "size_eu": "43.5",
+          "size_us": "9.5",
+          "size_uk": "9",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 3,
+              "price": "118.43",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90048,
+          "size_eu": "44",
+          "size_us": "10",
+          "size_uk": "9.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 1,
+              "price": "118.43",
+              "ships_in_days": "3-5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "ZX1005-500",
+      "name": "adidas Samba Demo OG Cloud White",
+      "brand": "adidas",
+      "category": "Sneakers",
+      "line": "Samba",
+      "gender": "unisex",
+      "category_path": [
+        "Sneakers",
+        "adidas",
+        "Samba",
+        "Unisex"
+      ],
+      "description": "Classico indoor, colorazione dimostrativa.",
+      "images": [
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1005-a.jpg"
+      ],
+      "total_available": 7,
+      "sizes": [
+        {
+          "variant_id": 90051,
+          "size_eu": "36 2/3",
+          "size_us": "5",
+          "size_uk": "4",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "ordinary",
+              "stock_type": "immediate",
+              "available": 1,
+              "price": "79.67",
+              "ships_in_days": "1-2"
+            }
+          ]
+        },
+        {
+          "variant_id": 90052,
+          "size_eu": "37 1/3",
+          "size_us": "5.5",
+          "size_uk": "4.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "ordinary",
+              "stock_type": "immediate",
+              "available": 2,
+              "price": "79.67",
+              "ships_in_days": "1-2"
+            }
+          ]
+        },
+        {
+          "variant_id": 90053,
+          "size_eu": "38",
+          "size_us": "",
+          "size_uk": "",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "ordinary",
+              "stock_type": "immediate",
+              "available": 1,
+              "price": "79.67",
+              "ships_in_days": "1-2"
+            }
+          ]
+        },
+        {
+          "variant_id": 90054,
+          "size_eu": "38 2/3",
+          "size_us": "6",
+          "size_uk": "5.5",
+          "ean": "2000000900541",
+          "offers": [
+            {
+              "vat_regime": "ordinary",
+              "stock_type": "immediate",
+              "available": 3,
+              "price": "79.67",
+              "ships_in_days": "1-2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "ZX1006-600",
+      "name": "Timberland 6\" Premium Demo Boot Wheat",
+      "brand": "Timberland",
+      "category": "Sneakers",
+      "line": "6\" Premium Boot",
+      "gender": "men",
+      "category_path": [
+        "Sneakers",
+        "Timberland",
+        "6\" Premium Boot",
+        "Uomo"
+      ],
+      "description": "Stivaletto impermeabile, colorazione dimostrativa.",
+      "images": [
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1006-a.jpg"
+      ],
+      "total_available": 13,
+      "sizes": [
+        {
+          "variant_id": 90061,
+          "size_eu": "41",
+          "size_us": "8",
+          "size_uk": "7.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 1,
+              "price": "137.29",
+              "ships_in_days": "1-2"
+            }
+          ]
+        },
+        {
+          "variant_id": 90062,
+          "size_eu": "42",
+          "size_us": "8.5",
+          "size_uk": "8",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 3,
+              "price": "137.29",
+              "ships_in_days": "1-2"
+            }
+          ]
+        },
+        {
+          "variant_id": 90063,
+          "size_eu": "43",
+          "size_us": "9.5",
+          "size_uk": "9",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 5,
+              "price": "137.29",
+              "ships_in_days": "1-2"
+            }
+          ]
+        },
+        {
+          "variant_id": 90064,
+          "size_eu": "44",
+          "size_us": "10",
+          "size_uk": "9.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 2,
+              "price": "137.29",
+              "ships_in_days": "1-2"
+            }
+          ]
+        },
+        {
+          "variant_id": 90065,
+          "size_eu": "45",
+          "size_us": "11",
+          "size_uk": "10.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 2,
+              "price": "137.29",
+              "ships_in_days": "1-2"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -67,7 +67,9 @@ nome, prezzo ↑↓, disponibilità, novità. Paginazione con "Carica altri".
 Taglie in EU (default), US o UK; densità griglia; scelte salvate in sessione.
 
 **Esauriti**: restano visibili, marcati, in fondo alla griglia, senza CTA;
-"Solo disponibili" li toglie.
+"Solo disponibili" li toglie. Un prodotto sparito dal feed del fornitore
+resta esaurito per `catalog.sold_out_days` giorni, poi esce dal catalogo
+(D-017).
 
 **Export Excel** del risultato filtrato: SKU, nome, brand, linea, genere,
 taglie EU/US/UK, EAN, regime, paia e prezzo in pronta consegna, paia e prezzo

@@ -96,6 +96,7 @@ Voci iniziali (i nomi sono indicativi, il significato no):
 | `catalog.sell_extended` | true | vendere anche lo stock esteso (D-005) |
 | `catalog.regimes` | `margin,ordinary` | regimi IVA in vendita (docs/04) |
 | `catalog.per_page` | 24 | prodotti per pagina |
+| `catalog.sold_out_days` | 30 | giorni in cui un prodotto sparito dal feed resta visibile come esaurito (D-017) |
 | `catalog.availability_high_min` / `_low_max` | 60 / 20 | soglie della pillola disponibilità |
 | `prices.rounding` | `whole` | `whole` / `half` / `none`, sempre per eccesso |
 | `prices.default_margin_type` / `_value` | `percent` / 5 | margine di default (D-014) |

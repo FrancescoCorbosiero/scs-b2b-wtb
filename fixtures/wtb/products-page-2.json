@@ -1,0 +1,350 @@
+{
+  "count": 12,
+  "page": 2,
+  "page_size": 6,
+  "has_more": false,
+  "currency": "EUR",
+  "results": [
+    {
+      "sku": "ZX1007-700",
+      "name": "New Balance 9060 Demo Rain Cloud Grey",
+      "brand": "New Balance",
+      "category": "Sneakers",
+      "line": "9060",
+      "gender": "unisex",
+      "category_path": [
+        "Sneakers",
+        "New Balance",
+        "9060",
+        "Unisex"
+      ],
+      "description": "Silhouette chunky, colorazione dimostrativa.",
+      "images": [
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1007-a.jpg",
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1007-b.jpg"
+      ],
+      "total_available": 66,
+      "sizes": [
+        {
+          "variant_id": 90071,
+          "size_eu": "40",
+          "size_us": "7",
+          "size_uk": "6.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 4,
+              "price": "142.87",
+              "ships_in_days": "1-2"
+            },
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 7,
+              "price": "146.31",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90072,
+          "size_eu": "40.5",
+          "size_us": "7.5",
+          "size_uk": "7",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 4,
+              "price": "142.87",
+              "ships_in_days": "1-2"
+            },
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 7,
+              "price": "146.31",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90073,
+          "size_eu": "41.5",
+          "size_us": "8",
+          "size_uk": "7.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 4,
+              "price": "142.87",
+              "ships_in_days": "1-2"
+            },
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 7,
+              "price": "146.31",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90074,
+          "size_eu": "42",
+          "size_us": "8.5",
+          "size_uk": "8",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 4,
+              "price": "142.87",
+              "ships_in_days": "1-2"
+            },
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 7,
+              "price": "146.31",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90075,
+          "size_eu": "42.5",
+          "size_us": "9",
+          "size_uk": "8.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 4,
+              "price": "142.87",
+              "ships_in_days": "1-2"
+            },
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 7,
+              "price": "146.31",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90076,
+          "size_eu": "43",
+          "size_us": "9.5",
+          "size_uk": "9",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 4,
+              "price": "142.87",
+              "ships_in_days": "1-2"
+            },
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 7,
+              "price": "146.31",
+              "ships_in_days": "3-5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "ZX1008-800",
+      "name": "Maison Mihara Yasuhiro Peterson Demo Black",
+      "brand": "Maison Mihara Yasuhiro",
+      "category": "Sneakers",
+      "line": "Peterson",
+      "gender": "women",
+      "category_path": [
+        "Sneakers",
+        "Maison Mihara Yasuhiro",
+        "Peterson",
+        "Donna"
+      ],
+      "description": "Suola scolpita, colorazione dimostrativa.",
+      "images": [
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1008-a.jpg"
+      ],
+      "total_available": 4,
+      "sizes": [
+        {
+          "variant_id": 90081,
+          "size_eu": "36",
+          "size_us": "6W",
+          "size_uk": "3",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 2,
+              "price": "268.41",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90082,
+          "size_eu": "37",
+          "size_us": "7W",
+          "size_uk": "4",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 1,
+              "price": "268.41",
+              "ships_in_days": "3-5"
+            }
+          ]
+        },
+        {
+          "variant_id": 90083,
+          "size_eu": "38.5",
+          "size_us": "8W",
+          "size_uk": "5.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 1,
+              "price": "268.41",
+              "ships_in_days": "3-5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "ZX1009-900",
+      "name": "Nike Shox TL Demo Metallic Silver",
+      "brand": "Nike",
+      "category": "Sneakers",
+      "line": "",
+      "gender": "unisex",
+      "category_path": [
+        "Sneakers",
+        "Nike",
+        "Unisex"
+      ],
+      "description": "",
+      "images": [
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1009-a.jpg"
+      ],
+      "total_available": 8,
+      "sizes": [
+        {
+          "variant_id": 90091,
+          "size_eu": "42",
+          "size_us": "8.5",
+          "size_uk": "7.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 2,
+              "price": "149.83",
+              "ships_in_days": "1-2"
+            },
+            {
+              "vat_regime": "ordinary",
+              "stock_type": "immediate",
+              "available": 1,
+              "price": "131.07",
+              "ships_in_days": "1-2"
+            }
+          ]
+        },
+        {
+          "variant_id": 90092,
+          "size_eu": "43",
+          "size_us": "9.5",
+          "size_uk": "8.5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "ordinary",
+              "stock_type": "immediate",
+              "available": 2,
+              "price": "131.07",
+              "ships_in_days": "1-2"
+            }
+          ]
+        },
+        {
+          "variant_id": 90093,
+          "size_eu": "44",
+          "size_us": "10",
+          "size_uk": "9",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "extended",
+              "available": 3,
+              "price": "152.39",
+              "ships_in_days": "3-5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sku": "ZX1010-010",
+      "name": "adidas Gazelle Demo Collegiate Blue",
+      "brand": "adidas",
+      "category": "Sneakers",
+      "line": "Gazelle",
+      "gender": "women",
+      "category_path": [
+        "Sneakers",
+        "adidas",
+        "Gazelle",
+        "Donna"
+      ],
+      "description": "Suede morbido, colorazione dimostrativa.",
+      "images": [
+        "https://b2b.wtbsnkrs.it/media/models/demo-zx1010-a.jpg"
+      ],
+      "total_available": 2,
+      "sizes": [
+        {
+          "variant_id": 90101,
+          "size_eu": "38",
+          "size_us": "6.5",
+          "size_uk": "5",
+          "ean": "",
+          "offers": [
+            {
+              "vat_regime": "margin",
+              "stock_type": "immediate",
+              "available": 2,
+              "price": "88.93",
+              "ships_in_days": "1-2"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

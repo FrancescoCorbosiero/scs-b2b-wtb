@@ -103,9 +103,10 @@ Passi:
    ```
 
    Una riga per variante + regime: il tipo di stock lo assegna WTB (prima la
-   pronta consegna). Se in M0 la combinazione `variant_id` + `vat_regime` non
-   fosse accettata, si usa `sku` + `size_eu` + `vat_regime`. Mai prezzi né note
-   del cliente nel payload.
+   pronta consegna). M0: la combinazione `variant_id` + `vat_regime` è
+   accettata. Mai prezzi né note del cliente nel payload. Le righe della
+   risposta di WTB non dicono il tipo di stock: la ripartizione per fascia si
+   prende dal preventivo e resta quella congelata nelle righe dell'ordine.
 4. Risposte: **201** creato; **200** reference già presente ⇒ è lo stesso
    ordine, si aggiorna e basta; errore di rete, timeout o 5xx ⇒ nuovo
    tentativo con lo **stesso** reference (max 3), poi stato `error` col bottone
@@ -114,12 +115,17 @@ Passi:
 6. Bonifico: le `payment_instructions` (IBAN, causale, importo) compaiono
    nell'ordine con i bottoni "copia", nella lista "Da pagare a WTB" della
    dashboard e nell'email admin. Il pagato arriva col webhook `order.paid`.
+   M0: con la chiave di prova WTB restituisce `payment_instructions: null`,
+   per cui la forma vera si vedrà solo in live; il codice mostra tutte le
+   chiavi che arrivano (IBAN, causale e importo evidenziati se riconosciuti).
 
 **Reference**: `<prefisso>-<id ordine>-<tentativo>`. Il tentativo cresce solo
 se un ordine WTB precedente per lo stesso ordine è stato annullato.
 
 **Modalità test e fixture**: la risposta (`"test": true` / fixture) si salva
-con stato `simulated`; nessuna rilettura, nessun webhook atteso.
+con stato `simulated`; nessuna rilettura, nessun webhook atteso. M0: in prova
+lo stesso `reference` risponde sempre 201 (WTB non salva nulla), quindi
+l'idempotenza con risposta 200 si potrà osservare solo in live.
 
 ## Webhook WTB (`POST /webhooks/wtb`)
 

@@ -1,0 +1,28 @@
+{
+  "id": 9042,
+  "number": "WTB/2026/11/9042",
+  "reference": "SCSW-1-1",
+  "status": "received",
+  "created_at": "2026-11-12T09:15:00.000000Z",
+  "dropship": true,
+  "payment_method": "bank_transfer",
+  "is_paid": false,
+  "currency": "EUR",
+  "subtotal": "366.97",
+  "shipping": "24.90",
+  "vat": "23.01",
+  "total": "414.88",
+  "lines": [
+    {"sku": "ZX1001-100", "name": "Nike Air Force 1 Low Demo Triple White (GS)", "size_eu": "36", "vat_regime": "margin", "quantity": 3, "unit_price": "71.37"},
+    {"sku": "ZX1001-100", "name": "Nike Air Force 1 Low Demo Triple White (GS)", "size_eu": "36", "vat_regime": "margin", "quantity": 1, "unit_price": "73.19"},
+    {"sku": "ZX1005-500", "name": "adidas Samba Demo OG Cloud White", "size_eu": "38 2/3", "vat_regime": "ordinary", "quantity": 1, "unit_price": "79.67"}
+  ],
+  "tracking": [],
+  "hand_delivery": false,
+  "payment_instructions": {
+    "iban": "IT60X0542811101000000123456",
+    "beneficiary": "Fornitore Demo S.r.l.",
+    "reason": "WTB/2026/11/9042",
+    "amount": "414.88"
+  }
+}
