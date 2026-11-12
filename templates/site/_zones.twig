@@ -1,0 +1,30 @@
+{# Zone, tariffe e tempi reali (shipping_zones + tempi di partenza dalle offerte). #}
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr>
+      <th>{{ t('shipping_page.zone') }}</th>
+      <th class="num">{{ t('shipping_page.fee') }}</th>
+      <th>{{ t('shipping_page.transit') }}</th>
+      <th>{{ t('shipping_page.delivery') }}</th>
+    </tr></thead>
+    <tbody>
+      {% for z in zones %}
+        <tr>
+          <td>
+            <span class="font-semibold">{{ z.zone.name(locale()) }}</span>
+            <span class="block text-xs text-muted">{% for c in z.countries %}{{ country_name(c) }}{{ not loop.last ? ', ' }}{% endfor %}</span>
+          </td>
+          <td class="num">
+            <span class="font-semibold">{{ money(z.zone.feeCents) }}</span>
+            {% if z.zone.freeFromItems %}<span class="block text-xs text-ok">{{ t('shipping_page.free_from', {n: z.zone.freeFromItems}) }}</span>{% endif %}
+          </td>
+          <td>{{ t('common.days', {min: z.zone.transitMin, max: z.zone.transitMax}) }}</td>
+          <td class="text-sm">
+            {% if z.delivery_immediate %}<span class="block">{{ t('shipping_page.delivery_immediate', {min: z.delivery_immediate[0], max: z.delivery_immediate[1]}) }}</span>{% endif %}
+            {% if sell_extended and z.delivery_extended %}<span class="block text-muted">{{ t('shipping_page.delivery_extended', {min: z.delivery_extended[0], max: z.delivery_extended[1]}) }}</span>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

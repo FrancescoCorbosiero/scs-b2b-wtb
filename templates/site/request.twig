@@ -1,0 +1,40 @@
+{% extends 'layout/base.twig' %}
+{% import 'partials/forms.twig' as f %}
+{% block title %}{{ t('request.title') }} · {{ parent() }}{% endblock %}
+{% block description %}{{ t('request.lead') }}{% endblock %}
+{% block content %}
+  <section class="container-page py-12 max-w-3xl space-y-6">
+    <div class="space-y-3">
+      <h1 class="h1">{{ t('request.title') }}</h1>
+      <p class="text-lg text-muted">{{ t('request.lead') }}</p>
+    </div>
+    <form method="post" action="/richiedi-accesso" class="card space-y-6" novalidate>
+      {{ csrf_field() }}
+      <div class="hp" aria-hidden="true"><label for="f-website">Website</label><input id="f-website" name="website" tabindex="-1" autocomplete="off"></div>
+      <fieldset class="space-y-4">
+        <legend class="h3 mb-2">{{ t('account.company_data') }}</legend>
+        <div class="grid gap-4 sm:grid-cols-2">
+          {{ f.input('company', t('fields.company'), '', 'text', {required: true, autocomplete: 'organization'}) }}
+          {{ f.input('vat_number', t('fields.vat_number'), '', 'text', {required: true, hint: t('request.vat_hint')}) }}
+          {{ f.select('country_code', t('fields.country_code'), country_options(), 'IT', {required: true}) }}
+          {{ f.input('address_street', t('fields.address_street'), '', 'text', {required: true, autocomplete: 'street-address'}) }}
+          {{ f.input('address_city', t('fields.address_city'), '', 'text', {required: true, autocomplete: 'address-level2'}) }}
+          {{ f.input('address_zip', t('fields.address_zip'), '', 'text', {required: true, autocomplete: 'postal-code'}) }}
+          {{ f.input('address_province', t('fields.address_province'), '', 'text', {hint: t('fields.address_province_hint')}) }}
+        </div>
+      </fieldset>
+      <fieldset class="space-y-4">
+        <legend class="h3 mb-2">{{ t('request.contact') }}</legend>
+        <div class="grid gap-4 sm:grid-cols-2">
+          {{ f.input('name', t('fields.name'), '', 'text', {required: true, autocomplete: 'name'}) }}
+          {{ f.input('email', t('fields.email'), '', 'email', {required: true, autocomplete: 'email'}) }}
+          {{ f.input('phone', t('fields.phone'), '', 'tel', {required: true, autocomplete: 'tel'}) }}
+          {{ f.select('locale', t('fields.locale'), {it: t('common.lang_it'), en: t('common.lang_en')}, locale()) }}
+        </div>
+        {{ f.textarea('notes', t('request.notes'), '', {rows: 3}) }}
+      </fieldset>
+      <p class="text-sm text-muted">{{ t('request.privacy') }}</p>
+      <button type="submit" class="btn btn-primary">{{ t('request.submit') }}</button>
+    </form>
+  </section>
+{% endblock %}

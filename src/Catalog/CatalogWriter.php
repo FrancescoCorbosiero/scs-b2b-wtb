@@ -30,6 +30,7 @@ final class CatalogWriter
             'line' => $p->line,
             'gender' => $p->gender,
             'category_path' => (string) json_encode($p->categoryPath, JSON_UNESCAPED_UNICODE),
+            'category_key' => self::categoryKey($p->categoryPath),
             'description' => $p->description,
             'size_category' => SizeCategory::classify($p->gender, $p->name, $usSizes),
             'search_text' => mb_strtolower(implode(' ', array_merge([$p->sku, $p->name, $p->brand, $p->line], $eans))),
@@ -50,6 +51,14 @@ final class CatalogWriter
         $this->syncVariants($id, $p, $now);
 
         return ['id' => $id, 'created' => $created];
+    }
+
+    /** @param list<string> $path */
+    public static function categoryKey(array $path): string
+    {
+        $segments = array_map(static fn (string $s): string => str_replace('/', '-', $s), $path);
+
+        return $segments === [] ? '' : implode('/', $segments) . '/';
     }
 
     /** @param list<string> $urls */

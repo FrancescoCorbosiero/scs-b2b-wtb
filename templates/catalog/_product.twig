@@ -1,0 +1,45 @@
+{# Scheda rapida: frammento per la finestra (JS) e corpo della pagina prodotto (senza JS). Solo prezzi di vendita. #}
+{% set p = product %}
+<div class="product-detail" data-product="{{ p.sku }}">
+  <div class="flex items-start justify-between gap-4 mb-4">
+    <div>
+      <p class="text-xs uppercase tracking-wide text-muted">{{ p.brand }}{% if p.line %} · {{ p.line }}{% endif %}</p>
+      <h2 class="h2">{{ p.name }}</h2>
+      <p class="text-sm text-muted">SKU <code>{{ p.sku }}</code> · {{ t('catalog.size_category.' ~ p.size_category) }}{% if p.gender %} · {{ t('catalog.gender.' ~ p.gender) }}{% endif %}</p>
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" data-dialog-close aria-label="{{ t('common.close') }}">✕</button>
+  </div>
+  <div class="grid gap-6 md:grid-cols-[minmax(0,2fr),minmax(0,3fr)]">
+    <div class="space-y-2">
+      {% if p.images is not empty %}
+        <img src="{{ p.images[0].large }}" alt="{{ p.name }}" class="product-detail-image" width="800" height="600">
+        {% if p.images|length > 1 %}
+          <div class="grid grid-cols-4 gap-2">
+            {% for img in p.images|slice(1, 7) %}<img src="{{ img.thumb }}" alt="{{ p.name }}" loading="lazy" class="rounded border border-line" width="400" height="300">{% endfor %}
+          </div>
+        {% endif %}
+      {% else %}
+        <span class="product-card-noimg aspect-[4/3] block rounded"></span>
+      {% endif %}
+      {% if p.description %}<p class="text-sm text-muted">{{ p.description }}</p>{% endif %}
+    </div>
+    <div class="space-y-4">
+      {% if p.units is empty %}
+        <p class="alert alert-info">{{ t('catalog.sold_out') }}</p>
+      {% else %}
+        <p class="text-sm text-muted">{{ t('product.tiers_hint') }}</p>
+        {% include 'catalog/_units.twig' %}
+      {% endif %}
+      {% if not show_prices %}
+        <div class="alert alert-info space-y-2">
+          <p class="font-semibold">{{ t('catalog.reserved') }}</p>
+          <p>{{ t('product.reserved_text') }}</p>
+          <p class="flex flex-wrap gap-2">
+            <a href="/login?next={{ ('/catalogo/prodotto/' ~ p.sku|url_encode)|url_encode }}" class="btn btn-ghost btn-sm">{{ t('nav.login') }}</a>
+            <a href="/richiedi-accesso" class="btn btn-primary btn-sm">{{ t('nav.request') }}</a>
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

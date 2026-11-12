@@ -73,8 +73,14 @@ final class Money
         return str_replace('.', ',', self::toDecimal($cents));
     }
 
+    /** Importo in euro come numero per le celle Excel (solo uscita: nessun calcolo dopo). */
+    public static function toExportNumber(int $cents): float
+    {
+        return self::toFloatForDisplay($cents);
+    }
+
     /**
-     * Unico punto in cui un importo diventa float: solo per la formattazione a video,
+     * Unico punto in cui un importo diventa float: solo per la formattazione a video o nell'export,
      * su valori già interi in centesimi (nessun calcolo).
      */
     private static function toFloatForDisplay(int $cents): float

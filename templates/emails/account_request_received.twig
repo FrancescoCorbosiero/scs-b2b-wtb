@@ -1,0 +1,16 @@
+{% extends 'emails/layout.twig' %}
+{% block subject %}{{ t('emails.request_received.subject', {site: setting('company.site_name')}) }}{% endblock %}
+{% block body %}
+  <p>{{ t('emails.greeting', {name: request.name}) }}</p>
+  <p>{{ t('emails.request_received.intro', {company: request.company}) }}</p>
+  <p>{{ t('emails.request_received.next') }}</p>
+{% endblock %}
+{% block footer_note %}{{ t('emails.request_received.footer') }}{% endblock %}
+{% block text %}
+{{ t('emails.greeting', {name: request.name}) }}
+
+{{ t('emails.request_received.intro', {company: request.company}) }}
+{{ t('emails.request_received.next') }}
+
+{{ t('emails.signature', {site: setting('company.site_name')}) }}
+{% endblock %}

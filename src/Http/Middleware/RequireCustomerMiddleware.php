@@ -32,7 +32,7 @@ final class RequireCustomerMiddleware implements MiddlewareInterface
         $uri = $request->getUri();
         $next = $uri->getPath() . ($uri->getQuery() !== '' ? '?' . $uri->getQuery() : '');
         if ($request->getMethod() !== 'GET') {
-            $next = '/account';
+            $next = '/catalogo';
         }
 
         return $this->responses->createResponse(303)->withHeader('Location', '/login?next=' . rawurlencode($next));

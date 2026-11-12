@@ -1,0 +1,31 @@
+{# Taglie × regimi con le fasce (pronta consegna, poi stock esteso). #}
+<div class="table-wrap">
+  <table class="table units-table">
+    <thead><tr>
+      <th>{{ t('product.size') }} ({{ size_system|upper }})</th>
+      <th>{{ t('product.tiers') }}</th>
+    </tr></thead>
+    <tbody>
+      {% for u in product.units %}
+        <tr>
+          <td class="whitespace-nowrap">
+            <span class="font-semibold text-base">{{ u.size }}</span>
+            {% if size_system != 'eu' %}<span class="block text-xs text-muted">EU {{ u.size_eu }}</span>{% endif %}
+            <span class="block text-xs {{ u.regime == 'margin' ? 'text-muted' : 'text-warn' }}">{{ t('catalog.regime_label.' ~ u.regime) }}</span>
+          </td>
+          <td>
+            <ul class="space-y-1 text-sm">
+              {% for tier in u.tiers %}
+                <li>
+                  <span class="badge {{ tier.stock_type == 'immediate' ? 'badge-ok' : 'badge-muted' }}">{{ t('product.' ~ tier.stock_type) }}</span>
+                  {{ tc('product.pairs_available', tier.available) }}{% if tier.price is not null %} × <strong>{{ money(tier.price) }}</strong>{% endif %}
+                  <span class="text-muted">· {{ t('product.ships', {days: tier.ships_in_days}) }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

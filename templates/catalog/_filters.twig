@@ -1,0 +1,92 @@
+{% set f = filters %}
+<details class="filters" open data-collapse-mobile="{{ f.isFiltered() ? '0' : '1' }}">
+  <summary class="filters-summary">{{ t('catalog.filters') }}{% if f.isFiltered() %} <span class="badge badge-ink">•</span>{% endif %}</summary>
+  <form method="get" action="{{ base_path }}" class="filters-form">
+    {% if f.q %}<input type="hidden" hidden name="q" value="{{ f.q }}">{% endif %}
+    {% if f.sort != 'rilevanza' %}<input type="hidden" hidden name="ordina" value="{{ f.sort }}">{% endif %}
+
+    <fieldset class="filter-group">
+      <label class="check"><input type="checkbox" name="disponibili" value="1" {{ f.availableOnly ? 'checked' }}> {{ t('catalog.available_only') }}</label>
+      <label class="check"><input type="checkbox" name="pronta" value="1" {{ f.immediateOnly ? 'checked' }}> {{ t('catalog.immediate_only') }}</label>
+      <label class="check"><input type="checkbox" name="evidenza" value="1" {{ f.featuredOnly ? 'checked' }}> {{ t('catalog.featured_only') }}</label>
+    </fieldset>
+
+    {% if facets.categories is not empty %}
+      <fieldset class="filter-group">
+        <legend>{{ t('catalog.category') }}</legend>
+        <select name="cat" class="input">
+          <option value="">{{ t('common.all') }}</option>
+          {% for c in facets.categories %}<option value="{{ c.key }}" {{ f.category == c.key ? 'selected' }}>{{ c.indent }}{{ c.label }} ({{ c.count }})</option>{% endfor %}
+        </select>
+      </fieldset>
+    {% endif %}
+
+    {% for group in [{key: 'brand', label: t('catalog.brand'), items: facets.brands, selected: f.brands}, {key: 'linea', label: t('catalog.line'), items: facets.lines, selected: f.lines}] %}
+      {% if group.items is not empty %}
+        <fieldset class="filter-group">
+          <legend>{{ group.label }}</legend>
+          <div class="filter-options">
+            {% for o in group.items %}
+              <label class="check"><input type="checkbox" name="{{ group.key }}[]" value="{{ o.value }}" {{ o.value in group.selected ? 'checked' }}> {{ o.value }} <span class="text-muted">({{ o.count }})</span></label>
+            {% endfor %}
+          </div>
+        </fieldset>
+      {% endif %}
+    {% endfor %}
+
+    <fieldset class="filter-group">
+      <legend>{{ t('catalog.gender_title') }}</legend>
+      {% for o in facets.genders %}
+        <label class="check"><input type="checkbox" name="genere[]" value="{{ o.value }}" {{ o.value in f.genders ? 'checked' }}> {{ t('catalog.gender.' ~ o.value) }} <span class="text-muted">({{ o.count }})</span></label>
+      {% endfor %}
+    </fieldset>
+
+    <fieldset class="filter-group">
+      <legend>{{ t('catalog.size_category_title') }}</legend>
+      {% for o in facets.size_categories %}
+        <label class="check"><input type="checkbox" name="eta[]" value="{{ o.value }}" {{ o.value in f.sizeCategories ? 'checked' }}> {{ t('catalog.size_category.' ~ o.value) }} <span class="text-muted">({{ o.count }})</span></label>
+      {% endfor %}
+    </fieldset>
+
+    {% if facets.sizes is not empty %}
+      <fieldset class="filter-group">
+        <legend>{{ t('catalog.sizes') }} ({{ size_system|upper }})</legend>
+        <div class="size-picker">
+          {% for s in facets.sizes %}<label><input type="checkbox" name="taglie[]" value="{{ s }}" {{ s in f.sizes ? 'checked' }}><span>{{ s }}</span></label>{% endfor %}
+        </div>
+      </fieldset>
+    {% endif %}
+
+    {% if facets.regimes|length > 1 %}
+      <fieldset class="filter-group">
+        <legend>{{ t('catalog.regime_title') }}</legend>
+        <label class="check"><input type="radio" name="regime" value="" {{ f.regime == '' ? 'checked' }}> {{ t('common.all') }}</label>
+        {% for r in facets.regimes %}<label class="check"><input type="radio" name="regime" value="{{ r }}" {{ f.regime == r ? 'checked' }}> {{ t('catalog.regime_label.' ~ r) }}</label>{% endfor %}
+      </fieldset>
+    {% endif %}
+
+    <fieldset class="filter-group">
+      <legend>{{ t('catalog.availability_title') }}</legend>
+      <select name="disp" class="input">
+        <option value="">{{ t('common.all') }}</option>
+        {% for a in ['alta', 'media', 'bassa'] %}<option value="{{ a }}" {{ f.availability == a ? 'selected' }}>{{ t('catalog.availability_filter.' ~ a) }}</option>{% endfor %}
+      </select>
+    </fieldset>
+
+    {% if show_prices %}
+      <fieldset class="filter-group">
+        <legend>{{ t('catalog.price_title') }}</legend>
+        <div class="flex items-center gap-2">
+          <input class="input" type="number" min="0" step="1" name="prezzo_min" value="{{ f.priceMinCents is null ? '' : (f.priceMinCents // 100) }}" placeholder="{{ t('catalog.price_min') }}" aria-label="{{ t('catalog.price_min') }}">
+          <span>–</span>
+          <input class="input" type="number" min="0" step="1" name="prezzo_max" value="{{ f.priceMaxCents is null ? '' : (f.priceMaxCents // 100) }}" placeholder="{{ t('catalog.price_max') }}" aria-label="{{ t('catalog.price_max') }}">
+        </div>
+      </fieldset>
+    {% endif %}
+
+    <div class="flex gap-2">
+      <button type="submit" class="btn btn-primary flex-1">{{ t('common.apply') }}</button>
+      {% if f.isFiltered() %}<a href="{{ base_path }}" class="btn btn-ghost">{{ t('catalog.reset') }}</a>{% endif %}
+    </div>
+  </form>
+</details>

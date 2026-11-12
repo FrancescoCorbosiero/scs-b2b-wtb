@@ -1,0 +1,33 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ request.company }}{% endblock %}
+{% block content %}
+  {% set r = request %}
+  <p class="mb-2"><a href="/admin/richieste-profilo" class="link text-sm">← {{ t('admin.requests.title') }}</a></p>
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+    <div>
+      <h1 class="h1">{{ r.company }}</h1>
+      <p class="text-sm text-muted">{{ t('admin.requests.received', {at: r.created_at|local_datetime, ip: r.ip_address}) }}
+        · <span class="badge {{ r.status == 'pending' ? 'badge-warn' : (r.status == 'approved' ? 'badge-ok' : 'badge-muted') }}">{{ t('admin.requests.status.' ~ r.status) }}</span>
+        {% if r.reviewed_at %}· {{ r.reviewed_at|local_datetime }} ({{ r.reviewed_by }}){% endif %}</p>
+    </div>
+    {% if r.status == 'pending' %}
+      <div class="flex gap-2">
+        <form method="post" action="/admin/richieste-profilo/{{ r.id }}/approva">{{ csrf_field() }}<button class="btn btn-primary" type="submit">{{ t('admin.requests.approve') }}</button></form>
+        <form method="post" action="/admin/richieste-profilo/{{ r.id }}/rifiuta" data-confirm="{{ t('admin.requests.confirm_reject') }}">{{ csrf_field() }}<button class="btn btn-danger" type="submit">{{ t('admin.requests.reject') }}</button></form>
+      </div>
+    {% elseif r.user_id %}
+      <a href="/admin/clienti/{{ r.user_id }}" class="btn btn-ghost">{{ t('admin.requests.open_customer') }}</a>
+    {% endif %}
+  </div>
+  <div class="card max-w-3xl">
+    <dl class="dl">
+      {% for field in ['company', 'vat_number', 'name', 'email', 'phone', 'address_street', 'address_zip', 'address_city', 'address_province'] %}
+        <dt>{{ t('fields.' ~ field) }}</dt><dd>{{ attribute(r, field) ?: '—' }}</dd>
+      {% endfor %}
+      <dt>{{ t('fields.country_code') }}</dt><dd>{{ country_name(r.country_code) }} ({{ r.country_code }})</dd>
+      <dt>{{ t('fields.locale') }}</dt><dd>{{ r.locale|upper }}</dd>
+      <dt>{{ t('fields.notes') }}</dt><dd class="whitespace-pre-line">{{ r.notes ?: '—' }}</dd>
+    </dl>
+  </div>
+  <p class="text-sm text-muted mt-3">{{ t('admin.requests.approve_hint') }}</p>
+{% endblock %}

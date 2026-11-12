@@ -45,7 +45,9 @@ stessi filtri.
   neutra.
 - **`/account`**: profilo (precompila il checkout), cambio password,
   **`/account/ordini`** con stato, tracking e pro-forma PDF degli ordini
-  confermati.
+  confermati. Il cliente modifica referente, telefono, indirizzo e lingua;
+  ragione sociale, partita IVA e paese di fatturazione (che decidono l'IVA)
+  li cambia l'admin.
 
 ## `/catalogo`
 
@@ -65,6 +67,16 @@ taglie, regime IVA, solo pronta consegna, prezzo min–max, disponibilità, solo
 disponibili. **Ricerca** per nome, SKU o EAN. **Ordinamento**: rilevanza,
 nome, prezzo ↑↓, disponibilità, novità. Paginazione con "Carica altri".
 Taglie in EU (default), US o UK; densità griglia; scelte salvate in sessione.
+
+Parametri dell'URL: `q`, `brand[]`, `linea[]`, `genere[]`, `eta[]`
+(adult/gs/ps), `cat` (prefisso dell'albero, es. `Sneakers/New Balance`),
+`taglie[]` (nel sistema scelto), `regime`, `pronta=1`, `prezzo_min`,
+`prezzo_max` (euro), `disp` (alta/media/bassa), `disponibili=1`,
+`evidenza=1`, `ordina` (rilevanza, nome, prezzo_asc, prezzo_desc,
+disponibilita, novita), `page`, `sistema` (eu/us/uk), `densita`
+(comoda/compatta). Senza JavaScript "Carica altri" riapre la pagina con più
+prodotti; con JavaScript aggiunge solo i nuovi (`partial=1`). La scheda
+rapida si apre in una finestra (`<dialog>`); senza JavaScript è una pagina.
 
 **Esauriti**: restano visibili, marcati, in fondo alla griglia, senza CTA;
 "Solo disponibili" li toglie. Un prodotto sparito dal feed del fornitore
@@ -119,4 +131,8 @@ Banner permanente con la **modalità WTB** (`FIXTURE` / `TEST` / `LIVE`).
   (catalogo, stock), profilo WTB e fotografia delle tariffe.
 - **Webhook** (`/admin/webhook`): eventi ricevuti con esito; "Simula evento"
   solo nelle modalità `fixture` e `test`.
-- **In evidenza**: flag manuale per SKU, mostrato come badge e filtro.
+- **Prodotti** (`/admin/prodotti`): catalogo con costo, prezzo di vendita,
+  margine lordo, stima netta e regola applicata per ogni offerta; da qui il
+  flag **In evidenza**.
+- **In evidenza**: flag manuale per SKU, mostrato come badge e filtro; i
+  prodotti in evidenza vengono prima nell'ordinamento "rilevanza".

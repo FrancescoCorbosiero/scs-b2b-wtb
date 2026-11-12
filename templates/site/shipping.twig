@@ -1,0 +1,30 @@
+{% extends 'layout/base.twig' %}
+{% block title %}{{ t('shipping_page.title') }} · {{ parent() }}{% endblock %}
+{% block description %}{{ t('shipping_page.lead') }}{% endblock %}
+{% block content %}
+  <section class="container-page py-12 space-y-6 max-w-5xl">
+    <div class="space-y-3">
+      <h1 class="h1">{{ t('shipping_page.title') }}</h1>
+      <p class="text-lg text-muted">{{ t('shipping_page.lead') }}</p>
+    </div>
+    {% include 'site/_zones.twig' %}
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="card space-y-2">
+        <h2 class="h3">{{ t('shipping_page.departure_title') }}</h2>
+        <p class="text-sm">{{ t('shipping_page.departure_immediate', {days: departure.immediate}) }}</p>
+        {% if sell_extended %}<p class="text-sm">{{ t('shipping_page.departure_extended', {days: departure.extended}) }}</p>{% endif %}
+        <p class="text-sm text-muted">{{ t('shipping_page.mixed') }}</p>
+      </div>
+      <div class="card space-y-2">
+        <h2 class="h3">{{ t('shipping_page.dropship_title') }}</h2>
+        <p class="text-sm text-muted">{{ t('shipping_page.dropship_text') }}</p>
+      </div>
+      {% if duties_countries is not empty %}
+        <div class="card space-y-2 md:col-span-2">
+          <h2 class="h3">{{ t('shipping_page.duties_title') }}</h2>
+          <p class="text-sm text-muted">{{ t('shipping_page.duties_text', {countries: duties_countries|map(c => country_name(c))|join(', ')}) }}</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

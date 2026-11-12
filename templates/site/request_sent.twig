@@ -1,0 +1,9 @@
+{% extends 'layout/base.twig' %}
+{% block title %}{{ t('request.sent_title') }} · {{ parent() }}{% endblock %}
+{% block content %}
+  <section class="container-narrow py-16 text-center space-y-4">
+    <h1 class="h1">{{ t('request.sent_title') }}</h1>
+    <p class="text-muted">{{ t('request.sent_text') }}</p>
+    <p><a href="/vetrina" class="btn btn-primary">{{ t('home.cta_showcase') }}</a></p>
+  </section>
+{% endblock %}

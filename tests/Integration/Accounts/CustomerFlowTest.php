@@ -52,7 +52,7 @@ final class CustomerFlowTest extends TestCase
         $customer->post('/account/imposta-password', ['token' => $token, 'password' => 'corta', 'password_confirm' => 'corta']);
         self::assertStringContainsString('/account/imposta-password', $customer->last->getHeaderLine('Location'));
         $customer->post('/account/imposta-password', ['token' => $token, 'password' => 'una-password-lunga', 'password_confirm' => 'una-password-lunga']);
-        self::assertSame('/account', $customer->last->getHeaderLine('Location'));
+        self::assertSame('/catalogo', $customer->last->getHeaderLine('Location'));
         self::assertSame(200, $customer->get('/account')->getStatusCode());
         self::assertStringContainsString('Neg Sneakers S.r.l.', $customer->body());
 
@@ -136,7 +136,7 @@ final class CustomerFlowTest extends TestCase
         $token = substr($link, strpos($link, 'token=') + 6);
         $other = $app->http('198.51.100.40');
         $other->post('/account/imposta-password', ['token' => $token, 'password' => 'nuova-password-1', 'password_confirm' => 'nuova-password-1']);
-        self::assertSame('/account', $other->last->getHeaderLine('Location'));
+        self::assertSame('/catalogo', $other->last->getHeaderLine('Location'));
         $fresh = $app->http('198.51.100.41');
         $fresh->loginCustomer('cliente@example.com', 'nuova-password-1');
     }

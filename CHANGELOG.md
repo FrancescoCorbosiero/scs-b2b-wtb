@@ -5,6 +5,13 @@ o per i suoi clienti. Le più recenti in alto.
 
 ## 12/11/2026
 
+- Catalogo per i clienti con filtri, ricerca, ordinamenti, taglie EU/US/UK,
+  scheda rapida con le fasce pronta consegna / stock esteso ed export Excel;
+  vetrina pubblica senza prezzi; sito pubblico (home, come ordinare,
+  spedizioni, contatti) con tariffe e tempi reali; modulo "Richiedi
+  accesso" con approvazione dall'admin; regole margine da Admin › Margini
+  con ricalcolo immediato dei prezzi; pagina Prodotti con costi e margini e
+  flag "In evidenza".
 - Il catalogo arriva dal fornitore: sync completo ogni 3 ore e dello stock
   ogni 15 minuti (anche a mano da Admin › Sync), tutto o niente, con blocco
   se il feed cala troppo; immagini servite dal nostro dominio; pagina Sync

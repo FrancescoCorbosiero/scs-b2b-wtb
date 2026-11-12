@@ -31,7 +31,7 @@ final class AuthController
     public function loginForm(Request $request, Response $response): Response
     {
         if (Req::customer($request) !== null) {
-            return $this->responder->redirect($response, Req::safeNext(Req::query($request, 'next'), '/account'));
+            return $this->responder->redirect($response, Req::safeNext(Req::query($request, 'next'), '/catalogo'));
         }
 
         return $this->responder->render($response, 'auth/login.twig', [
@@ -44,12 +44,12 @@ final class AuthController
         $session = Req::session($request);
         $email = Req::str($request, 'email');
         $result = $this->auth->attempt($email, Req::str($request, 'password'), Req::ip($request));
-        $next = Req::safeNext(Req::str($request, 'next'), '/account');
+        $next = Req::safeNext(Req::str($request, 'next'), '/catalogo');
         if ($result['status'] !== 'ok' || !isset($result['user'])) {
             $session->flash('error', $this->t->get($result['status'] === 'locked' ? 'auth.locked' : 'auth.invalid'));
             $session->flashInput(['email' => $email]);
 
-            return $this->responder->redirect($response, '/login' . ($next !== '/account' ? '?next=' . rawurlencode($next) : ''));
+            return $this->responder->redirect($response, '/login' . ($next !== '/catalogo' ? '?next=' . rawurlencode($next) : ''));
         }
         $this->auth->login($session, (int) $result['user']['id']);
         $session->set('locale', (string) $result['user']['locale']);
@@ -122,6 +122,6 @@ final class AuthController
         $this->auth->login($session, $userId);
         $session->flash('success', $this->t->get('auth.password_set'));
 
-        return $this->responder->redirect($response, '/account');
+        return $this->responder->redirect($response, '/catalogo');
     }
 }

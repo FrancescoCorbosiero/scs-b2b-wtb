@@ -110,3 +110,50 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+@layer components {
+  .product-card { @apply flex flex-col overflow-hidden rounded-lg border border-line bg-white transition-shadow hover:shadow-md; }
+  .product-card.is-sold-out { @apply opacity-70; }
+  .product-card-media { @apply block aspect-[4/3] overflow-hidden bg-white; }
+  .product-card-media img { @apply h-full w-full object-contain; }
+  .product-card-noimg { @apply block h-full w-full bg-paper; }
+  .product-card-body { @apply flex flex-1 flex-col gap-1.5 p-3; }
+  .product-card-title { @apply font-semibold leading-snug; }
+  .product-card-title a { @apply hover:underline; }
+  .product-card-footer { @apply mt-auto flex flex-wrap items-end justify-between gap-2 pt-2; }
+  .price { @apply font-display text-lg font-bold tabular-nums; }
+  .size-chips { @apply flex flex-wrap gap-1; }
+  .size-chips li { @apply rounded border border-line px-1.5 py-0.5 text-[11px] tabular-nums; }
+  .size-chips li.more { @apply border-transparent text-muted; }
+
+  .filters { @apply self-start rounded-lg border border-line bg-white lg:sticky lg:top-20; }
+  .filters-summary { @apply cursor-pointer list-none px-4 py-3 font-semibold lg:hidden; }
+  .filters-summary::-webkit-details-marker { display: none; }
+  .filters-form { @apply max-h-[75vh] space-y-4 overflow-y-auto border-t border-line p-4 lg:max-h-[calc(100vh-7rem)] lg:border-t-0; }
+  .filter-group { @apply space-y-1.5; }
+  .filter-group legend { @apply mb-1 text-xs font-semibold uppercase tracking-wide text-muted; }
+  .filter-options { @apply max-h-48 space-y-1 overflow-y-auto; }
+  .check { @apply flex items-center gap-2 text-sm; }
+  .size-picker { @apply flex flex-wrap gap-1; }
+  .size-picker input { @apply sr-only; }
+  .size-picker span { @apply inline-block cursor-pointer rounded border border-line px-2 py-1 text-xs tabular-nums; }
+  .size-picker input:checked + span { @apply border-ink bg-ink text-paper; }
+  .size-picker input:focus-visible + span { @apply outline outline-2 outline-ink; }
+
+  .quickview { @apply m-auto w-[min(64rem,calc(100vw-1.5rem))] max-w-none rounded-lg border border-line bg-white p-0 shadow-2xl; }
+  .quickview::backdrop { background: rgb(17 17 17 / 0.55); }
+  .quickview-body { @apply max-h-[85vh] overflow-y-auto p-4 sm:p-6; }
+  .product-detail-image { @apply w-full rounded border border-line bg-white object-contain; }
+  .units-table td { @apply py-3; }
+}
+
+@media (min-width: 1024px) {
+  .filters > .filters-summary { display: none; }
+}
+
+@layer components {
+  .hero { @apply bg-ink text-paper; }
+  .btn-light { @apply border-paper bg-paper text-ink hover:bg-white; }
+  .step-number { @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink font-display text-sm font-bold text-paper; }
+  .hp { @apply absolute -left-[9999px] h-px w-px overflow-hidden; }
+}

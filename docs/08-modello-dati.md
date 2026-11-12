@@ -14,7 +14,8 @@ ISO 8601 UTC in TEXT, JSON in TEXT, booleani 0/1. I campi **riservati**
 completo: gli esauriti ne escono, D-017), `is_featured`, `total_available`
 (denormalizzato: solo offerte vendibili), `min_price_cents` +
 `min_price_regime` (per card e filtri), `has_immediate`, `search_text` (SKU,
-nome, brand, linea, EAN in minuscolo), `first_seen_at`, `last_seen_at`,
+nome, brand, linea, EAN in minuscolo), `category_key` (`category_path` unito
+da `/`, per il filtro ad albero), `first_seen_at`, `last_seen_at`,
 `updated_at`. Indici su `brand`, `line`, `gender`, `is_active`,
 `min_price_cents`.
 
@@ -40,7 +41,7 @@ applicata, NULL = default), `ships_in_days`, `updated_at`. UNIQUE
 (`sku`|`brand`|`name`|`line`|`gender`|`category`|`size_category`),
 `match_value`, `regime` NULL (= tutti), `stock_type` NULL (= tutti),
 `margin_type` (`percent`|`fixed`|`fixed_price`), `margin_value` (bp o
-centesimi), `is_active`, `created_at`, `updated_at`.
+centesimi), `is_active`, `note`, `created_at`, `updated_at`, `updated_by`.
 
 **`wtb_snapshots`** — `id`, `kind` (`shipping`), `payload` (JSON), `fetched_at`:
 profilo, zone, tariffe e ordine minimo WTB dall'ultimo `GET /shipping/`.

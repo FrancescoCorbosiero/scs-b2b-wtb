@@ -157,7 +157,10 @@ composer check                   # test + PHPStan (con COMPOSER_ALLOW_SUPERUSER=
 | Fornitore (unico punto che conosce WTB) | `src/Supplier/` (interfacce e modelli interni), `src/Supplier/Wtb/` (client, mapper, catalogo, ordini, firma webhook), `src/Supplier/Wtb/Fixture/` (modalità fixture e simulatore) |
 | Sync del catalogo | `src/Catalog/ProductSync.php` (completo, tutto o niente), `StockSync.php` (rapido), `CatalogWriter.php`, `SizeCategory.php`, `ProductAggregates.php` |
 | Immagini | `src/Catalog/ImageService.php`, `src/Http/Controller/Site/ImageController.php` |
-| Prezzi | `src/Pricing/` (`Rounding` = unico punto degli arrotondamenti, `PricingService`, `MarginResolver`, `RepriceService`) |
+| Prezzi e margini | `src/Pricing/` (`Rounding` = unico punto degli arrotondamenti, `PricingService`, `MarginRule*`, `MarginResolver`, `RepriceService`, `TierCalculator` per le fasce), `src/Http/Controller/Admin/MarginsController.php` |
+| Catalogo e vetrina | `src/Catalog/CatalogFilters.php` (parametri URL), `CatalogQuery.php` (filtri, ordinamenti, faccette), `CatalogPresenter.php` (dati sicuri per il cliente, senza prezzi in vetrina), `CatalogPage.php`, `CatalogExport.php`, controller `Site/CatalogController.php` e `Site/ShowcaseController.php`, template in `templates/catalog/` |
+| Sito pubblico e richieste di profilo | `src/Http/Controller/Site/PageController.php`, `templates/site/`, `src/Accounts/AccountRequestService.php`, `src/Http/Controller/Admin/AccountRequestsController.php`, `src/Shipping/ShippingInfo.php`, `DeliveryEstimate.php` |
+| Prodotti in admin (costi, margini, evidenza) | `src/Http/Controller/Admin/ProductsController.php` |
 | Job e scheduler | `src/Jobs/`, `bin/scheduler.php`, `bin/sync.php`, `bin/backup.php` |
 | Dashboard e avvisi admin | `src/Admin/Alerts.php`, `src/Admin/DashboardCards.php`, `src/Http/Controller/Admin/SyncController.php` |
 | Testi | `lang/it.php` (fonte, admin compreso), `lang/en.php` |
