@@ -1,0 +1,17 @@
+# Segreti: le chiavi WTB e le password stanno solo nel .env del server
+.env
+.env.*
+!.env.example
+
+# Dati locali e dipendenze
+/var/
+/vendor/
+/node_modules/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Sistema ed editor
+.DS_Store
+.idea/
+.vscode/
