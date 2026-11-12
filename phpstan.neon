@@ -1,0 +1,11 @@
+parameters:
+    level: 6
+    paths:
+        - src
+        - config
+        - bin
+        - public/index.php
+    tmpDir: var/cache/phpstan
+    ignoreErrors:
+        # Le righe del database sono array<string, mixed>: non serve ripeterlo in ogni firma.
+        - identifier: missingType.iterableValue

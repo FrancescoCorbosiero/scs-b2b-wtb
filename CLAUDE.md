@@ -130,17 +130,33 @@ Dettagli in `docs/03-fornitore-wtb.md`.
 ## Comandi (da tenere allineati a quelli reali)
 
 ```bash
-composer install                 # dipendenze PHP (in Claude Code web: --prefer-source, docs/02)
-npm ci && npm run build          # asset in public/assets
+composer install                 # dipendenze PHP (in Claude Code web: sh bin/dev-composer-install.sh, docs/02)
+npm ci && npm run build          # asset in public/assets (non versionati)
 php bin/migrate.php              # applica le migrazioni
 php bin/sync.php products        # sync completo del catalogo (idempotente)
 php bin/sync.php stock           # sync rapido di stock e prezzi
 php bin/scheduler.php            # ciclo dei job periodici (container scheduler)
-composer check                   # test + PHPStan
+php bin/hash-password.php        # hash Argon2id per ADMIN_PASSWORD_HASH
+php bin/dev-customer.php         # cliente di prova con password (solo sviluppo)
+php -S 127.0.0.1:8080 -t public bin/dev-router.php   # server di sviluppo
+composer check                   # test + PHPStan (con COMPOSER_ALLOW_SUPERUSER=1 se sei root)
 ```
 
 ## Mappa del codice
 
-_Da compilare in M1 e tenere aggiornata: per ogni area (fornitore, prezzi, IVA,
-spedizione, ordini, webhook, catalogo, account, admin, impostazioni) il
-percorso dei file principali._
+| Area | Dove |
+|---|---|
+| Avvio, contenitore, rotte | `src/Bootstrap.php`, `config/container.php`, `config/routes.php`, `src/Http/AppFactory.php` (ordine dei middleware) |
+| Configurazione `.env` | `src/Support/Config.php` (controlli bloccanti: `live` solo in produzione), `.env.example` |
+| Database e migrazioni | `src/Support/Db.php`, `src/Support/Migrator.php`, `database/migrations/` |
+| Impostazioni (manopole) | `src/Settings/Registry.php` (elenco), `SettingsService.php` (storico), `src/Http/Controller/Admin/SettingsController.php` |
+| Sessioni, CSRF, IP reale | `src/Support/Session*.php`, `src/Support/Csrf.php`, `src/Support/ClientIp.php`, `src/Http/Middleware/` |
+| Account clienti e admin | `src/Accounts/` (utenti, token d'invito/reset, lockout, P.IVA), `src/Http/Controller/Site/AuthController.php`, `AccountController.php`, `src/Http/Controller/Admin/CustomersController.php` |
+| Email | `src/Support/Mail/` (trasporti `log`/`smtp`), template in `templates/emails/` |
+| Zone e paesi | `src/Shipping/CountryRepository.php`, `ZoneRepository.php` |
+| Testi | `lang/it.php` (fonte, admin compreso), `lang/en.php` |
+| Template e stile | `templates/` (sito in `layout/`, `site/`, `auth/`, `account/`; admin in `admin/`), `assets/css/app.css`, `assets/js/app.js`, `tailwind.config.js` |
+| Funzioni dei template | `src/Http/TwigExtension.php` (`t`, `money`, `csrf_field`, `query_url`…), `src/Http/AdminMenu.php` |
+| Errori e header di sicurezza | `src/Http/ErrorHandler.php`, `src/Http/Middleware/SecurityHeadersMiddleware.php` |
+| Produzione | `docker-compose.yml`, `docker/`, `README.md` |
+| Test | `tests/Unit`, `tests/Integration`, `tests/Leak`; app di prova in `tests/Support/TestApp.php` |

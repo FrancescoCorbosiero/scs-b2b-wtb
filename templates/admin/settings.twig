@@ -1,0 +1,74 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ t('admin.settings.title') }}{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+    <div>
+      <h1 class="h1">{{ t('admin.settings.title') }}</h1>
+      <p class="text-muted text-sm">{{ t('admin.settings.intro') }}</p>
+    </div>
+  </div>
+  <div class="grid gap-8 xl:grid-cols-3">
+    <div class="space-y-8 xl:col-span-2">
+      {% for group in groups %}
+        <section class="space-y-3">
+          <h2 class="h3">{{ group.label }}</h2>
+          <div class="card divide-y divide-line p-0">
+            {% for item in group.items %}
+              {% set d = item.def %}
+              <div class="p-4 space-y-2" id="{{ d.key }}">
+                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                  <label class="font-semibold" for="s-{{ d.key }}">{{ d.label }}</label>
+                  <code class="text-xs text-muted">{{ d.key }}</code>
+                </div>
+                {% if d.help %}<p class="text-sm text-muted">{{ d.help }}</p>{% endif %}
+                <div class="flex flex-wrap items-start gap-2">
+                  <form method="post" action="/admin/impostazioni/{{ d.key|url_encode }}" class="flex flex-wrap items-start gap-2 flex-1">
+                    {{ csrf_field() }}
+                    {% if d.type == 'bool' %}
+                      <select class="input w-auto" id="s-{{ d.key }}" name="value">
+                        <option value="1" {{ item.value ? 'selected' }}>{{ t('common.yes') }}</option>
+                        <option value="0" {{ not item.value ? 'selected' }}>{{ t('common.no') }}</option>
+                      </select>
+                    {% elseif d.type == 'enum' %}
+                      <select class="input w-auto" id="s-{{ d.key }}" name="value">
+                        {% for k, label in d.options %}<option value="{{ k }}" {{ item.value == k ? 'selected' }}>{{ label }}</option>{% endfor %}
+                      </select>
+                    {% elseif d.type == 'list' or d.type == 'text' %}
+                      <textarea class="input flex-1 min-w-[16rem]" id="s-{{ d.key }}" name="value" rows="4">{{ item.input }}</textarea>
+                    {% else %}
+                      <input class="input {{ d.type in ['int', 'money', 'decimal'] ? 'w-40' : 'flex-1 min-w-[16rem]' }}" id="s-{{ d.key }}" name="value" value="{{ item.input }}" {% if d.type == 'int' %}inputmode="numeric"{% endif %}>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary btn-sm">{{ t('common.save') }}</button>
+                  </form>
+                  {% if item.customized %}
+                    <form method="post" action="/admin/impostazioni/{{ d.key|url_encode }}/ripristina">
+                      {{ csrf_field() }}
+                      <button type="submit" class="btn btn-ghost btn-sm" title="{{ t('admin.settings.default') }}: {{ item.default_text }}">{{ t('admin.settings.reset') }}</button>
+                    </form>
+                  {% endif %}
+                </div>
+                <p class="text-xs text-muted">{{ item.customized ? t('admin.settings.customized', {default: item.default_text}) : t('admin.settings.is_default') }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+      {% endfor %}
+    </div>
+    <aside class="space-y-3">
+      <h2 class="h3">{{ t('admin.settings.history') }}</h2>
+      {% if audit is empty %}
+        <p class="text-sm text-muted">{{ t('admin.settings.no_history') }}</p>
+      {% else %}
+        <ol class="card divide-y divide-line p-0 text-sm">
+          {% for row in audit %}
+            <li class="p-3 space-y-1">
+              <p class="font-semibold">{{ row.label }}</p>
+              <p class="text-muted">{{ row.old_text }} → <span class="text-ink">{{ row.new_text }}</span></p>
+              <p class="text-xs text-muted">{{ row.changed_at|local_datetime }} · {{ row.changed_by ?: '—' }}</p>
+            </li>
+          {% endfor %}
+        </ol>
+      {% endif %}
+    </aside>
+  </div>
+{% endblock %}

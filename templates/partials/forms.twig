@@ -1,0 +1,34 @@
+{# Macro dei campi: etichetta, valore (precedente o salvato), errore del campo. #}
+{% macro input(name, label, value = '', type = 'text', attrs = {}) %}
+  {% set _err = field_error(name) %}
+  <div class="field">
+    <label class="label" for="f-{{ name }}">{{ label }}{% if attrs.required ?? false %} <span aria-hidden="true">*</span>{% endif %}</label>
+    <input class="input {{ _err ? 'input-error' }}" id="f-{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ old(name, value) }}"
+      {% for k, v in attrs %}{% if v is same as(true) %} {{ k }}{% elseif v is not same as(false) %} {{ k }}="{{ v }}"{% endif %}{% endfor %}
+      {% if _err %}aria-invalid="true" aria-describedby="e-{{ name }}"{% endif %}>
+    {% if attrs.hint ?? false %}<p class="hint">{{ attrs.hint }}</p>{% endif %}
+    {% if _err %}<p class="field-error" id="e-{{ name }}">{{ _err }}</p>{% endif %}
+  </div>
+{% endmacro %}
+
+{% macro select(name, label, options, value = '', attrs = {}) %}
+  {% set _err = field_error(name) %}
+  {% set _val = old(name, value) %}
+  <div class="field">
+    <label class="label" for="f-{{ name }}">{{ label }}{% if attrs.required ?? false %} <span aria-hidden="true">*</span>{% endif %}</label>
+    <select class="input {{ _err ? 'input-error' }}" id="f-{{ name }}" name="{{ name }}" {% if attrs.required ?? false %}required{% endif %} {% if _err %}aria-invalid="true" aria-describedby="e-{{ name }}"{% endif %}>
+      {% if attrs.placeholder ?? false %}<option value="">{{ attrs.placeholder }}</option>{% endif %}
+      {% for k, v in options %}<option value="{{ k }}" {{ _val == k ? 'selected' }}>{{ v }}</option>{% endfor %}
+    </select>
+    {% if _err %}<p class="field-error" id="e-{{ name }}">{{ _err }}</p>{% endif %}
+  </div>
+{% endmacro %}
+
+{% macro textarea(name, label, value = '', attrs = {}) %}
+  {% set _err = field_error(name) %}
+  <div class="field">
+    <label class="label" for="f-{{ name }}">{{ label }}</label>
+    <textarea class="input {{ _err ? 'input-error' }}" id="f-{{ name }}" name="{{ name }}" rows="{{ attrs.rows ?? 4 }}" maxlength="{{ attrs.maxlength ?? 2000 }}">{{ old(name, value) }}</textarea>
+    {% if _err %}<p class="field-error" id="e-{{ name }}">{{ _err }}</p>{% endif %}
+  </div>
+{% endmacro %}

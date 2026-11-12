@@ -15,14 +15,18 @@
 
 - **Clienti**: account creati dall'admin o approvando una richiesta, mai
   attivati da soli. Invito e reset con token monouso (sha256 a DB, chiaro solo
-  nel link), validità 72 h per l'invito; un nuovo token invalida i precedenti;
-  reset con risposta neutra e max 3 token/ora per utente. Password Argon2id,
-  minimo 10 caratteri. Account disattivato ⇒ sessione chiusa alla richiesta
-  successiva.
+  nel link), validità 72 h per l'invito e 2 h per il reset; un nuovo token
+  invalida i precedenti; reset con risposta neutra, max 3 token/ora per utente
+  e 10 richieste/ora per IP. Password Argon2id, minimo 10 caratteri. Account
+  disattivato ⇒ sessione chiusa alla richiesta successiva.
 - **Admin**: password dedicata (`ADMIN_PASSWORD_HASH`, Argon2id, generata con
-  `bin/hash-password.php`), sessione distinta da quella cliente.
-- **Sessioni**: cookie `HttpOnly`, `Secure` (forzato in produzione),
-  `SameSite=Lax`; id rigenerato al login; durata configurabile.
+  `bin/hash-password.php`), sessione distinta da quella cliente (cookie
+  `scs_admin` con Path `/admin`). Al login si può scrivere il proprio nome:
+  finisce nello storico delle modifiche.
+- **Sessioni**: server-side nel database (solo lo sha256 dell'id), cookie
+  `HttpOnly`, `Secure` (forzato in produzione), `SameSite=Lax`; id rigenerato
+  al login e al cambio password; durata `SESSION_LIFETIME` con scadenza
+  scorrevole.
 - **Lockout**: 5 tentativi falliti in 15 minuti per (IP, ambito) ⇒ blocco
   temporaneo con messaggio generico.
 

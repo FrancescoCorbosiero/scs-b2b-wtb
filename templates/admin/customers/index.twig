@@ -1,0 +1,48 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ t('admin.customers.title') }}{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+    <h1 class="h1">{{ t('admin.customers.title') }}</h1>
+    <div class="flex gap-2">
+      <a href="/admin/clienti/export.xlsx" class="btn btn-ghost">{{ t('admin.customers.export') }}</a>
+      <a href="/admin/clienti/nuovo" class="btn btn-primary">{{ t('admin.customers.new') }}</a>
+    </div>
+  </div>
+  <form method="get" action="/admin/clienti" class="flex flex-wrap gap-2 mb-4">
+    <input class="input w-64" type="search" name="q" value="{{ q }}" placeholder="{{ t('admin.customers.search') }}">
+    <select class="input w-auto" name="stato">
+      <option value="">{{ t('admin.customers.status_all') }}</option>
+      {% for k in ['active', 'invited', 'inactive'] %}<option value="{{ k }}" {{ status == k ? 'selected' }}>{{ t('admin.customers.status.' ~ k) }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-ghost" type="submit">{{ t('common.search') }}</button>
+    {% if q or status %}<a class="btn btn-ghost" href="/admin/clienti">{{ t('common.reset') }}</a>{% endif %}
+  </form>
+  {% if customers is empty %}
+    <p class="text-muted">{{ t('admin.customers.empty') }}</p>
+  {% else %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr>
+          <th>{{ t('fields.company') }}</th><th>{{ t('fields.vat_number') }}</th><th>{{ t('fields.email') }}</th>
+          <th>{{ t('fields.country_code') }}</th><th>{{ t('admin.customers.state') }}</th><th>{{ t('admin.customers.last_login') }}</th>
+        </tr></thead>
+        <tbody>
+          {% for c in customers %}
+            <tr class="row-link" data-href="/admin/clienti/{{ c.id }}">
+              <td><a href="/admin/clienti/{{ c.id }}" class="font-semibold">{{ c.company }}</a><br><span class="text-xs text-muted">{{ c.name }}</span></td>
+              <td>{{ c.vat_number }}</td>
+              <td>{{ c.email }}</td>
+              <td>{{ c.country_code }}</td>
+              <td>
+                {% if not c.is_active %}<span class="badge badge-muted">{{ t('admin.customers.status.inactive') }}</span>
+                {% elseif not c.has_password %}<span class="badge badge-warn">{{ t('admin.customers.status.invited') }}</span>
+                {% else %}<span class="badge badge-ok">{{ t('admin.customers.status.active') }}</span>{% endif %}
+              </td>
+              <td>{{ c.last_login_at ? c.last_login_at|local_datetime : '—' }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+{% endblock %}

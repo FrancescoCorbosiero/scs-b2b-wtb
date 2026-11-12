@@ -1,0 +1,21 @@
+{% extends 'emails/layout.twig' %}
+{% block subject %}{{ t('emails.invite.subject', {site: setting('company.site_name')}) }}{% endblock %}
+{% block body %}
+  <p>{{ t('emails.greeting', {name: user.name}) }}</p>
+  <p>{{ t('emails.invite.intro', {company: user.company}) }}</p>
+  <p>{{ t('emails.invite.action', {hours: hours}) }}</p>
+  {% include 'emails/_button.twig' with {href: link, label: t('emails.invite.button')} only %}
+  <p>{{ t('emails.invite.after') }}</p>
+{% endblock %}
+{% block text %}
+{{ t('emails.greeting', {name: user.name}) }}
+
+{{ t('emails.invite.intro', {company: user.company}) }}
+{{ t('emails.invite.action', {hours: hours}) }}
+
+{{ link }}
+
+{{ t('emails.invite.after') }}
+
+{{ t('emails.signature', {site: setting('company.site_name')}) }}
+{% endblock %}

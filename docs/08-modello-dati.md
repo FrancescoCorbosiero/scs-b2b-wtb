@@ -40,31 +40,42 @@ profilo, zone, tariffe e ordine minimo WTB dall'ultimo `GET /shipping/`.
 
 **`settings`** — `key` PK, `value`, `updated_at`, `updated_by`.
 **`settings_audit`** — `id`, `key`, `old_value`, `new_value`, `changed_at`,
-`changed_by`.
+`changed_by` (`old_value`/`new_value` NULL = valeva il default).
 
 **`countries`** — `code` PK (ISO 3166-1 alpha-2), `is_eu`, `zone`
 (`IT`|`EU`|`EXTRA`), `served`, `sort_order`. Seed: UE-27 + GB + CH, Italia in
 testa. I nomi si mostrano localizzati (intl).
 
-**`shipping_zones`** — `zone` PK, `fee_cents`, `free_from_items` NULL,
-`transit_days_min`, `transit_days_max`, `updated_at`.
+**`shipping_zones`** — `zone` PK, `name_it`, `name_en`, `fee_cents`,
+`free_from_items` NULL, `transit_days_min`, `transit_days_max`, `sort_order`,
+`updated_at`. Seed con tariffe segnaposto (15/30/45 €): le vere si impostano
+da `/admin/spedizione` (D-016).
 
 ## Clienti e accesso
 
 **`users`** — `id`, `email` UNIQUE, `password_hash` NULL (NULL = invito non
 completato), `name`, `company`, `vat_number`, `phone`, `address_street`,
 `address_city`, `address_zip`, `address_province`, `country_code`, `locale`,
-`is_active`, `created_at`, `updated_at`, `last_login_at`.
+`is_active`, `admin_notes`, `created_at`, `updated_at`, `last_login_at`.
+`email` è unica senza distinguere maiuscole; `vat_number` è salvata
+normalizzata con il prefisso del paese.
 
 **`user_tokens`** — `id`, `user_id` FK, `token_hash` UNIQUE (sha256),
 `purpose` (`invite`|`reset`), `expires_at`, `used_at`, `created_at`.
 
 **`account_requests`** — `id`, `status` (`pending`|`approved`|`rejected`),
-`reviewed_at`, `user_id` NULL, dati aziendali e referente come in `users`,
+`reviewed_at`, `reviewed_by`, `user_id` NULL, dati aziendali e referente come in `users`,
 `notes`, `ip_address`, `user_agent`, `created_at`.
 
 **`login_attempts`** — `id`, `ip_address`, `scope` (`user`|`admin`),
 `attempted_at`, `success`.
+
+**`rate_limit_hits`** — `id`, `bucket`, `subject` (IP o utente), `hit_at`:
+limiti dei moduli (richiesta profilo, richiesta d'ordine, reset).
+
+**`sessions`** — `id_hash` PK (sha256 dell'id del cookie), `scope`
+(`site`|`admin`), `data` (JSON: carrello, utente, CSRF, flash), `updated_at`,
+`expires_at`.
 
 ## Ordini
 
@@ -107,8 +118,14 @@ NULL, `wtb_number` NULL, `status`, `is_paid`, `payment_method`,
 ## Servizio
 
 **`job_runs`** — `id`, `job`, `started_at`, `finished_at`, `status`
-(`ok`|`error`|`skipped`), `counts` (JSON), `message`.
+(`running`|`ok`|`error`|`skipped`), `counts` (JSON), `message`, `trigger`
+(`scheduler`|`admin`|`cli`).
+
+**`system_flags`** — `key` PK, `value`, `updated_at`: stato di servizio e
+avvisi persistenti (chiave del fornitore rifiutata, sync bloccato, impronta
+dell'ultimo stock).
 
 **`migrations`** — `version` PK, `applied_at`.
 
-Il carrello non sta nel database: vive nella sessione server-side.
+Il carrello non ha tabelle sue: vive nei dati della sessione server-side
+(tabella `sessions`).

@@ -17,6 +17,14 @@
 Rendering server-side con progressive enhancement; le interazioni (carrello,
 scheda rapida) usano endpoint JSON interni con sessione e CSRF.
 
+### Sessioni
+
+Sessioni server-side nella tabella `sessions` (dati in JSON, mai
+`unserialize`; a DB solo lo sha256 dell'id del cookie). Cookie `scs_session`
+per il sito e `scs_admin` (Path `/admin`) per l'area admin: due sessioni
+distinte. Il carrello vive nella sessione del sito. Webhook, immagini e asset
+non aprono sessioni.
+
 ### SQLite: regole
 
 - Un solo file (`DB_PATH`, default `var/db.sqlite`) su disco locale, mai su
@@ -151,17 +159,25 @@ Dall'admin: "Sincronizza ora" per catalogo e stock.
   chiave vuota è un errore di configurazione bloccante.
 - **Composer**: se i download dei pacchetti da GitHub rispondono 403 (il proxy
   GitHub della sessione blocca gli archivi dei repository non collegati),
-  usare `composer install --prefer-source`.
+  usare `composer install --prefer-source`. PHPStan esiste solo come
+  archivio: `sh bin/dev-composer-install.sh` lo scarica da
+  raw.githubusercontent.com, lo mette nella cache di Composer e poi installa
+  tutto da sorgente.
+- **Asset**: `npm run build` compila CSS, JS e font in `public/assets/`, che
+  non è versionata (la build di produzione la rifà nell'immagine Docker).
 - **Niente Docker per sviluppare**: `php -S` con un router che serve i file
   statici, SQLite su file, email col trasporto `log` (file `.eml` in
   `var/mail/`). Docker serve solo per la produzione.
 - **Browser**: Playwright con Chromium per le verifiche dell'interfaccia
   (in Claude Code web di solito in `/opt/pw-browsers/`).
+- **Cliente di prova**: `php bin/dev-customer.php email 'password' [paese]`
+  (solo con `APP_ENV=development`).
 - **Mai** `WTB_MODE=live` e mai la chiave reale in una sessione di sviluppo.
 
 ## Deploy (VPS del titolare)
 
-Stesso schema di scs-b2b, stack separato:
+Stesso schema di scs-b2b, stack separato (`docker-compose.yml`,
+`docker/php/Dockerfile` con i target `app` e `web`, `docker/nginx/default.conf`):
 
 - Servizi: `web` (nginx, document root `public/`), `php` (php-fpm 8.3),
   `scheduler` (php cli). Volume `data` montato su `var/` (database, cache
@@ -174,6 +190,14 @@ Stesso schema di scs-b2b, stack separato:
 - L'endpoint `/webhooks/wtb` deve essere raggiungibile da internet.
 - README con: setup, build, deploy, rotazione chiavi, passaggio test → live,
   backup e ripristino.
+
+## Testi e lingue
+
+Tutti i testi stanno in `lang/`: `it.php` è la fonte, `en.php` ha le stesse
+chiavi (un test lo verifica, insieme ai parametri `:nome`). L'area admin è
+solo in italiano: i suoi testi stanno in `lang/it.php` sotto `admin.*` e non
+hanno la versione inglese (ricadono sull'italiano). Le etichette delle
+impostazioni stanno nel registro (`src/Settings/Registry.php`).
 
 ## Identità visiva
 

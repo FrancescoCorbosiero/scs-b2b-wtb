@@ -1,0 +1,19 @@
+{# Area admin senza menu (login, errori). Solo italiano, sempre noindex. #}
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ t('admin.title') }}{% endblock %} · {{ setting('company.site_name') }}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="{{ asset('app.css') }}">
+  <script src="{{ asset('app.js') }}" defer></script>
+</head>
+<body class="min-h-screen bg-paper text-ink font-sans antialiased">
+  {% include 'admin/_mode_banner.twig' %}
+  <main id="main">
+    {% include 'partials/flash.twig' %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

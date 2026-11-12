@@ -1,0 +1,9 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ t('admin.dashboard.title') }}{% endblock %}
+{% block content %}
+  <h1 class="h1 mb-6">{{ t('admin.dashboard.title') }}</h1>
+  <div class="grid gap-4 md:grid-cols-3">
+    <a href="/admin/clienti" class="card card-link"><span class="text-muted text-sm">{{ t('admin.nav.customers') }}</span></a>
+    <a href="/admin/impostazioni" class="card card-link"><span class="text-muted text-sm">{{ t('admin.nav.settings') }}</span></a>
+  </div>
+{% endblock %}

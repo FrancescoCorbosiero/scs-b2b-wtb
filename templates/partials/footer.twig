@@ -1,0 +1,22 @@
+<footer class="site-footer">
+  <div class="container-page grid gap-8 py-10 md:grid-cols-3 text-sm">
+    <div class="space-y-2">
+      <p class="font-display text-lg font-bold">{{ setting('company.site_name') }}</p>
+      <p class="text-paper/70">{{ t('footer.tagline') }}</p>
+    </div>
+    <div class="space-y-1">
+      <p class="font-semibold">{{ t('footer.company') }}</p>
+      <p class="text-paper/70">{{ setting('company.name') }}</p>
+      <p class="text-paper/70">{{ setting('company.address') }}</p>
+      <p class="text-paper/70">{{ t('footer.vat', {vat: setting('company.vat')}) }}</p>
+    </div>
+    <div class="space-y-1">
+      <p class="font-semibold">{{ t('footer.links') }}</p>
+      <p><a class="footer-link" href="/come-ordinare">{{ t('nav.how') }}</a></p>
+      <p><a class="footer-link" href="/spedizioni">{{ t('nav.shipping') }}</a></p>
+      <p><a class="footer-link" href="/contatti">{{ t('nav.contacts') }}</a></p>
+      {% if setting('company.website') %}<p><a class="footer-link" href="{{ setting('company.website') }}" rel="noopener">{{ t('footer.main_site') }}</a></p>{% endif %}
+    </div>
+  </div>
+  <div class="container-page border-t border-paper/10 py-4 text-xs text-paper/50">© {{ "now"|date("Y") }} {{ setting('company.name') }}. {{ t('footer.rights') }}</div>
+</footer>

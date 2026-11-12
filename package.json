@@ -1,0 +1,16 @@
+{
+  "name": "scs-b2b-assets",
+  "private": true,
+  "description": "Build degli asset (Tailwind CSS + Alpine.js CSP). Node serve solo in build, mai a runtime.",
+  "scripts": {
+    "build": "node scripts/build-assets.mjs",
+    "watch": "node scripts/build-assets.mjs --watch"
+  },
+  "devDependencies": {
+    "@alpinejs/csp": "3.17.5",
+    "@fontsource/archivo": "5.3.0",
+    "@fontsource/inter": "5.3.0",
+    "esbuild": "0.28.2",
+    "tailwindcss": "3.4.19"
+  }
+}

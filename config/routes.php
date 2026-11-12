@@ -1,0 +1,63 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Http\Controller\Admin\AuthController as AdminAuthController;
+use App\Http\Controller\Admin\CustomersController as AdminCustomersController;
+use App\Http\Controller\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controller\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controller\Site\AccountController;
+use App\Http\Controller\Site\AuthController;
+use App\Http\Controller\Site\PageController;
+use App\Http\Middleware\RequireAdminMiddleware;
+use App\Http\Middleware\RequireCustomerMiddleware;
+use Slim\App;
+use Slim\Routing\RouteCollectorProxy;
+
+/**
+ * Mappa delle rotte. Pubbliche e indicizzabili: solo le pagine di presentazione (SecurityHeadersMiddleware::INDEXABLE).
+ * Catalogo, carrello e account dietro login; admin dietro la sua sessione; webhook firmato.
+ */
+return static function (App $app): void {
+    // --- Sito pubblico -----------------------------------------------------------------------
+    $app->get('/', [PageController::class, 'home']);
+    $app->get('/healthz', [PageController::class, 'health']);
+
+    // --- Accesso clienti ---------------------------------------------------------------------
+    $app->get('/login', [AuthController::class, 'loginForm']);
+    $app->post('/login', [AuthController::class, 'login']);
+    $app->post('/logout', [AuthController::class, 'logout']);
+    $app->get('/password-dimenticata', [AuthController::class, 'forgotForm']);
+    $app->post('/password-dimenticata', [AuthController::class, 'forgot']);
+    $app->get('/account/imposta-password', [AuthController::class, 'setPasswordForm']);
+    $app->post('/account/imposta-password', [AuthController::class, 'setPassword']);
+
+    // --- Area clienti (login) ----------------------------------------------------------------
+    $app->group('', function (RouteCollectorProxy $g): void {
+        $g->get('/account', [AccountController::class, 'show']);
+        $g->post('/account', [AccountController::class, 'update']);
+        $g->post('/account/password', [AccountController::class, 'changePassword']);
+    })->add(RequireCustomerMiddleware::class);
+
+    // --- Admin -------------------------------------------------------------------------------
+    $app->get('/admin/login', [AdminAuthController::class, 'loginForm']);
+    $app->post('/admin/login', [AdminAuthController::class, 'login']);
+    $app->group('/admin', function (RouteCollectorProxy $g): void {
+        $g->get('', [AdminDashboardController::class, 'index']);
+        $g->post('/logout', [AdminAuthController::class, 'logout']);
+
+        $g->get('/impostazioni', [AdminSettingsController::class, 'index']);
+        $g->post('/impostazioni/{key}', [AdminSettingsController::class, 'update']);
+        $g->post('/impostazioni/{key}/ripristina', [AdminSettingsController::class, 'reset']);
+
+        $g->get('/clienti', [AdminCustomersController::class, 'index']);
+        $g->get('/clienti/nuovo', [AdminCustomersController::class, 'create']);
+        $g->get('/clienti/export.xlsx', [AdminCustomersController::class, 'export']);
+        $g->post('/clienti', [AdminCustomersController::class, 'store']);
+        $g->get('/clienti/{id:\d+}', [AdminCustomersController::class, 'show']);
+        $g->post('/clienti/{id:\d+}', [AdminCustomersController::class, 'update']);
+        $g->post('/clienti/{id:\d+}/invito', [AdminCustomersController::class, 'invite']);
+        $g->post('/clienti/{id:\d+}/reset', [AdminCustomersController::class, 'reset']);
+        $g->post('/clienti/{id:\d+}/stato', [AdminCustomersController::class, 'toggle']);
+    })->add(RequireAdminMiddleware::class);
+};

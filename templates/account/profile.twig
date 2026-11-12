@@ -1,0 +1,55 @@
+{% extends 'layout/base.twig' %}
+{% import 'partials/forms.twig' as f %}
+{% block title %}{{ t('account.title') }} · {{ parent() }}{% endblock %}
+{% block content %}
+  <section class="container-page py-10 space-y-8">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <h1 class="h1">{{ t('account.title') }}</h1>
+      <a href="/account/ordini" class="btn btn-ghost">{{ t('account.orders_link') }}</a>
+    </div>
+    <div class="grid gap-6 lg:grid-cols-3">
+      <div class="card space-y-3">
+        <h2 class="h3">{{ t('account.company_data') }}</h2>
+        <dl class="dl">
+          <dt>{{ t('fields.company') }}</dt><dd>{{ user.company }}</dd>
+          <dt>{{ t('fields.vat_number') }}</dt><dd>{{ user.vat_number }}</dd>
+          <dt>{{ t('fields.country_code') }}</dt><dd>{{ country_name(user.country_code) }}</dd>
+          <dt>{{ t('fields.email') }}</dt><dd>{{ user.email }}</dd>
+        </dl>
+        <p class="text-sm text-muted">{{ t('account.company_locked') }}</p>
+      </div>
+      <form method="post" action="/account" class="card space-y-4 lg:col-span-2">
+        {{ csrf_field() }}
+        <h2 class="h3">{{ t('account.contact_data') }}</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          {{ f.input('name', t('fields.name'), user.name, 'text', {required: true, autocomplete: 'name'}) }}
+          {{ f.input('phone', t('fields.phone'), user.phone, 'tel', {required: true, autocomplete: 'tel'}) }}
+          {{ f.input('address_street', t('fields.address_street'), user.address_street, 'text', {required: true, autocomplete: 'street-address'}) }}
+          {{ f.input('address_city', t('fields.address_city'), user.address_city, 'text', {required: true, autocomplete: 'address-level2'}) }}
+          {{ f.input('address_zip', t('fields.address_zip'), user.address_zip, 'text', {required: true, autocomplete: 'postal-code'}) }}
+          {{ f.input('address_province', t('fields.address_province'), user.address_province, 'text', {hint: t('fields.address_province_hint'), maxlength: 40}) }}
+          {{ f.select('locale', t('fields.locale'), {it: t('common.lang_it'), en: t('common.lang_en')}, user.locale) }}
+        </div>
+        <button type="submit" class="btn btn-primary">{{ t('common.save') }}</button>
+      </form>
+    </div>
+    <form method="post" action="/account/password" class="card space-y-4 max-w-xl" id="password">
+      {{ csrf_field() }}
+      <h2 class="h3">{{ t('account.password_title') }}</h2>
+      <div class="field">
+        <label class="label" for="f-current">{{ t('account.current_password') }}</label>
+        <input class="input" id="f-current" name="current_password" type="password" required autocomplete="current-password">
+      </div>
+      <div class="field">
+        <label class="label" for="f-new">{{ t('account.new_password') }}</label>
+        <input class="input" id="f-new" name="password" type="password" required minlength="{{ min_length }}" autocomplete="new-password">
+        <p class="hint">{{ t('auth.set_intro', {min: min_length}) }}</p>
+      </div>
+      <div class="field">
+        <label class="label" for="f-confirm">{{ t('auth.password_confirm') }}</label>
+        <input class="input" id="f-confirm" name="password_confirm" type="password" required minlength="{{ min_length }}" autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn btn-primary">{{ t('account.password_title') }}</button>
+    </form>
+  </section>
+{% endblock %}

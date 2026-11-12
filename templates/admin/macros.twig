@@ -1,0 +1,8 @@
+{# Macro dell'area admin. #}
+{% macro status_badge(status, labels) %}
+  <span class="badge badge-status-{{ status }}">{{ labels[status] ?? status }}</span>
+{% endmacro %}
+
+{% macro copy(value) %}
+  <span class="copyable"><code>{{ value }}</code> <button type="button" class="btn btn-xs btn-ghost" data-copy="{{ value }}">{{ t('common.copy') }}</button></span>
+{% endmacro %}

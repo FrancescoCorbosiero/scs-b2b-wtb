@@ -1,0 +1,8 @@
+{% set _flashes = flashes() %}
+{% if _flashes is not empty %}
+  <div class="container-page pt-4 space-y-2" role="status">
+    {% for f in _flashes %}
+      <div class="alert {{ f.type == 'error' ? 'alert-error' : (f.type == 'warning' ? 'alert-warning' : 'alert-success') }}">{{ f.message }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
