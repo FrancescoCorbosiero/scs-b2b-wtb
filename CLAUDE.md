@@ -154,7 +154,7 @@ composer check                   # test + PHPStan (con COMPOSER_ALLOW_SUPERUSER=
 | Sessioni, CSRF, IP reale | `src/Support/Session*.php`, `src/Support/Csrf.php`, `src/Support/ClientIp.php`, `src/Http/Middleware/` |
 | Account clienti e admin | `src/Accounts/` (utenti, token d'invito/reset, lockout, P.IVA), `src/Http/Controller/Site/AuthController.php`, `AccountController.php`, `src/Http/Controller/Admin/CustomersController.php` |
 | Email | `src/Support/Mail/` (trasporti `log`/`smtp`), template in `templates/emails/` |
-| Zone e paesi | `src/Shipping/CountryRepository.php`, `ZoneRepository.php` |
+| Zone e paesi | `src/Shipping/CountryRepository.php`, `ZoneRepository.php`, pagina admin `src/Http/Controller/Admin/ShippingController.php` + `templates/admin/shipping/`; tariffe del fornitore lette da `src/Supplier/ShippingSnapshot.php` (`Wtb/WtbShippingSnapshot.php`) |
 | Fornitore (unico punto che conosce WTB) | `src/Supplier/` (interfacce e modelli interni), `src/Supplier/Wtb/` (client, mapper, catalogo, ordini, webhook: busta, intestazioni, firma ed eventi simulati in `WtbWebhooks.php`), `src/Supplier/Wtb/Fixture/` (modalità fixture e simulatore) |
 | Sync del catalogo | `src/Catalog/ProductSync.php` (completo, tutto o niente), `StockSync.php` (rapido), `CatalogWriter.php`, `SizeCategory.php`, `ProductAggregates.php` |
 | Immagini | `src/Catalog/ImageService.php`, `src/Http/Controller/Site/ImageController.php` |

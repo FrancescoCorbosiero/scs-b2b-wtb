@@ -38,6 +38,7 @@ final class AdminMenu
             ['href' => '/admin/richieste-profilo', 'label' => $this->t->get('admin.nav.requests'), 'badge' => $this->count("SELECT COUNT(*) FROM account_requests WHERE status = 'pending'")],
             ['href' => '/admin/prodotti', 'label' => $this->t->get('admin.nav.products'), 'badge' => 0],
             ['href' => '/admin/margini', 'label' => $this->t->get('admin.nav.margins'), 'badge' => 0],
+            ['href' => '/admin/spedizione', 'label' => $this->t->get('admin.nav.shipping'), 'badge' => 0],
             ['href' => '/admin/sync', 'label' => 'Sync', 'badge' => 0],
             ['href' => '/admin/impostazioni', 'label' => $this->t->get('admin.nav.settings'), 'badge' => 0],
         ];

@@ -55,6 +55,20 @@ IVA esclusa.
 - `/admin/spedizione` mostra le tariffe WTB correnti (dall'ultimo
   `GET /shipping/`) accanto alle nostre.
 
+Implementazione (`src/Http/Controller/Admin/ShippingController.php`,
+`templates/admin/shipping/`): una scheda per zona con nome IT/EN, tariffa,
+"gratis da" (vuoto = mai), transito da/a e ordine di elenco; accanto, il costo
+del fornitore per un ordine minimo (`orders.min_items` paia tutte in pronta
+consegna) sui paesi serviti della zona (da–a se i paesi stanno in zone diverse
+del fornitore) e il margine sulla spedizione, in rosso se negativo; i paesi
+della zona che il fornitore non serve sono segnalati. Sotto: le tariffe del
+fornitore (solo admin), la tabella dei paesi (zona e "servito", l'Italia resta
+sempre servita) e "Nuova zona" (si elimina solo una zona senza paesi). Le
+modifiche valgono per i nuovi carrelli e ordini: gli ordini salvati hanno
+tariffa e soglia congelate. Ogni modifica finisce nel log con il nome
+dell'admin. La fotografia delle tariffe la legge `ShippingSnapshot`
+(`src/Supplier/`), usata anche da `/admin/sync` e per i paesi con i dazi.
+
 ## Tempi
 
 - **Partenza**: dalle offerte (`ships_in_days`): di solito 1-2 giorni

@@ -5,6 +5,10 @@ o per i suoi clienti. Le più recenti in alto.
 
 ## 12/11/2026
 
+- Nuova pagina Admin › Spedizione: tariffe per zona, spedizione gratis da N
+  paia, tempi di transito, paesi serviti e nuove zone; accanto a ogni zona
+  quanto costa a noi un ordine minimo secondo le tariffe del fornitore, così
+  si vede subito se la tariffa copre il costo.
 - Ordini al fornitore automatici: alla conferma del bonifico (o alla
   richiesta del cliente, o solo a mano: si sceglie nel `.env`) la piattaforma
   ordina al fornitore in dropship, senza doppioni anche se si ritenta, con

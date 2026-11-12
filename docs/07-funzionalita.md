@@ -147,7 +147,7 @@ Banner permanente con la **modalità WTB** (`FIXTURE` / `TEST` / `LIVE`).
 - **Margini** (`/admin/margini`): regole (docs/04) con priorità, attiva/
   disattiva, prodotti toccati, esempio di prezzo; ogni modifica fa il reprice.
 - **Spedizione** (`/admin/spedizione`): zone, paesi, tariffe, soglie, tempi
-  di transito; tariffe WTB correnti a confronto.
+  di transito; tariffe WTB correnti a confronto (dettagli in docs/05).
 - **Impostazioni** (`/admin/impostazioni`): generata dal registro (docs/02),
   con storico delle modifiche e "Ripristina default".
 - **Sync** (`/admin/sync`): ultimi job con esito e conteggi, "Sincronizza ora"

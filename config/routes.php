@@ -10,6 +10,7 @@ use App\Http\Controller\Admin\ProductsController as AdminProductsController;
 use App\Http\Controller\Admin\CustomersController as AdminCustomersController;
 use App\Http\Controller\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controller\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controller\Admin\ShippingController as AdminShippingController;
 use App\Http\Controller\Admin\SupplierOrdersController as AdminSupplierOrdersController;
 use App\Http\Controller\Admin\SyncController as AdminSyncController;
 use App\Http\Controller\Admin\WebhooksController as AdminWebhooksController;
@@ -126,6 +127,12 @@ return static function (App $app): void {
         $g->post('/margini/{id:\d+}', [AdminMarginsController::class, 'update']);
         $g->post('/margini/{id:\d+}/stato', [AdminMarginsController::class, 'toggle']);
         $g->post('/margini/{id:\d+}/elimina', [AdminMarginsController::class, 'delete']);
+
+        $g->get('/spedizione', [AdminShippingController::class, 'index']);
+        $g->post('/spedizione', [AdminShippingController::class, 'create']);
+        $g->post('/spedizione/paesi', [AdminShippingController::class, 'countries']);
+        $g->post('/spedizione/{zone:[A-Z][A-Z0-9_]{1,11}}', [AdminShippingController::class, 'update']);
+        $g->post('/spedizione/{zone:[A-Z][A-Z0-9_]{1,11}}/elimina', [AdminShippingController::class, 'delete']);
 
         $g->get('/sync', [AdminSyncController::class, 'index']);
         $g->post('/sync/{job:[a-z_]+}', [AdminSyncController::class, 'run']);

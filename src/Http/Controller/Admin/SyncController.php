@@ -9,9 +9,9 @@ use App\Http\Req;
 use App\Http\Responder;
 use App\Jobs\JobRunner;
 use App\Jobs\Scheduler;
+use App\Supplier\ShippingSnapshot;
 use App\Supplier\Wtb\WtbClient;
 use App\Supplier\Wtb\WtbConfig;
-use App\Supplier\Wtb\WtbMapper;
 use App\Support\Db;
 use App\Support\SystemFlags;
 use App\Support\Translator;
@@ -29,6 +29,7 @@ final class SyncController
         private readonly Db $db,
         private readonly SystemFlags $flags,
         private readonly WtbConfig $config,
+        private readonly ShippingSnapshot $snapshot,
         private readonly Translator $t,
     ) {
     }
@@ -46,19 +47,12 @@ final class SyncController
             ];
         }
         $runs = $this->db->all('SELECT * FROM job_runs ORDER BY id DESC LIMIT 40');
-        $snapshot = $this->db->one("SELECT payload, fetched_at FROM wtb_snapshots WHERE kind = 'shipping' ORDER BY id DESC LIMIT 1");
-        $profile = null;
-        if ($snapshot !== null) {
-            $data = json_decode((string) $snapshot['payload'], true);
-            if (is_array($data)) {
-                $profile = (new WtbMapper())->shipping($data);
-            }
-        }
+        $snapshot = $this->snapshot->latest();
 
         return $this->responder->render($response, 'admin/sync/index.twig', [
             'jobs' => $jobs,
             'runs' => $runs,
-            'profile' => $profile,
+            'profile' => $snapshot['profile'] ?? null,
             'snapshot_at' => $snapshot['fetched_at'] ?? null,
             'auth_error' => $this->flags->getJson(WtbClient::FLAG_AUTH_ERROR),
             'blocked' => $this->flags->getJson(ProductSync::FLAG_BLOCKED),

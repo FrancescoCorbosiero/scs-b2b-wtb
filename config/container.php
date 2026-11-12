@@ -145,6 +145,7 @@ return static function (Config $config): array {
         SupplierCatalog::class => \DI\get(WtbCatalog::class),
         SupplierOrders::class => \DI\get(WtbOrders::class),
         \App\Supplier\SupplierWebhooks::class => \DI\get(\App\Supplier\Wtb\WtbWebhooks::class),
+        \App\Supplier\ShippingSnapshot::class => \DI\get(\App\Supplier\Wtb\WtbShippingSnapshot::class),
         WebhookVerifier::class => factory(static fn (ContainerInterface $c): WebhookVerifier => new WebhookVerifier(
             $c->get(WtbConfig::class)->webhookSecret,
             $c->get(Clock::class),

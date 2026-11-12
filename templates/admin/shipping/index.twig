@@ -1,0 +1,108 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ t('admin.shipping.title') }}{% endblock %}
+{% block content %}
+  <h1 class="h1 mb-2">{{ t('admin.shipping.title') }}</h1>
+  <p class="text-sm text-muted mb-6">{{ t('admin.shipping.intro', {pairs: pairs}) }}</p>
+  {% if profile is null %}<p class="alert alert-warning mb-6">{{ t('admin.shipping.no_profile') }}</p>{% else %}<p class="text-xs text-muted mb-6">{{ t('admin.shipping.profile_at', {date: snapshot_at|local_datetime, profile: profile.profile}) }}</p>{% endif %}
+
+  <div class="space-y-4">
+    {% for z in zones %}
+      <section class="card space-y-3" id="zona-{{ z.zone }}" aria-labelledby="zona-{{ z.zone }}-title">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 class="h3" id="zona-{{ z.zone }}-title">{{ z.name_it }} <code class="text-xs text-muted">{{ z.zone }}</code></h2>
+          <p class="text-sm">
+            {% if z.cost_max is not null %}
+              {{ t('admin.shipping.supplier_cost', {pairs: pairs, cost: z.cost_min == z.cost_max ? money(z.cost_max) : money(z.cost_min) ~ ' – ' ~ money(z.cost_max)}) }}
+              · <span class="{{ z.fee_cents < z.cost_max ? 'text-accent font-semibold' : 'text-ok font-semibold' }}">{{ t('admin.shipping.difference', {diff: money(z.fee_cents - z.cost_max)}) }}</span>
+            {% elseif profile is not null %}
+              <span class="text-muted">{{ t('admin.shipping.no_supplier_cost') }}</span>
+            {% endif %}
+          </p>
+        </div>
+        <p class="text-xs text-muted">{{ tc('admin.shipping.zone_countries', z.served|length) }}: {{ z.served|join(', ') ?: '—' }}{% if z.missing is not empty %} · <span class="text-accent">{{ t('admin.shipping.not_served_by_supplier', {list: z.missing|join(', ')}) }}</span>{% endif %}</p>
+        <form method="post" action="/admin/spedizione/{{ z.zone }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 items-end">
+          {{ csrf_field() }}
+          {% include 'admin/shipping/_fields.twig' with {z: z} only %}
+          <div class="flex gap-2 lg:col-span-4">
+            <button type="submit" class="btn btn-primary">{{ t('common.save') }}</button>
+          </div>
+        </form>
+        {% if z.countries is empty %}
+          <form method="post" action="/admin/spedizione/{{ z.zone }}/elimina" data-confirm="{{ t('admin.shipping.delete_question') }}">
+            {{ csrf_field() }}
+            <button type="submit" class="btn btn-sm btn-danger">{{ t('admin.shipping.delete') }}</button>
+          </form>
+        {% endif %}
+      </section>
+    {% endfor %}
+  </div>
+
+  {% if profile is not null %}
+    <details class="card mt-6">
+      <summary class="cursor-pointer font-semibold">{{ t('admin.shipping.supplier_rates') }}</summary>
+      <div class="table-wrap mt-3">
+        <table class="table">
+          <thead><tr><th>{{ t('admin.shipping.supplier_zone') }}</th><th>{{ t('admin.shipping.countries') }}</th><th class="num">{{ t('admin.shipping.first_piece') }}</th><th class="num">{{ t('admin.shipping.each_additional') }}</th><th class="num">{{ t('admin.shipping.failed_delivery') }}</th><th>{{ t('admin.shipping.duties') }}</th></tr></thead>
+          <tbody>
+            {% for sz in profile.zones %}
+              <tr>
+                <td>{{ sz.name }}</td>
+                <td class="text-xs">{{ sz.countries|join(', ') }}</td>
+                <td class="num">{{ money(sz.firstPieceCents) }}</td>
+                <td class="num">{{ money(sz.eachAdditionalCents) }}</td>
+                <td class="num">{{ money(sz.failedDeliveryCents) }}</td>
+                <td>{{ sz.dutiesPaidByRecipient ? t('admin.shipping.duties_recipient') : '—' }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if profile.extendedTransport is not empty %}
+        <p class="text-sm mt-3">{{ t('admin.shipping.extended_transport') }}:
+          {% for pieces, cents in profile.extendedTransport %}{{ pieces }} → {{ money(cents) }}{% if not loop.last %} · {% endif %}{% endfor %}{% if profile.extendedFreeFrom %} · {{ t('admin.shipping.free_from_pieces', {n: profile.extendedFreeFrom}) }}{% endif %}
+        </p>
+      {% endif %}
+    </details>
+  {% endif %}
+
+  <section class="card mt-6 space-y-3" id="paesi" aria-labelledby="paesi-title">
+    <h2 class="h3" id="paesi-title">{{ t('admin.shipping.countries_title') }}</h2>
+    <p class="text-sm text-muted">{{ t('admin.shipping.countries_text') }}</p>
+    <form method="post" action="/admin/spedizione/paesi" class="space-y-3">
+      {{ csrf_field() }}
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>{{ t('admin.shipping.country') }}</th><th>{{ t('admin.shipping.zone') }}</th><th>{{ t('admin.shipping.served') }}</th></tr></thead>
+          <tbody>
+            {% for code, c in countries %}
+              <tr>
+                <td>{{ country_name(code) }} <code class="text-xs text-muted">{{ code }}</code>{% if not c.is_eu %} <span class="badge badge-muted">{{ t('admin.shipping.extra_eu') }}</span>{% endif %}</td>
+                <td>
+                  <label class="sr-only" for="zone-{{ code }}">{{ t('admin.shipping.zone') }}</label>
+                  <select class="input w-auto" id="zone-{{ code }}" name="zone[{{ code }}]">
+                    {% for zc in zone_codes %}<option value="{{ zc }}" {{ zc == c.zone ? 'selected' }}>{{ zc }}</option>{% endfor %}
+                  </select>
+                </td>
+                <td><label class="check"><input type="checkbox" name="served[{{ code }}]" value="1" {{ c.served ? 'checked' }}> {{ t('admin.shipping.served') }}</label></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <button type="submit" class="btn btn-primary">{{ t('admin.shipping.countries_save') }}</button>
+    </form>
+  </section>
+
+  <details class="card mt-6" id="nuova-zona">
+    <summary class="cursor-pointer font-semibold">{{ t('admin.shipping.new_zone') }}</summary>
+    <form method="post" action="/admin/spedizione" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 items-end mt-3">
+      {{ csrf_field() }}
+      <div>
+        <label class="label" for="new-zone">{{ t('admin.shipping.code') }}</label>
+        <input class="input" id="new-zone" name="zone" required pattern="[A-Za-z][A-Za-z0-9_]{1,11}" maxlength="12">
+      </div>
+      {% include 'admin/shipping/_fields.twig' with {z: null} only %}
+      <div class="lg:col-span-4"><button type="submit" class="btn btn-ghost">{{ t('admin.shipping.create') }}</button></div>
+    </form>
+  </details>
+{% endblock %}

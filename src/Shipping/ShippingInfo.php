@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shipping;
 
+use App\Supplier\ShippingSnapshot;
 use App\Support\Db;
 
 /**
@@ -16,6 +17,7 @@ final class ShippingInfo
         private readonly Db $db,
         private readonly ZoneRepository $zones,
         private readonly CountryRepository $countries,
+        private readonly ShippingSnapshot $snapshot,
     ) {
     }
 
@@ -61,14 +63,12 @@ final class ShippingInfo
     /** Paesi serviti in cui dazi e oneri doganali sono a carico del destinatario. @return list<string> */
     public function dutiesCountries(): array
     {
-        $payload = $this->db->value("SELECT payload FROM wtb_snapshots WHERE kind = 'shipping' ORDER BY id DESC LIMIT 1");
-        $data = is_string($payload) ? json_decode($payload, true) : null;
         $codes = [];
-        foreach (is_array($data['zones'] ?? null) ? $data['zones'] : [] as $zone) {
-            if (is_array($zone) && ($zone['duties_paid_by_recipient'] ?? false) === true) {
-                foreach ((array) ($zone['countries'] ?? []) as $code) {
-                    if (is_string($code) && $this->countries->isServed($code)) {
-                        $codes[] = strtoupper($code);
+        foreach ($this->snapshot->latest()['profile']->zones ?? [] as $zone) {
+            if ($zone->dutiesPaidByRecipient) {
+                foreach ($zone->countries as $code) {
+                    if ($this->countries->isServed($code)) {
+                        $codes[] = $code;
                     }
                 }
             }
