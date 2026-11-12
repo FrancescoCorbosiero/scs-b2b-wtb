@@ -1,0 +1,8 @@
+<dl class="totals">
+  {% if order.subtotal_margin_cents > 0 %}<dt>{{ t('cart.subtotal_margin') }}</dt><dd>{{ money(order.subtotal_margin_cents) }}</dd>{% endif %}
+  {% if order.subtotal_ordinary_cents > 0 %}<dt>{{ t('cart.subtotal_ordinary') }}</dt><dd>{{ money(order.subtotal_ordinary_cents) }}</dd>{% endif %}
+  <dt>{{ t('orders.shipping') }}</dt><dd>{{ order.shipping_cents == 0 ? t('cart.free') : money(order.shipping_cents) }}</dd>
+  <dt>{{ order.vat_rate_bp > 0 ? t('cart.vat_rate', {rate: order.vat_rate_bp // 100}) : t('cart.vat') }}</dt><dd>{{ money(order.vat_cents) }}</dd>
+  <dt class="total">{{ t('orders.total') }}</dt><dd class="total">{{ money(order.total_cents) }}</dd>
+</dl>
+{% for legend in order.legends %}<p class="text-xs text-muted">{{ t(legend) }}</p>{% endfor %}

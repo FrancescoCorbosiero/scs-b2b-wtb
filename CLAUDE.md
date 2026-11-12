@@ -161,6 +161,10 @@ composer check                   # test + PHPStan (con COMPOSER_ALLOW_SUPERUSER=
 | Catalogo e vetrina | `src/Catalog/CatalogFilters.php` (parametri URL), `CatalogQuery.php` (filtri, ordinamenti, faccette), `CatalogPresenter.php` (dati sicuri per il cliente, senza prezzi in vetrina), `CatalogPage.php`, `CatalogExport.php`, controller `Site/CatalogController.php` e `Site/ShowcaseController.php`, template in `templates/catalog/` |
 | Sito pubblico e richieste di profilo | `src/Http/Controller/Site/PageController.php`, `templates/site/`, `src/Accounts/AccountRequestService.php`, `src/Http/Controller/Admin/AccountRequestsController.php`, `src/Shipping/ShippingInfo.php`, `DeliveryEstimate.php` |
 | Prodotti in admin (costi, margini, evidenza) | `src/Http/Controller/Admin/ProductsController.php` |
+| IVA | `src/Tax/TaxPolicy.php` (unico posto delle regole IVA, proposta da validare), `TaxResult.php` |
+| Spedizione al cliente | `src/Shipping/ShippingCalculator.php` (tariffa e gratuità), `DeliveryEstimate.php`, `ZoneRepository.php` |
+| Carrello e checkout | `src/Orders/Cart.php` (sessione), `CartService.php` (riepilogo autorevole), `QuoteReconciler.php`, `CheckoutService.php`, controller `Site/CartController.php`, `Site/CheckoutController.php`, template `templates/cart/`, `templates/checkout/` |
+| Ordini, pro-forma, email | `src/Orders/OrderService.php` (crea, conferma, riallinea, annulla), `OrderPresenter.php` (dati sicuri per il cliente), `ReceiptNumberer.php`, `ProformaPdf.php` + `templates/pdf/`, `OrderMailer.php` + `templates/emails/order_*`, controller `Site/OrdersController.php`, `Admin/OrdersController.php` |
 | Job e scheduler | `src/Jobs/`, `bin/scheduler.php`, `bin/sync.php`, `bin/backup.php` |
 | Dashboard e avvisi admin | `src/Admin/Alerts.php`, `src/Admin/DashboardCards.php`, `src/Http/Controller/Admin/SyncController.php` |
 | Testi | `lang/it.php` (fonte, admin compreso), `lang/en.php` |

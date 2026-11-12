@@ -89,18 +89,24 @@ limiti dei moduli (richiesta profilo, richiesta d'ordine, reset).
 
 ## Ordini
 
-**`orders`** — `id` (anche numero d'ordine e causale del bonifico), `user_id`
-FK, `status` (`pending`|`confirmed`|`shipped`|`cancelled`), `locale`;
+**`orders`** — `id` (anche numero d'ordine e causale del bonifico; parte da
+1001), `user_id` FK, `status` (`pending`|`confirmed`|`shipped`|`cancelled`),
+`mode` (modalità del fornitore alla nascita), `checkout_token` UNIQUE (invio
+idempotente), `locale`;
 anagrafica congelata (azienda, P.IVA, nome, email, telefono, indirizzo di
 fatturazione con provincia e paese); spedizione (`ship_to_mode`
 `billing`|`other`, campi del destinatario); `shipping_zone`, `vat_scheme`
-(`domestic`|`intra_eu`|`export`), `vat_rate_bp`; totali
+(`domestic`|`intra_eu`|`export`), `vat_rate_bp`, `shipping_regime`
+(trattamento IVA della spedizione al momento dell'ordine),
+`shipping_fee_cents` e `shipping_free_from` (regole della zona congelate, per
+il riallineamento), `pairs`, `departure_days`, `delivery_days`; totali
 `subtotal_margin_cents`, `subtotal_ordinary_cents`, `shipping_cents`,
 `vat_cents`, `total_cents`; **riservati**: `expected_cost_cents`,
 `wtb_shipping_cost_cents`, `quote_snapshot` (JSON); `quote_unverified`;
-`receipt_number` NULL; `vies_checked_at` NULL; `email_customer_sent`,
-`email_admin_sent`; `notes`, `ip_address`, `user_agent`; `created_at`,
-`confirmed_at`, `shipped_at`, `cancelled_at`.
+`receipt_number` NULL; `vies_checked_at` NULL; `manual_tracking` (JSON,
+ripiego se il webhook non arriva); `email_customer_sent`, `email_admin_sent`;
+`notes`, `admin_notes`, `ip_address`, `user_agent`; `created_at`,
+`updated_at`, `confirmed_at`, `shipped_at`, `cancelled_at`.
 
 **`order_lines`** — `id`, `order_id` FK, `product_id`, `variant_id`, `sku`,
 `name`, `brand`, `size_eu`, `size_us`, `size_uk`, `ean`, `vat_regime`,

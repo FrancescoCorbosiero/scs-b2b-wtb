@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controller\Admin\AccountRequestsController as AdminRequestsController;
 use App\Http\Controller\Admin\AuthController as AdminAuthController;
 use App\Http\Controller\Admin\MarginsController as AdminMarginsController;
+use App\Http\Controller\Admin\OrdersController as AdminOrdersController;
 use App\Http\Controller\Admin\ProductsController as AdminProductsController;
 use App\Http\Controller\Admin\CustomersController as AdminCustomersController;
 use App\Http\Controller\Admin\DashboardController as AdminDashboardController;
@@ -12,7 +13,10 @@ use App\Http\Controller\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controller\Admin\SyncController as AdminSyncController;
 use App\Http\Controller\Site\AccountController;
 use App\Http\Controller\Site\AuthController;
+use App\Http\Controller\Site\CartController;
 use App\Http\Controller\Site\CatalogController;
+use App\Http\Controller\Site\CheckoutController;
+use App\Http\Controller\Site\OrdersController;
 use App\Http\Controller\Site\ShowcaseController;
 use App\Http\Controller\Site\ImageController;
 use App\Http\Controller\Site\PageController;
@@ -57,6 +61,19 @@ return static function (App $app): void {
         $g->get('/catalogo/export.xlsx', [CatalogController::class, 'export']);
         $g->get('/catalogo/prodotto/{sku}', [CatalogController::class, 'product']);
 
+        $g->get('/carrello', [CartController::class, 'show']);
+        $g->post('/carrello/aggiungi', [CartController::class, 'add']);
+        $g->post('/carrello/aggiorna', [CartController::class, 'update']);
+        $g->post('/carrello/svuota', [CartController::class, 'clear']);
+
+        $g->get('/checkout', [CheckoutController::class, 'form']);
+        $g->post('/checkout', [CheckoutController::class, 'submit']);
+        $g->get('/checkout/completato/{id:\d+}', [CheckoutController::class, 'done']);
+
+        $g->get('/account/ordini', [OrdersController::class, 'index']);
+        $g->get('/account/ordini/{id:\d+}', [OrdersController::class, 'show']);
+        $g->get('/account/ordini/{id:\d+}/proforma.pdf', [OrdersController::class, 'proforma']);
+
         $g->get('/account', [AccountController::class, 'show']);
         $g->post('/account', [AccountController::class, 'update']);
         $g->post('/account/password', [AccountController::class, 'changePassword']);
@@ -72,6 +89,13 @@ return static function (App $app): void {
         $g->get('/impostazioni', [AdminSettingsController::class, 'index']);
         $g->post('/impostazioni/{key}', [AdminSettingsController::class, 'update']);
         $g->post('/impostazioni/{key}/ripristina', [AdminSettingsController::class, 'reset']);
+
+        $g->get('/ordini', [AdminOrdersController::class, 'index']);
+        $g->get('/ordini/{id:\d+}', [AdminOrdersController::class, 'show']);
+        $g->get('/ordini/{id:\d+}/proforma.pdf', [AdminOrdersController::class, 'proforma']);
+        $g->post('/ordini/{id:\d+}/conferma', [AdminOrdersController::class, 'confirm']);
+        $g->post('/ordini/{id:\d+}/annulla', [AdminOrdersController::class, 'cancel']);
+        $g->post('/ordini/{id:\d+}/riallinea', [AdminOrdersController::class, 'realign']);
 
         $g->get('/richieste-profilo', [AdminRequestsController::class, 'index']);
         $g->get('/richieste-profilo/{id:\d+}', [AdminRequestsController::class, 'show']);

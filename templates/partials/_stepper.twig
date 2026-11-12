@@ -1,0 +1,8 @@
+{# Quantità di un'unità vendibile con +/− (senza JavaScript resta un campo numerico). Le fasce servono al totale live. #}
+<div class="stepper" data-stepper>
+  <button type="button" class="stepper-btn" data-step="-1" aria-label="−1">−</button>
+  <input class="stepper-input" type="number" inputmode="numeric" name="qty[{{ key }}]" min="0" max="{{ max }}" value="{{ value }}"
+    data-unit data-tiers="{{ tiers|map(x => {s: x.stock_type, a: x.available, p: x.price})|json_encode }}" aria-label="{{ t('cart.quantity') }}">
+  <button type="button" class="stepper-btn" data-step="1" aria-label="+1">+</button>
+</div>
+<p class="text-xs text-muted mt-1 tabular-nums" data-unit-split></p>

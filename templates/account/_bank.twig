@@ -1,0 +1,13 @@
+{# Istruzioni di bonifico per il cliente: coordinate BANK_*, importo, causale = numero d'ordine. #}
+<div class="card space-y-3 border-ink">
+  <h2 class="h3">{{ t('orders.bank_title') }}</h2>
+  <dl class="dl">
+    <dt>{{ t('bank.holder') }}</dt><dd>{{ bank.holder }}</dd>
+    {% if bank.bank %}<dt>{{ t('bank.bank') }}</dt><dd>{{ bank.bank }}</dd>{% endif %}
+    <dt>IBAN</dt><dd><span class="copyable"><code>{{ bank.iban ?: '—' }}</code>{% if bank.iban %}<button type="button" class="btn btn-xs btn-ghost" data-copy="{{ bank.iban }}" data-copied-label="{{ t('common.copied') }}">{{ t('common.copy') }}</button>{% endif %}</span></dd>
+    {% if bank.bic %}<dt>BIC/SWIFT</dt><dd><code>{{ bank.bic }}</code></dd>{% endif %}
+    <dt>{{ t('orders.amount') }}</dt><dd class="font-bold">{{ money(order.total_cents) }}</dd>
+    <dt>{{ t('orders.reason') }}</dt><dd><span class="copyable"><code>{{ t('orders.reference', {id: order.id}) }}</code><button type="button" class="btn btn-xs btn-ghost" data-copy="{{ t('orders.reference', {id: order.id}) }}" data-copied-label="{{ t('common.copied') }}">{{ t('common.copy') }}</button></span></dd>
+  </dl>
+  <p class="text-sm text-muted">{{ t('orders.bank_note') }}</p>
+</div>

@@ -40,6 +40,7 @@ final class CatalogController
     {
         $prefs = $this->page->preferences(Req::session($request), $request->getQueryParams());
         $data = $this->page->product($args['sku'], true, '/catalogo', $prefs) ?? throw new HttpNotFoundException($request);
+        $data['cart_items'] = (new \App\Orders\Cart(Req::session($request)))->items();
 
         return $this->responder->render($response, Req::query($request, 'partial') === '1' ? 'catalog/_product.twig' : 'catalog/product.twig', $data);
     }

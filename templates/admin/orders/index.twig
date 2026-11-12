@@ -1,0 +1,44 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ t('admin.orders.title') }}{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
+    <h1 class="h1">{{ t('admin.orders.title') }}</h1>
+    <form method="get" action="/admin/ordini" class="flex flex-wrap gap-2">
+      <input class="input w-56" type="search" name="q" value="{{ q }}" placeholder="{{ t('admin.orders.search') }}">
+      <select class="input w-auto" name="modalita">
+        {% for m in ['fixture', 'test', 'live', 'tutte'] %}<option value="{{ m }}" {{ mode == m ? 'selected' }}>{{ t('admin.orders.mode.' ~ m) }}</option>{% endfor %}
+      </select>
+      {% if status %}<input type="hidden" hidden name="stato" value="{{ status }}">{% endif %}
+      <button class="btn btn-ghost" type="submit">{{ t('common.search') }}</button>
+    </form>
+  </div>
+  <nav class="flex flex-wrap gap-1 text-sm mb-4">
+    {% for s in ['', 'pending', 'confirmed', 'shipped', 'cancelled'] %}
+      <a href="/admin/ordini?{{ {stato: s, modalita: mode, q: q}|url_encode }}" class="lang-link {{ status == s ? 'is-active' }}">{{ t('admin.orders.status.' ~ (s ?: 'all')) }}</a>
+    {% endfor %}
+  </nav>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>#</th><th>{{ t('admin.orders.date') }}</th><th>{{ t('fields.company') }}</th><th class="num">{{ t('cart.pairs') }}</th><th class="num">{{ t('cart.total') }}</th><th>{{ t('admin.orders.state') }}</th><th></th></tr></thead>
+      <tbody>
+        {% for o in orders %}
+          <tr class="row-link" data-href="/admin/ordini/{{ o.id }}">
+            <td><a class="font-semibold" href="/admin/ordini/{{ o.id }}">{{ o.id }}</a></td>
+            <td class="whitespace-nowrap">{{ o.created_at|local_datetime }}</td>
+            <td>{{ o.company }}<br><span class="text-xs text-muted">{{ o.email }} · {{ o.billing_country }}</span></td>
+            <td class="num">{{ o.pairs }}</td>
+            <td class="num">{{ money(o.total_cents) }}</td>
+            <td>{% include 'admin/orders/_status.twig' with {status: o.status} %}{% if o.receipt_number %}<span class="block text-xs text-muted">{{ o.receipt_number }}</span>{% endif %}</td>
+            <td class="text-xs space-x-1">
+              <span class="badge badge-muted">{{ o.mode|upper }}</span>
+              {% if o.quote_unverified %}<span class="badge badge-warn" title="{{ t('admin.orders.quote_unverified') }}">!</span>{% endif %}
+              {% if not o.email_customer_sent %}<span class="badge badge-danger" title="{{ t('admin.orders.email_not_sent') }}">@</span>{% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="7" class="text-muted">{{ t('admin.orders.none') }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

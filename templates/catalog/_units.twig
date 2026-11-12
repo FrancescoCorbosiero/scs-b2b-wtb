@@ -1,9 +1,12 @@
-{# Taglie × regimi con le fasce (pronta consegna, poi stock esteso). #}
+{# Taglie × regimi con le fasce (pronta consegna, poi stock esteso). Con i prezzi: quantità per taglia e "Aggiungi al carrello". #}
+{% set in_cart = cart_items ?? {} %}
+{% if show_prices %}<form method="post" action="/carrello/aggiungi" data-qty-form>{{ csrf_field() }}{% endif %}
 <div class="table-wrap">
   <table class="table units-table">
     <thead><tr>
       <th>{{ t('product.size') }} ({{ size_system|upper }})</th>
       <th>{{ t('product.tiers') }}</th>
+      {% if show_prices %}<th class="text-right">{{ t('cart.quantity') }}</th>{% endif %}
     </tr></thead>
     <tbody>
       {% for u in product.units %}
@@ -24,8 +27,20 @@
               {% endfor %}
             </ul>
           </td>
+          {% if show_prices %}
+            <td class="text-right">
+              {% include 'partials/_stepper.twig' with {key: u.key, max: u.max, value: in_cart[u.key] ?? 0, tiers: u.tiers} only %}
+            </td>
+          {% endif %}
         </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+{% if show_prices %}
+  <div class="flex flex-wrap items-center justify-between gap-3 pt-3">
+    <p class="text-sm"><span data-form-pairs>0</span> {{ t('cart.pairs_short') }} · <strong class="price" data-form-total>—</strong></p>
+    <button type="submit" class="btn btn-primary">{{ in_cart is empty ? t('cart.add') : t('cart.update_cart') }}</button>
+  </div>
+</form>
+{% endif %}

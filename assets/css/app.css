@@ -157,3 +157,16 @@
   .step-number { @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink font-display text-sm font-bold text-paper; }
   .hp { @apply absolute -left-[9999px] h-px w-px overflow-hidden; }
 }
+
+@layer components {
+  .stepper { @apply inline-flex items-stretch overflow-hidden rounded-md border border-line bg-white; }
+  .stepper-btn { @apply w-8 text-lg leading-none hover:bg-paper; }
+  .stepper-input { @apply w-14 border-x border-line px-1 py-1.5 text-center tabular-nums focus:outline-none; appearance: textfield; }
+  .stepper-input::-webkit-outer-spin-button, .stepper-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .totals { @apply grid grid-cols-[1fr,auto] gap-x-4 gap-y-1 text-sm; }
+  .totals dd { @apply text-right tabular-nums; }
+  .totals .total { @apply border-t border-line pt-2 text-base font-bold; }
+  .rethink-overlay { @apply fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4; }
+  .rethink-box { @apply w-full max-w-sm rounded-lg bg-white p-6 text-center shadow-2xl; }
+  .ship-mode:has(input[value="billing"]:checked) .ship-other-fields { display: none; }
+}

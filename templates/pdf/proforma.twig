@@ -1,0 +1,89 @@
+{# Pro-forma per dompdf (CSS nel documento: qui la CSP non c'entra). Solo dati di OrderPresenter. #}
+<!doctype html>
+<html lang="{{ email_locale }}">
+<head>
+<meta charset="utf-8">
+<title>{{ t('pdf.title') }} {{ order.receipt_number }}</title>
+<style>
+  @page { margin: 18mm 14mm; }
+  body { font-family: 'DejaVu Sans', sans-serif; font-size: 9.5pt; color: #111; }
+  h1 { font-size: 16pt; margin: 0 0 2mm; }
+  .muted { color: #6b665e; }
+  table { width: 100%; border-collapse: collapse; }
+  .head td { vertical-align: top; }
+  .lines th { text-align: left; font-size: 8pt; text-transform: uppercase; color: #6b665e; border-bottom: 1px solid #111; padding: 4px 3px; }
+  .lines td { border-bottom: 1px solid #ddd; padding: 4px 3px; vertical-align: top; }
+  .num { text-align: right; white-space: nowrap; }
+  .block { margin-top: 6mm; font-weight: bold; }
+  .totals td { padding: 3px; }
+  .totals .grand td { font-weight: bold; font-size: 11pt; border-top: 1px solid #111; }
+  .box { border: 1px solid #111; padding: 3mm; margin-top: 6mm; }
+  .legend { font-size: 8pt; color: #444; margin: 1mm 0; }
+</style>
+</head>
+<body>
+  <table class="head">
+    <tr>
+      <td>
+        <strong>{{ setting('company.name') }}</strong><br>
+        {{ setting('company.address') }}<br>
+        {{ t('footer.vat', {vat: setting('company.vat')}) }}<br>
+        {{ setting('company.email') }} · {{ setting('company.phone') }}
+      </td>
+      <td class="num">
+        <h1>{{ t('pdf.title') }}</h1>
+        <strong>{{ order.receipt_number }}</strong><br>
+        {{ t('pdf.date') }}: {{ (order.confirmed_at ?? order.created_at)|local_date }}<br>
+        {{ t('orders.number', {id: order.id}) }}
+      </td>
+    </tr>
+  </table>
+  <table class="head" style="margin-top:6mm;">
+    <tr>
+      <td>
+        <span class="muted">{{ t('pdf.customer') }}</span><br>
+        <strong>{{ order.company }}</strong><br>
+        {{ t('fields.vat_number') }}: {{ order.vat_number }}<br>
+        {{ order.billing_street }}, {{ order.billing_zip }} {{ order.billing_city }}{% if order.billing_province %} ({{ order.billing_province }}){% endif %}<br>
+        {{ country_name(order.billing_country) }}
+      </td>
+      <td>
+        <span class="muted">{{ t('checkout.shipping_to') }}</span><br>
+        {{ order.ship_name }}{% if order.ship_company %}<br>{{ order.ship_company }}{% endif %}<br>
+        {{ order.ship_street }}, {{ order.ship_zip }} {{ order.ship_city }}{% if order.ship_province %} ({{ order.ship_province }}){% endif %}<br>
+        {{ country_name(order.ship_country) }}
+      </td>
+    </tr>
+  </table>
+
+  {% for block in [{key: 'margin', lines: order.lines_margin}, {key: 'ordinary', lines: order.lines_ordinary}] %}
+    {% if block.lines is not empty %}
+      <p class="block">{{ t('orders.block_' ~ block.key) }}</p>
+      <table class="lines">
+        <tr><th>{{ t('orders.item') }}</th><th>{{ t('product.size') }}</th><th class="num">{{ t('pdf.qty') }}</th><th class="num">{{ t('pdf.unit_price') }}</th><th class="num">{{ t('orders.total') }}</th></tr>
+        {% for l in block.lines %}
+          {% if l.qty_immediate > 0 %}
+            <tr><td>{{ l.name }}<br><span class="muted">SKU {{ l.sku }}{% if l.ean %} · EAN {{ l.ean }}{% endif %}</span></td><td>EU {{ l.size_eu }}</td><td class="num">{{ l.qty_immediate }}</td><td class="num">{{ money(l.unit_price_immediate_cents) }}</td><td class="num">{{ money(l.qty_immediate * l.unit_price_immediate_cents) }}</td></tr>
+          {% endif %}
+          {% if l.qty_extended > 0 %}
+            <tr><td>{{ l.name }}<br><span class="muted">SKU {{ l.sku }} · {{ t('product.extended')|lower }}</span></td><td>EU {{ l.size_eu }}</td><td class="num">{{ l.qty_extended }}</td><td class="num">{{ money(l.unit_price_extended_cents) }}</td><td class="num">{{ money(l.qty_extended * l.unit_price_extended_cents) }}</td></tr>
+          {% endif %}
+        {% endfor %}
+      </table>
+      <p class="legend">{{ t('tax.legend.' ~ (block.key == 'margin' ? 'margin' : 'ordinary_' ~ order.vat_scheme)) }}</p>
+    {% endif %}
+  {% endfor %}
+
+  <table class="totals" style="margin-top:6mm; width: 60%; margin-left: 40%;">
+    {% if order.subtotal_margin_cents > 0 %}<tr><td>{{ t('cart.subtotal_margin') }}</td><td class="num">{{ money(order.subtotal_margin_cents) }}</td></tr>{% endif %}
+    {% if order.subtotal_ordinary_cents > 0 %}<tr><td>{{ t('cart.subtotal_ordinary') }}</td><td class="num">{{ money(order.subtotal_ordinary_cents) }}</td></tr>{% endif %}
+    <tr><td>{{ t('orders.shipping') }}</td><td class="num">{{ money(order.shipping_cents) }}</td></tr>
+    <tr><td>{{ order.vat_rate_bp > 0 ? t('cart.vat_rate', {rate: order.vat_rate_bp // 100}) : t('cart.vat') }}</td><td class="num">{{ money(order.vat_cents) }}</td></tr>
+    <tr class="grand"><td>{{ t('orders.total') }}</td><td class="num">{{ money(order.total_cents) }}</td></tr>
+  </table>
+  <div class="box">
+    <strong>{{ t('pdf.paid') }}</strong> · {{ t('orders.reason') }}: {{ t('orders.reference', {id: order.id}) }}
+  </div>
+  <p class="legend" style="margin-top:6mm;">{{ t('pdf.disclaimer') }}</p>
+</body>
+</html>

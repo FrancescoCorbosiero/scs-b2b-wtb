@@ -177,6 +177,10 @@ return static function (Config $config): array {
             $config->varPath('backups'),
             max(1, $config->int('BACKUP_KEEP_DAYS', 14)),
         )),
+        \App\Orders\ReceiptNumberer::class => factory(static fn (ContainerInterface $c): \App\Orders\ReceiptNumberer => new \App\Orders\ReceiptNumberer(
+            $c->get(Db::class),
+            $config->string('RECEIPT_PREFIX', 'PFW'),
+        )),
         'cleanup.extra' => [],
         CleanupJob::class => \DI\autowire()->constructorParameter('extra', \DI\get('cleanup.extra')),
         'jobs' => factory(static fn (ContainerInterface $c): array => [

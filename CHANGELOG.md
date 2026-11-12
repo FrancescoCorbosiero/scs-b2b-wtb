@@ -5,6 +5,13 @@ o per i suoi clienti. Le più recenti in alto.
 
 ## 12/11/2026
 
+- I clienti ordinano: carrello con le fasce pronta consegna / stock esteso,
+  "Prendi tutto" e "Svuota", spedizione e IVA stimate per paese, ordine
+  minimo; richiesta d'ordine con verifica della disponibilità presso il
+  fornitore, qualche secondo per ripensarci, email con le coordinate del
+  bonifico; in admin conferma del pagamento con pro-forma PDF (serie PFW),
+  riallineamento delle quantità e annullamento; area "I miei ordini" con le
+  pro-forma.
 - Catalogo per i clienti con filtri, ricerca, ordinamenti, taglie EU/US/UK,
   scheda rapida con le fasce pronta consegna / stock esteso ed export Excel;
   vetrina pubblica senza prezzi; sito pubblico (home, come ordinare,

@@ -1,0 +1,21 @@
+{% extends 'layout/base.twig' %}
+{% block title %}{{ t('checkout.done_title') }} · {{ parent() }}{% endblock %}
+{% block content %}
+  <section class="container-page py-10 max-w-3xl space-y-6">
+    <div class="space-y-2">
+      <p class="badge badge-ok">{{ t('orders.number', {id: order.id}) }}</p>
+      <h1 class="h1">{{ t('checkout.done_title') }}</h1>
+      <p class="text-lg text-muted">{{ t('checkout.done_text', {email: order.email}) }}</p>
+    </div>
+    {% include 'account/_bank.twig' with {order: order, bank: bank} %}
+    <div class="card space-y-2">
+      <h2 class="h3">{{ t('checkout.next_title') }}</h2>
+      <ol class="list-decimal pl-5 space-y-1 text-sm text-muted">
+        <li>{{ t('checkout.next.transfer') }}</li>
+        <li>{{ t('checkout.next.confirm') }}</li>
+        <li>{{ t('checkout.next.ship') }}</li>
+      </ol>
+    </div>
+    <p class="flex flex-wrap gap-3"><a href="/account/ordini/{{ order.id }}" class="btn btn-primary">{{ t('checkout.see_order') }}</a><a href="/catalogo" class="btn btn-ghost">{{ t('nav.catalog') }}</a></p>
+  </section>
+{% endblock %}

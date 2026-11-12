@@ -53,6 +53,23 @@ All'invio, in quest'ordine:
 Un errore SMTP non perde mai l'ordine: è già salvato, i flag
 `email_customer_sent` / `email_admin_sent` restano a 0 e l'errore va nel log.
 
+Dettagli dell'implementazione (`src/Orders/CheckoutService.php`):
+
+- Ogni modulo di checkout porta un token monouso: un secondo invio con lo
+  stesso token (doppio clic, ricarica) porta all'ordine già creato.
+- Il limite di 3 richieste/ora per account e per IP conta gli ordini creati.
+- Il preventivo si confronta riga per riga con il carrello: se il fornitore
+  segnala paia mancanti il carrello si riduce; se la sua ripartizione porta il
+  totale del cliente **più in alto**, il checkout mostra "Prezzi aggiornati"
+  con la nuova ripartizione e chiede di riconfermare; se lo porta **più in
+  basso o uguale** si procede con la ripartizione del fornitore. Paia che il
+  fornitore metterebbe in stock esteso quando non lo vendiamo (o senza un
+  nostro prezzo esteso) riducono il carrello.
+- Un rifiuto del fornitore senza paia mancanti (es. riga sconosciuta) blocca
+  l'invio con un messaggio generico e finisce nel log; rete, timeout, 5xx,
+  429 o chiave rifiutata ⇒ ordine accettato col controllo locale
+  (`quote_unverified`).
+
 ## Azioni admin sull'ordine
 
 - **Conferma pagamento ricevuto** → `confirmed`, numero pro-forma
@@ -62,7 +79,10 @@ Un errore SMTP non perde mai l'ordine: è già salvato, i flag
   WTB e mostra l'esito; se la creazione fallisce, la conferma resta valida.
 - **Riallinea** (finché non esiste un ordine WTB): quantità riga per riga
   con lo stock corrente accanto, totali ricalcolati, eventuale nuova email al
-  cliente con l'importo aggiornato.
+  cliente con l'importo aggiornato. Solo in riduzione e a prezzi congelati: si
+  tolgono prima le paia in stock esteso; la spedizione si ricalcola con la
+  tariffa e la soglia di gratuità salvate nell'ordine. Per aggiungere paia il
+  cliente fa un nuovo ordine.
 - **Crea / ritenta ordine WTB**: in modalità `manual` o dopo un errore.
 - **Annulla** → `cancelled`. Se esiste un ordine WTB vivo, promemoria:
   l'API non ha un annullamento, va annullato dal portale WTB (link); lo stato

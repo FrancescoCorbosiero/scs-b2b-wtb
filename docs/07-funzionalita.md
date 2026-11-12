@@ -98,6 +98,11 @@ fatturazione, totale da bonificare, consegna stimata, avviso di ordine minimo
 con CTA disattivata sotto soglia. Calcoli autorevoli sempre lato server; lo
 stock si ricontrolla a ogni apertura e all'invio. Carrello in sessione.
 
+Dalla scheda rapida "Aggiungi al carrello" **imposta** le quantità delle
+taglie di quel prodotto (la scheda mostra quelle già nel carrello) e, con
+JavaScript, non lascia la pagina. Il totale live per fascia è solo una
+comodità: il riepilogo vero lo calcola il server.
+
 ## Richiesta d'ordine
 
 Vedi docs/06 § Checkout: preventivo WTB, ripensamento, email con istruzioni

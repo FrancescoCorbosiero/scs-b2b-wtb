@@ -35,6 +35,7 @@ final class CustomerContextMiddleware implements MiddlewareInterface
             } else {
                 $customer = $this->auth->current($session);
                 $this->context->customer = $customer;
+                $this->context->cartCount = $customer === null ? 0 : (new \App\Orders\Cart($session))->pairs();
                 $request = $request->withAttribute('customer', $customer);
             }
         }

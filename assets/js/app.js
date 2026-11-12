@@ -1,8 +1,75 @@
 // Miglioramenti progressivi: tutto funziona anche senza JavaScript.
-// Alpine nella build CSP (niente eval): i componenti stanno in assets/js/components/.
+// Alpine nella build CSP (niente eval): i componenti si registrano con Alpine.data.
 import Alpine from '@alpinejs/csp';
 
 window.Alpine = Alpine;
+
+const locale = document.documentElement.lang === 'en' ? 'en-IE' : 'it-IT';
+const money = new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' });
+const euros = (cents) => money.format(cents / 100);
+
+// Ripensamento (docs/06): conto alla rovescia con "Annulla" prima dell'invio reale della richiesta d'ordine.
+Alpine.data('rethink', () => ({
+  seconds: 0,
+  total: 0,
+  active: false,
+  timer: null,
+  init() {
+    this.total = Number(this.$el.dataset.rethink || '0');
+  },
+  start(event) {
+    if (this.total <= 0 || this.active) return;
+    event.preventDefault();
+    this.seconds = this.total;
+    this.active = true;
+    this.timer = setInterval(() => {
+      this.seconds -= 1;
+      if (this.seconds <= 0) {
+        clearInterval(this.timer);
+        this.$el.submit();
+      }
+    }, 1000);
+  },
+  cancel() {
+    clearInterval(this.timer);
+    this.active = false;
+  },
+}));
+
+// Fasce lato client (stessa regola di TierCalculator): prima pronta consegna, poi stock esteso.
+function split(tiers, qty) {
+  const ordered = [...tiers].sort((a, b) => (a.s === 'immediate' ? 0 : 1) - (b.s === 'immediate' ? 0 : 1));
+  let left = qty;
+  const lines = [];
+  for (const tier of ordered) {
+    if (left <= 0) break;
+    const take = Math.min(left, tier.a);
+    if (take > 0) lines.push({ qty: take, price: tier.p });
+    left -= take;
+  }
+  return lines;
+}
+
+function refreshQtyForm(form) {
+  let pairs = 0;
+  let total = 0;
+  form.querySelectorAll('input[data-unit]').forEach((input) => {
+    const max = Number(input.max || '0');
+    let qty = Math.max(0, Math.min(max, Math.floor(Number(input.value || '0'))));
+    if (String(qty) !== input.value) input.value = String(qty);
+    const tiers = JSON.parse(input.dataset.tiers || '[]');
+    const lines = split(tiers, qty);
+    const text = lines.map((l) => `${l.qty} × ${euros(l.price)}`).join(' + ');
+    const out = input.closest('td, div')?.parentElement?.querySelector('[data-unit-split]');
+    if (out) out.textContent = text;
+    pairs += qty;
+    total += lines.reduce((sum, l) => sum + l.qty * l.price, 0);
+  });
+  const pairsOut = form.querySelector('[data-form-pairs]');
+  const totalOut = form.querySelector('[data-form-total]');
+  if (pairsOut) pairsOut.textContent = String(pairs);
+  if (totalOut) totalOut.textContent = pairs > 0 ? euros(total) : '—';
+}
 
 function onReady(fn) {
   if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn);
@@ -34,6 +101,63 @@ onReady(() => {
   });
   window.matchMedia('(min-width: 1024px)').addEventListener('change', (event) => {
     if (event.matches) document.querySelectorAll('details.filters').forEach((d) => d.setAttribute('open', ''));
+  });
+
+  // Quantità con +/− e totale live per fascia.
+  document.querySelectorAll('form[data-qty-form]').forEach(refreshQtyForm);
+  document.addEventListener('quickview:loaded', (event) => {
+    event.detail.querySelectorAll('form[data-qty-form]').forEach(refreshQtyForm);
+  });
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-step]');
+    if (!button) return;
+    const input = button.closest('[data-stepper]')?.querySelector('input');
+    if (!input) return;
+    input.value = String(Math.max(0, Math.min(Number(input.max || '0'), Number(input.value || '0') + Number(button.dataset.step))));
+    refreshQtyForm(input.form);
+  });
+  document.addEventListener('input', (event) => {
+    if (event.target.matches('input[data-unit]')) refreshQtyForm(event.target.form);
+  });
+
+  // "Aggiungi al carrello" dalla scheda rapida senza lasciare la pagina.
+  document.addEventListener('submit', async (event) => {
+    const form = event.target.closest('#quickview form[action="/carrello/aggiungi"]');
+    if (!form) return;
+    event.preventDefault();
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json', 'X-CSRF-Token': form.querySelector('input[name="_csrf"]').value },
+        credentials: 'same-origin',
+      });
+      if (!response.ok) throw new Error(String(response.status));
+      const data = await response.json();
+      const link = document.querySelector('[data-cart-link]');
+      if (link) {
+        let badge = link.querySelector('[data-cart-count]');
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'badge badge-ink';
+          badge.dataset.cartCount = '';
+          link.append(' ', badge);
+        }
+        badge.textContent = String(data.cart.pairs);
+      }
+      const note = document.createElement('p');
+      note.className = 'alert alert-success mt-3';
+      note.textContent = data.message;
+      form.append(note);
+      setTimeout(() => { document.getElementById('quickview')?.close(); }, 900);
+    } catch (e) {
+      form.submit();
+    }
+  });
+
+  // Campi che aggiornano il riepilogo appena cambiano (es. paese di destinazione nel carrello).
+  document.addEventListener('change', (event) => {
+    if (event.target.matches('[data-autosubmit-field]')) event.target.form.submit();
   });
 
   // Moduli che si inviano da soli al cambio (es. ordinamento del catalogo).

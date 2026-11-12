@@ -24,6 +24,7 @@ final class AdminMenu
     {
         return [
             ['href' => '/admin', 'label' => $this->t->get('admin.nav.dashboard'), 'badge' => 0],
+            ['href' => '/admin/ordini', 'label' => $this->t->get('admin.nav.orders'), 'badge' => $this->count("SELECT COUNT(*) FROM orders WHERE status = 'pending'")],
             ['href' => '/admin/clienti', 'label' => $this->t->get('admin.nav.customers'), 'badge' => 0],
             ['href' => '/admin/richieste-profilo', 'label' => $this->t->get('admin.nav.requests'), 'badge' => $this->count("SELECT COUNT(*) FROM account_requests WHERE status = 'pending'")],
             ['href' => '/admin/prodotti', 'label' => $this->t->get('admin.nav.products'), 'badge' => 0],

@@ -1,0 +1,14 @@
+{# Riepilogo autorevole calcolato dal server: subtotali per regime, spedizione, IVA stimata, totale da bonificare. #}
+{% set tax = cart.tax %}
+<dl class="totals">
+  <dt>{{ t('cart.pairs') }}</dt><dd>{{ cart.pairs }}</dd>
+  {% if tax.subtotalMarginCents > 0 %}<dt>{{ t('cart.subtotal_margin') }}</dt><dd>{{ money(tax.subtotalMarginCents) }}</dd>{% endif %}
+  {% if tax.subtotalOrdinaryCents > 0 %}<dt>{{ t('cart.subtotal_ordinary') }}</dt><dd>{{ money(tax.subtotalOrdinaryCents) }}</dd>{% endif %}
+  <dt>{{ t('cart.shipping', {zone: cart.zone.name(locale())}) }}</dt><dd>{{ tax.shippingCents == 0 and cart.pairs > 0 ? t('cart.free') : money(tax.shippingCents) }}</dd>
+  <dt>{{ tax.vatRateBp > 0 ? t('cart.vat_rate', {rate: tax.vatRateBp // 100}) : t('cart.vat') }}</dt><dd>{{ money(tax.vatCents) }}</dd>
+  <dt class="total">{{ t('cart.total') }}</dt><dd class="total">{{ money(tax.totalCents) }}</dd>
+</dl>
+{% if cart.free_shipping_from and cart.pairs < cart.free_shipping_from %}<p class="text-xs text-muted">{{ t('cart.free_from', {n: cart.free_shipping_from}) }}</p>{% endif %}
+{% for legend in tax.legends %}<p class="text-xs text-muted">{{ t(legend) }}</p>{% endfor %}
+{% if tax.scheme != 'domestic' and tax.subtotalOrdinaryCents > 0 %}<p class="text-xs text-muted">{{ t('cart.vat_note_' ~ tax.scheme) }}</p>{% endif %}
+{% if cart.delivery %}<p class="text-sm">{{ t('cart.delivery', {min: cart.delivery[0], max: cart.delivery[1]}) }}</p>{% endif %}
