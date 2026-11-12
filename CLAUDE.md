@@ -154,6 +154,12 @@ composer check                   # test + PHPStan (con COMPOSER_ALLOW_SUPERUSER=
 | Account clienti e admin | `src/Accounts/` (utenti, token d'invito/reset, lockout, P.IVA), `src/Http/Controller/Site/AuthController.php`, `AccountController.php`, `src/Http/Controller/Admin/CustomersController.php` |
 | Email | `src/Support/Mail/` (trasporti `log`/`smtp`), template in `templates/emails/` |
 | Zone e paesi | `src/Shipping/CountryRepository.php`, `ZoneRepository.php` |
+| Fornitore (unico punto che conosce WTB) | `src/Supplier/` (interfacce e modelli interni), `src/Supplier/Wtb/` (client, mapper, catalogo, ordini, firma webhook), `src/Supplier/Wtb/Fixture/` (modalità fixture e simulatore) |
+| Sync del catalogo | `src/Catalog/ProductSync.php` (completo, tutto o niente), `StockSync.php` (rapido), `CatalogWriter.php`, `SizeCategory.php`, `ProductAggregates.php` |
+| Immagini | `src/Catalog/ImageService.php`, `src/Http/Controller/Site/ImageController.php` |
+| Prezzi | `src/Pricing/` (`Rounding` = unico punto degli arrotondamenti, `PricingService`, `MarginResolver`, `RepriceService`) |
+| Job e scheduler | `src/Jobs/`, `bin/scheduler.php`, `bin/sync.php`, `bin/backup.php` |
+| Dashboard e avvisi admin | `src/Admin/Alerts.php`, `src/Admin/DashboardCards.php`, `src/Http/Controller/Admin/SyncController.php` |
 | Testi | `lang/it.php` (fonte, admin compreso), `lang/en.php` |
 | Template e stile | `templates/` (sito in `layout/`, `site/`, `auth/`, `account/`; admin in `admin/`), `assets/css/app.css`, `assets/js/app.js`, `tailwind.config.js` |
 | Funzioni dei template | `src/Http/TwigExtension.php` (`t`, `money`, `csrf_field`, `query_url`…), `src/Http/AdminMenu.php` |

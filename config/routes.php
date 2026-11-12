@@ -6,8 +6,10 @@ use App\Http\Controller\Admin\AuthController as AdminAuthController;
 use App\Http\Controller\Admin\CustomersController as AdminCustomersController;
 use App\Http\Controller\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controller\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controller\Admin\SyncController as AdminSyncController;
 use App\Http\Controller\Site\AccountController;
 use App\Http\Controller\Site\AuthController;
+use App\Http\Controller\Site\ImageController;
 use App\Http\Controller\Site\PageController;
 use App\Http\Middleware\RequireAdminMiddleware;
 use App\Http\Middleware\RequireCustomerMiddleware;
@@ -22,6 +24,8 @@ return static function (App $app): void {
     // --- Sito pubblico -----------------------------------------------------------------------
     $app->get('/', [PageController::class, 'home']);
     $app->get('/healthz', [PageController::class, 'health']);
+    // Immagini prodotto dal nostro dominio (D-011), pubbliche ma noindex.
+    $app->get('/img/{product:\\d+}/{position:\\d+}-{width:0|400|800}.jpg', [ImageController::class, 'show']);
 
     // --- Accesso clienti ---------------------------------------------------------------------
     $app->get('/login', [AuthController::class, 'loginForm']);
@@ -49,6 +53,9 @@ return static function (App $app): void {
         $g->get('/impostazioni', [AdminSettingsController::class, 'index']);
         $g->post('/impostazioni/{key}', [AdminSettingsController::class, 'update']);
         $g->post('/impostazioni/{key}/ripristina', [AdminSettingsController::class, 'reset']);
+
+        $g->get('/sync', [AdminSyncController::class, 'index']);
+        $g->post('/sync/{job:[a-z_]+}', [AdminSyncController::class, 'run']);
 
         $g->get('/clienti', [AdminCustomersController::class, 'index']);
         $g->get('/clienti/nuovo', [AdminCustomersController::class, 'create']);

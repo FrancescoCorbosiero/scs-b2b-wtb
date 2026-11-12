@@ -10,22 +10,31 @@ ISO 8601 UTC in TEXT, JSON in TEXT, booleani 0/1. I campi **riservati**
 
 **`products`** — `id`, `sku` UNIQUE, `name`, `brand`, `category`, `line`,
 `gender`, `category_path` (JSON), `description`, `size_category`
-(`adult`|`gs`|`ps`), `is_active`, `is_featured`, `total_available`
-(denormalizzato), `min_price_cents` + `min_price_regime` (per card e filtri),
-`has_immediate`, `first_seen_at`, `last_seen_at`, `updated_at`. Indici su
-`brand`, `line`, `gender`, `is_active`, `min_price_cents`.
+(`adult`|`gs`|`ps`), `is_active`, `in_feed` (presente nell'ultimo feed
+completo: gli esauriti ne escono, D-017), `is_featured`, `total_available`
+(denormalizzato: solo offerte vendibili), `min_price_cents` +
+`min_price_regime` (per card e filtri), `has_immediate`, `search_text` (SKU,
+nome, brand, linea, EAN in minuscolo), `first_seen_at`, `last_seen_at`,
+`updated_at`. Indici su `brand`, `line`, `gender`, `is_active`,
+`min_price_cents`.
 
 **`product_images`** — `id`, `product_id` FK, `position`, `source_url`,
-`cached_at` NULL, `status` (`pending`|`ok`|`error`).
+`cached_at` NULL, `status` (`pending`|`ok`|`error`), `error`. UNIQUE
+(`product_id`, `position`). I file in cache (`var/images/<prodotto>/`)
+portano nel nome l'impronta della sorgente: se l'immagine cambia, cambia
+anche l'URL pubblico.
 
 **`variants`** — `id`, `product_id` FK, `wtb_variant_id` UNIQUE, `size_eu`,
-`size_us`, `size_uk` (stringhe, mai numeri), `ean`, `is_active`. UNIQUE
-(`product_id`, `size_eu`).
+`size_us`, `size_uk` (stringhe, mai numeri), `size_sort` (taglia EU in
+millesimi, per ordinare `36 2/3` dopo `36.5`), `ean`, `is_active`. Indice su
+(`product_id`, `size_sort`): niente UNIQUE sulla taglia EU, perché un doppione
+del fornitore non deve bloccare il sync.
 
 **`offers`** — `id`, `variant_id` FK, `vat_regime` (`margin`|`ordinary`),
 `stock_type` (`immediate`|`extended`), `available`, `cost_cents`
-(**riservato**), `sale_price_cents` (precalcolato), `ships_in_days`,
-`updated_at`. UNIQUE (`variant_id`, `vat_regime`, `stock_type`).
+(**riservato**), `sale_price_cents` (precalcolato), `margin_rule_id` (regola
+applicata, NULL = default), `ships_in_days`, `updated_at`. UNIQUE
+(`variant_id`, `vat_regime`, `stock_type`).
 
 **`margin_rules`** — `id`, `priority`, `match_type`
 (`sku`|`brand`|`name`|`line`|`gender`|`category`|`size_category`),

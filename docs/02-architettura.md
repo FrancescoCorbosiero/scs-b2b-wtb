@@ -129,11 +129,15 @@ job dichiarati in `src/Jobs/` secondo il loro intervallo, con un lock per job
 |---|---|---|
 | `stock_sync` | `WTB_STOCK_SYNC_INTERVAL=900` (15 min, come consiglia WTB) | `GET /stock/`: disponibilità e costi, ricalcolo prezzi |
 | `products_sync` | `WTB_PRODUCTS_SYNC_INTERVAL=10800` (3 h) | `GET /products/`: catalogo completo |
-| `orders_poll` | 3600 (1 h) | rete di sicurezza ai webhook: rilegge gli ordini WTB non conclusi |
-| `cleanup` | giornaliero | eventi webhook vecchi, tentativi di login, cache immagini orfane |
-| `backup` | giornaliero | copia consistente del database (`VACUUM INTO`), conserva 14 giorni |
+| `orders_poll` | `WTB_ORDERS_POLL_INTERVAL=3600` (1 h) | rete di sicurezza ai webhook: rilegge gli ordini WTB non conclusi |
+| `image_prefetch` | 600 (10 min) | scarica in anticipo le immagini dei prodotti nuovi |
+| `cleanup` | giornaliero | sessioni scadute, eventi webhook vecchi, tentativi di login, token, storico job, cache immagini orfane |
+| `backup` | giornaliero | copia consistente del database (`VACUUM INTO`), conserva `BACKUP_KEEP_DAYS` giorni |
 
-Dall'admin: "Sincronizza ora" per catalogo e stock.
+Dall'admin (`/admin/sync`) e da CLI (`php bin/sync.php products|stock|images
+[--force]`, `php bin/backup.php`) i job si lanciano subito, con lo stesso
+lock: mai due esecuzioni sovrapposte. `php bin/scheduler.php --once` fa un
+solo giro.
 
 ## Test e qualità
 

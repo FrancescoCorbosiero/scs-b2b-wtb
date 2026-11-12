@@ -1,0 +1,104 @@
+{% extends 'admin/layout.twig' %}
+{% block title %}{{ t('admin.sync.title') }}{% endblock %}
+{% block content %}
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+    <div>
+      <h1 class="h1">{{ t('admin.sync.title') }}</h1>
+      <p class="text-sm text-muted">{{ t('admin.sync.intro', {mode: mode|upper, url: base_url}) }}</p>
+    </div>
+  </div>
+
+  {% if auth_error %}<div class="alert alert-error mb-4">{{ t('admin.sync.auth_error') }}</div>{% endif %}
+  {% if blocked %}<div class="alert alert-error mb-4">{{ t('admin.sync.blocked', {previous: blocked.previous, now: blocked.now, percent: blocked.max_drop_percent}) }}</div>{% endif %}
+
+  <div class="grid gap-4 sm:grid-cols-3 lg:grid-cols-6 mb-8">
+    {% for key, value in counts %}
+      <div class="card"><p class="text-xs text-muted">{{ t('admin.sync.counts.' ~ key) }}</p><p class="text-2xl font-bold tabular-nums">{{ value }}</p></div>
+    {% endfor %}
+  </div>
+
+  <h2 class="h3 mb-3">{{ t('admin.sync.jobs_title') }}</h2>
+  <div class="table-wrap mb-8">
+    <table class="table">
+      <thead><tr><th>{{ t('admin.sync.job') }}</th><th>{{ t('admin.sync.every') }}</th><th>{{ t('admin.sync.last_run') }}</th><th>{{ t('admin.sync.outcome') }}</th><th></th></tr></thead>
+      <tbody>
+        {% for job in jobs %}
+          <tr>
+            <td class="font-semibold">{{ job.label }}<br><code class="text-xs text-muted">{{ job.name }}</code></td>
+            <td>{{ (job.interval / 60)|round }} min</td>
+            <td>{{ job.last ? job.last.started_at|local_datetime : '—' }}</td>
+            <td>
+              {% if job.last %}
+                <span class="badge {{ job.last.status == 'ok' ? 'badge-ok' : (job.last.status == 'error' ? 'badge-danger' : 'badge-muted') }}">{{ job.last.status }}</span>
+                <span class="text-xs text-muted whitespace-pre-line">{{ job.last.message|split("\n")|first }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td class="whitespace-nowrap">
+              <form method="post" action="/admin/sync/{{ job.name }}" class="flex flex-wrap items-center gap-2">
+                {{ csrf_field() }}
+                {% if job.name == 'products_sync' %}
+                  <label class="text-xs flex items-center gap-1"><input type="checkbox" name="force" value="1"> {{ t('admin.sync.force') }}</label>
+                {% endif %}
+                <button type="submit" class="btn btn-sm btn-primary">{{ t('admin.sync.run_now') }}</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid gap-8 xl:grid-cols-2">
+    <section>
+      <h2 class="h3 mb-3">{{ t('admin.sync.profile_title') }}</h2>
+      {% if profile %}
+        <p class="text-sm mb-3">{{ t('admin.sync.profile', {profile: profile.profile, at: snapshot_at|local_datetime}) }}
+          {% if profile.minOrderPieces %} · {{ t('admin.sync.min_order', {n: profile.minOrderPieces}) }}{% endif %}</p>
+        <div class="table-wrap mb-4">
+          <table class="table">
+            <thead><tr><th>{{ t('admin.sync.zone') }}</th><th>{{ t('admin.sync.countries') }}</th><th class="num">{{ t('admin.sync.first') }}</th><th class="num">{{ t('admin.sync.additional') }}</th><th class="num">{{ t('admin.sync.failed') }}</th><th>{{ t('admin.sync.duties') }}</th></tr></thead>
+            <tbody>
+              {% for z in profile.zones %}
+                <tr>
+                  <td class="font-semibold">{{ z.name }}</td>
+                  <td class="text-xs">{{ z.countries|join(', ') }}</td>
+                  <td class="num">{{ money(z.firstPieceCents) }}</td>
+                  <td class="num">{{ money(z.eachAdditionalCents) }}</td>
+                  <td class="num">{{ money(z.failedDeliveryCents) }}</td>
+                  <td>{{ z.dutiesPaidByRecipient ? t('common.yes') : t('common.no') }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="text-sm font-semibold mb-1">{{ t('admin.sync.extended_title') }}</p>
+        <p class="text-sm text-muted">
+          {% for pieces, amount in profile.extendedTransport %}{{ pieces }} → {{ money(amount) }}{% if not loop.last %} · {% endif %}{% endfor %}
+          {% if profile.extendedFreeFrom %} · {{ t('admin.sync.free_from', {n: profile.extendedFreeFrom}) }}{% endif %}
+        </p>
+      {% else %}
+        <p class="text-sm text-muted">{{ t('admin.sync.no_profile') }}</p>
+      {% endif %}
+    </section>
+    <section>
+      <h2 class="h3 mb-3">{{ t('admin.sync.history') }}</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>{{ t('admin.sync.when') }}</th><th>{{ t('admin.sync.job') }}</th><th>{{ t('admin.sync.outcome') }}</th><th>{{ t('admin.sync.message') }}</th></tr></thead>
+          <tbody>
+            {% for r in runs %}
+              <tr>
+                <td class="whitespace-nowrap">{{ r.started_at|local_datetime }}<br><span class="text-xs text-muted">{{ r.trigger }}</span></td>
+                <td><code class="text-xs">{{ r.job }}</code></td>
+                <td><span class="badge {{ r.status == 'ok' ? 'badge-ok' : (r.status == 'error' ? 'badge-danger' : 'badge-muted') }}">{{ r.status }}</span></td>
+                <td class="text-xs whitespace-pre-line">{{ r.message|slice(0, 600) }}</td>
+              </tr>
+            {% else %}
+              <tr><td colspan="4" class="text-muted">{{ t('admin.sync.no_runs') }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+{% endblock %}

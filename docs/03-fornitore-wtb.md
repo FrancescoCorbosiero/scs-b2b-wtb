@@ -31,8 +31,10 @@ vive in `src/Supplier/Wtb/` e nei job di sync.
 
 - `User-Agent` identificativo, `Accept: application/json`, timeout da `.env`.
 - **Limite**: al massimo ~100 richieste al minuto per processo (margine sotto
-  120). Su 429: attesa di `Retry-After` se presente, altrimenti 30 s, poi
-  nuovo tentativo (max 3).
+  120). Su 429: attesa di `Retry-After` se presente (M0: c'è, in secondi),
+  altrimenti 30 s, poi nuovo tentativo (max 3). Durante una richiesta del
+  cliente (preventivo al checkout) non si aspetta più di 5 s: oltre, si
+  rinuncia e vale il solo controllo locale (docs/06).
 - **Letture e preventivi** (`GET`, `POST /quote/`): fino a 2 nuovi tentativi
   con backoff su errori di rete e 5xx.
 - **Creazione ordine** (`POST /orders/`): i nuovi tentativi sono sicuri perché

@@ -2,8 +2,24 @@
 {% block title %}{{ t('admin.dashboard.title') }}{% endblock %}
 {% block content %}
   <h1 class="h1 mb-6">{{ t('admin.dashboard.title') }}</h1>
-  <div class="grid gap-4 md:grid-cols-3">
-    <a href="/admin/clienti" class="card card-link"><span class="text-muted text-sm">{{ t('admin.nav.customers') }}</span></a>
-    <a href="/admin/impostazioni" class="card card-link"><span class="text-muted text-sm">{{ t('admin.nav.settings') }}</span></a>
+  {% if alerts is not empty %}
+    <section class="space-y-2 mb-8" aria-label="{{ t('admin.dashboard.alerts') }}">
+      {% for a in alerts %}
+        <a href="{{ a.href }}" class="alert {{ a.level == 'error' ? 'alert-error' : 'alert-warning' }} block">
+          <strong>{{ a.title }}</strong> — {{ a.text }}
+        </a>
+      {% endfor %}
+    </section>
+  {% else %}
+    <p class="alert alert-success mb-8">{{ t('admin.dashboard.no_alerts') }}</p>
+  {% endif %}
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {% for card in cards %}
+      <a href="{{ card.href }}" class="card card-link">
+        <p class="text-sm text-muted">{{ card.label }}</p>
+        <p class="text-3xl font-bold tabular-nums">{{ card.value }}</p>
+        {% if card.note ?? false %}<p class="text-xs text-muted mt-1">{{ card.note }}</p>{% endif %}
+      </a>
+    {% endfor %}
   </div>
 {% endblock %}

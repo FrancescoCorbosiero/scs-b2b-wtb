@@ -31,6 +31,9 @@ final class TestApp
     public readonly FrozenClock $clock;
     public readonly ArrayTransport $mail;
 
+    /** @var list<float> attese richieste dal client del fornitore (nei test non si dorme davvero) */
+    public array $sleeps = [];
+
     /** @var App<ContainerInterface>|null */
     private ?App $app = null;
 
@@ -41,11 +44,16 @@ final class TestApp
         $this->db = Db::open(':memory:');
         $this->clock = new FrozenClock('2026-11-12T09:00:00Z');
         $this->mail = new ArrayTransport();
+        $sleeps = &$this->sleeps;
         $this->container = Bootstrap::container($config, $overrides + [
             Db::class => $this->db,
             Clock::class => $this->clock,
             MailTransport::class => $this->mail,
             LoggerInterface::class => new NullLogger(),
+            // \DI\value: una closure "nuda" PHP-DI la tratterebbe come factory.
+            'wtb.sleep' => \DI\value(static function (float $seconds) use (&$sleeps): void {
+                $sleeps[] = $seconds;
+            }),
         ]);
         (new Migrator($this->db, Bootstrap::root() . '/database/migrations', $this->clock))->migrate();
     }
@@ -96,6 +104,19 @@ final class TestApp
     {
         /** @var T */
         return $this->container->get($class);
+    }
+
+    /** Fornitore finto (modalità fixture): per accodare errori o risposte particolari. */
+    public function fixtures(): \App\Supplier\Wtb\Fixture\FixtureTransport
+    {
+        return $this->get(\App\Supplier\Wtb\Fixture\FixtureTransport::class);
+    }
+
+    /** Catalogo popolato dalle fixture (sync completo + sync rapido). */
+    public function syncCatalog(): void
+    {
+        $this->get(\App\Catalog\ProductSync::class)->run();
+        $this->get(\App\Catalog\StockSync::class)->run();
     }
 
     /** Crea un cliente attivo con password (per i test). @param array<string, mixed> $data */

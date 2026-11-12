@@ -3,6 +3,26 @@
 declare(strict_types=1);
 
 use App\Accounts\AdminAuth;
+use App\Catalog\ImageService;
+use App\Catalog\ProductAggregates;
+use App\Jobs\BackupJob;
+use App\Jobs\CleanupJob;
+use App\Jobs\ImagePrefetchJob;
+use App\Jobs\JobRunner;
+use App\Jobs\ProductsSyncJob;
+use App\Jobs\Scheduler;
+use App\Jobs\StockSyncJob;
+use App\Pricing\RepriceService;
+use App\Supplier\SupplierCatalog;
+use App\Supplier\SupplierOrders;
+use App\Supplier\Wtb\Fixture\FixtureTransport;
+use App\Supplier\Wtb\Http\CurlTransport;
+use App\Supplier\Wtb\Http\Transport;
+use App\Supplier\Wtb\WebhookVerifier;
+use App\Supplier\Wtb\WtbCatalog;
+use App\Supplier\Wtb\WtbClient;
+use App\Supplier\Wtb\WtbConfig;
+use App\Supplier\Wtb\WtbOrders;
 use App\Accounts\LoginThrottle;
 use App\Http\TwigExtension;
 use App\Http\ViewContext;
@@ -98,6 +118,79 @@ return static function (Config $config): array {
             'array' => new ArrayTransport(),
             default => new LogTransport($c->get(MessageBuilder::class), $config->varPath('mail')),
         }),
-        'settings.listeners' => [],
+        // Impostazioni che cambiano i prezzi o ciò che è vendibile: ricalcolo immediato (risolto in modo pigro).
+        'settings.listeners' => factory(static fn (ContainerInterface $c): array => [
+            static function (string $key) use ($c): void {
+                if (str_starts_with($key, 'prices.')) {
+                    $c->get(RepriceService::class)->repriceAll();
+                } elseif (in_array($key, ['catalog.regimes', 'catalog.sell_extended'], true)) {
+                    $c->get(ProductAggregates::class)->recompute();
+                }
+            },
+        ]),
+
+        // --- Fornitore (solo src/Supplier/Wtb conosce WTB) ---------------------------------------
+        WtbConfig::class => factory(static fn (): WtbConfig => WtbConfig::fromConfig($config)),
+        Transport::class => factory(static fn (ContainerInterface $c): Transport => $c->get(WtbConfig::class)->mode === 'fixture'
+            ? $c->get(FixtureTransport::class)
+            : new CurlTransport()),
+        FixtureTransport::class => factory(static fn (ContainerInterface $c): FixtureTransport => new FixtureTransport($c->get(WtbConfig::class)->fixturesDir)),
+        WtbClient::class => factory(static fn (ContainerInterface $c): WtbClient => new WtbClient(
+            $c->get(WtbConfig::class),
+            $c->get(Transport::class),
+            $c->get(LoggerInterface::class),
+            $c->get(\App\Support\SystemFlags::class),
+            $c->has('wtb.sleep') ? $c->get('wtb.sleep') : null,
+        )),
+        SupplierCatalog::class => \DI\get(WtbCatalog::class),
+        SupplierOrders::class => \DI\get(WtbOrders::class),
+        WebhookVerifier::class => factory(static fn (ContainerInterface $c): WebhookVerifier => new WebhookVerifier(
+            $c->get(WtbConfig::class)->webhookSecret,
+            $c->get(Clock::class),
+        )),
+        ImageService::class => factory(static fn (ContainerInterface $c): ImageService => new ImageService(
+            $c->get(Db::class),
+            $c->get(WtbConfig::class),
+            $c->get(Clock::class),
+            $c->get(LoggerInterface::class),
+            $config->varPath('images'),
+        )),
+
+        // --- Job periodici ------------------------------------------------------------------------
+        JobRunner::class => factory(static fn (ContainerInterface $c): JobRunner => new JobRunner(
+            $c->get(Db::class),
+            $c->get(Clock::class),
+            $c->get(LoggerInterface::class),
+            $config->varPath('locks'),
+        )),
+        ProductsSyncJob::class => factory(static fn (ContainerInterface $c): ProductsSyncJob => new ProductsSyncJob(
+            $c->get(\App\Catalog\ProductSync::class),
+            max(600, $config->int('WTB_PRODUCTS_SYNC_INTERVAL', 10800)),
+        )),
+        StockSyncJob::class => factory(static fn (ContainerInterface $c): StockSyncJob => new StockSyncJob(
+            $c->get(\App\Catalog\StockSync::class),
+            max(300, $config->int('WTB_STOCK_SYNC_INTERVAL', 900)),
+        )),
+        BackupJob::class => factory(static fn (ContainerInterface $c): BackupJob => new BackupJob(
+            $c->get(Db::class),
+            $c->get(Clock::class),
+            $config->varPath('backups'),
+            max(1, $config->int('BACKUP_KEEP_DAYS', 14)),
+        )),
+        'cleanup.extra' => [],
+        CleanupJob::class => \DI\autowire()->constructorParameter('extra', \DI\get('cleanup.extra')),
+        'jobs' => factory(static fn (ContainerInterface $c): array => [
+            $c->get(StockSyncJob::class),
+            $c->get(ProductsSyncJob::class),
+            $c->get(ImagePrefetchJob::class),
+            $c->get(CleanupJob::class),
+            $c->get(BackupJob::class),
+        ]),
+        Scheduler::class => factory(static fn (ContainerInterface $c): Scheduler => new Scheduler(
+            $c->get('jobs'),
+            $c->get(JobRunner::class),
+            $c->get(Db::class),
+            $c->get(Clock::class),
+        )),
     ];
 };

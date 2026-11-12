@@ -16,6 +16,7 @@ final class AdminMenu
         return [
             ['href' => '/admin', 'label' => 'Dashboard', 'badge' => 0],
             ['href' => '/admin/clienti', 'label' => 'Clienti', 'badge' => 0],
+            ['href' => '/admin/sync', 'label' => 'Sync', 'badge' => 0],
             ['href' => '/admin/impostazioni', 'label' => 'Impostazioni', 'badge' => 0],
         ];
     }
