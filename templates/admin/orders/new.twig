@@ -1,0 +1,114 @@
+{% extends 'admin/layout.twig' %}
+{% import 'partials/forms.twig' as f %}
+{% block title %}{{ t('admin.new_order.title') }}{% endblock %}
+{% block content %}
+  <p class="mb-2"><a href="/admin/ordini" class="link text-sm">← {{ t('admin.orders.title') }}</a></p>
+  <h1 class="h1 mb-2">{{ t('admin.new_order.title') }}</h1>
+  <p class="text-sm text-muted mb-3 max-w-3xl">{{ t('admin.new_order.intro') }}</p>
+  <p class="alert {{ mode == 'live' ? 'alert-error' : 'alert-info' }} mb-6">{{ t('admin.new_order.mode_' ~ mode) }}</p>
+
+  <div class="space-y-6">
+    <section class="card space-y-3">
+      <h2 class="h3">{{ t('admin.new_order.search_title') }}</h2>
+      <form method="get" action="/admin/ordini/nuovo" class="flex flex-wrap gap-2">
+        <input class="input w-72" type="search" name="q" value="{{ q }}" placeholder="{{ t('admin.new_order.search_placeholder') }}" autofocus>
+        <button class="btn btn-ghost" type="submit">{{ t('common.search') }}</button>
+      </form>
+      {% if q %}
+        <p class="text-xs text-muted">{{ t('admin.new_order.search_hint') }}</p>
+        {% for p in results %}
+          <form method="post" action="/admin/ordini/nuovo/righe" class="border border-line p-3 space-y-2">
+            {{ csrf_field() }}
+            <input type="hidden" name="next" value="/admin/ordini/nuovo?q={{ q|url_encode }}">
+            <p><span class="font-semibold">{{ p.name }}</span> <span class="text-xs text-muted"><code>{{ p.sku }}</code> · {{ p.brand }}</span></p>
+            {% if p.units is empty %}
+              <p class="text-sm text-muted">—</p>
+            {% else %}
+              <div class="table-wrap">
+                <table class="table">
+                  <thead><tr><th>{{ t('admin.new_order.size') }}</th><th>{{ t('admin.new_order.regime') }}</th><th>{{ t('admin.new_order.offers') }}</th><th>{{ t('admin.new_order.qty') }}</th></tr></thead>
+                  <tbody>
+                    {% for u in p.units %}
+                      <tr>
+                        <td class="whitespace-nowrap">EU {{ u.size_eu }}{% if u.size_us %} <span class="text-xs text-muted">· US {{ u.size_us }}</span>{% endif %}<span class="block text-xs text-muted">#{{ u.wtb_variant_id }}</span></td>
+                        <td>{{ t('catalog.regime.' ~ u.regime) }}</td>
+                        <td class="text-sm">
+                          {% for tier in u.tiers %}
+                            <span class="block">{{ tier.available }} × {{ money(tier.cost_cents) }} · {{ tier.stock_type == 'immediate' ? t('product.immediate') : t('product.extended') }} · {{ tier.ships_in_days }}</span>
+                          {% endfor %}
+                        </td>
+                        <td><input class="input w-20" type="number" min="0" max="{{ u.available }}" name="qty[{{ u.key }}]" value="0"></td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <button class="btn btn-sm btn-primary" type="submit">{{ t('admin.new_order.add') }}</button>
+            {% endif %}
+          </form>
+        {% else %}
+          <p class="text-sm text-muted">{{ t('admin.new_order.search_none') }}</p>
+        {% endfor %}
+      {% endif %}
+    </section>
+
+    <section class="card space-y-3" id="bozza">
+      <h2 class="h3">{{ t('admin.new_order.draft_title') }}</h2>
+      {% if draft.empty %}
+        <p class="text-sm text-muted">{{ t('admin.new_order.draft_empty') }}</p>
+      {% else %}
+        <form method="post" action="/admin/ordini/nuovo/righe" class="space-y-2">
+          {{ csrf_field() }}
+          <input type="hidden" name="mode" value="set">
+          <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th>{{ t('orders.item') }}</th><th>{{ t('admin.new_order.regime') }}</th><th>{{ t('orders.tiers') }}</th><th>{{ t('admin.new_order.qty') }}</th></tr></thead>
+              <tbody>
+                {% for l in draft.lines %}
+                  <tr>
+                    <td><span class="font-semibold">{{ l.product.name }}</span><span class="block text-xs text-muted"><code>{{ l.product.sku }}</code> · EU {{ l.unit.size_eu }} · #{{ l.unit.wtb_variant_id }}</span></td>
+                    <td>{{ t('catalog.regime.' ~ l.unit.regime) }}</td>
+                    <td class="text-sm">{% for s in l.unit.split.lines %}<span class="block">{{ s.quantity }} · {{ s.stock_type == 'immediate' ? t('product.immediate') : t('product.extended') }} · {{ s.ships_in_days }}</span>{% endfor %}</td>
+                    <td><input class="input w-20" type="number" min="0" max="{{ l.unit.max }}" name="qty[{{ l.unit.key }}]" value="{{ l.unit.quantity }}"></td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <button class="btn btn-sm btn-ghost" type="submit">{{ t('admin.new_order.draft_update') }}</button>
+        </form>
+        <dl class="dl">
+          <dt>{{ t('admin.new_order.draft_pairs') }}</dt><dd>{{ draft.pairs }}</dd>
+          <dt>{{ t('admin.new_order.draft_cost') }}</dt><dd>{{ money(draft.expected_cost_cents) }}</dd>
+        </dl>
+        {% if supplier_min %}<p class="text-xs text-muted">{{ t('admin.new_order.supplier_min', {n: supplier_min}) }}</p>{% endif %}
+        <form method="post" action="/admin/ordini/nuovo/svuota">
+          {{ csrf_field() }}
+          <button class="btn btn-sm btn-danger" type="submit">{{ t('admin.new_order.draft_clear') }}</button>
+        </form>
+      {% endif %}
+    </section>
+
+    <section class="card space-y-3" id="spedizione">
+      <h2 class="h3">{{ t('admin.new_order.ship_title') }}</h2>
+      <p class="text-sm text-muted">{{ t('admin.new_order.ship_hint') }}</p>
+      <form method="post" action="/admin/ordini/nuovo" class="space-y-4 max-w-4xl">
+        {{ csrf_field() }}
+        <div class="grid gap-4 md:grid-cols-2">
+          {{ f.input('ship_name', t('checkout.ship_name'), address.ship_name, 'text', {required: true}) }}
+          {{ f.input('ship_company', t('fields.company'), address.ship_company) }}
+          {{ f.input('ship_street', t('fields.address_street'), address.ship_street, 'text', {required: true}) }}
+          {{ f.input('ship_city', t('fields.address_city'), address.ship_city, 'text', {required: true}) }}
+          {{ f.input('ship_zip', t('fields.address_zip'), address.ship_zip, 'text', {required: true}) }}
+          {{ f.input('ship_province', t('fields.address_province'), address.ship_province, 'text', {hint: t('fields.address_province_hint')}) }}
+          {{ f.select('ship_country', t('fields.country_code'), countries, address.ship_country, {required: true}) }}
+          {{ f.input('ship_phone', t('fields.phone'), address.ship_phone, 'tel', {required: true}) }}
+          {{ f.input('email', t('admin.new_order.email'), address.email, 'email', {required: true, hint: t('admin.new_order.email_hint')}) }}
+        </div>
+        {{ f.textarea('admin_notes', t('admin.new_order.admin_notes'), address.admin_notes, {rows: 2, maxlength: 1000}) }}
+        <button type="submit" class="btn btn-primary" {{ draft.empty ? 'disabled' }}>{{ t('admin.new_order.submit') }}</button>
+        <p class="text-xs text-muted">{{ t('admin.new_order.submit_hint') }}</p>
+      </form>
+    </section>
+  </div>
+{% endblock %}

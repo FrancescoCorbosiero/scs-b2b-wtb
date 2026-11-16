@@ -196,3 +196,26 @@ Formato:
 - Come si torna indietro: nuovo record DNS, nuovi `APP_URL` e `APP_DOMAIN`,
   `docker compose up -d`; i link nelle email già inviate puntano al vecchio
   dominio, che conviene reindirizzare per un po'.
+
+### D-019 · 16/11/2026 · Per ora solo l'admin: lato cliente spento, ordini di prova dall'admin
+- Decisione: il lato cliente (sito di presentazione, vetrina, login, catalogo,
+  carrello, checkout, account) è spento; `/` porta all'admin. Il menu admin
+  nasconde Clienti, Richieste profilo e Margini. L'admin compone gli ordini
+  da sé in `/admin/ordini/nuovo` (prodotti, taglie, paia, indirizzo di
+  spedizione): l'ordine passa dal preventivo del fornitore, si salva con
+  origine `admin` (niente email al cliente, niente pro-forma, niente conferma
+  del pagamento) e dalla sua pagina si crea l'ordine al fornitore come per
+  ogni altro ordine (stesso reference, stessi webhook e tracking).
+- Perché: richiesta del titolare: per ora serve solo provare il fornitore,
+  prima in `test` (ordini simulati) e poi in `live` con ordini veri fatti
+  dal negozio del cliente. Il lato cliente servirà più avanti e resta
+  intatto, coperto dai test.
+- Dove vive: `PUBLIC_SITE=0` in `.env` (default 0 anche nel codice),
+  `config/routes.php`, `src/Http/AdminMenu.php` (`CUSTOMER_SIDE`),
+  `src/Orders/AdminOrderService.php`, `Admin/NewOrderController.php`,
+  colonna `orders.source` (migrazione 0006). Gli ordini dell'admin sono
+  intestati a un utente tecnico inattivo (`ordini-interni@scs-b2b.invalid`).
+- Come si torna indietro: `PUBLIC_SITE=1` e riavvio dei container riaccende
+  il lato cliente e le voci di menu; la pagina "Ordine di prova" può restare
+  (utile anche dopo) o si toglie con un `git revert` di questa modifica (la
+  colonna `source` resta, innocua).

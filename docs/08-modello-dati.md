@@ -92,7 +92,8 @@ limiti dei moduli (richiesta profilo, richiesta d'ordine, reset).
 **`orders`** — `id` (anche numero d'ordine e causale del bonifico; parte da
 1001), `user_id` FK, `status` (`pending`|`confirmed`|`shipped`|`cancelled`),
 `mode` (modalità del fornitore alla nascita), `checkout_token` UNIQUE (invio
-idempotente), `locale`;
+idempotente), `locale`, `source` (`checkout`|`admin`, migrazione 0006,
+D-019: richiesta del cliente o ordine di prova dell'admin);
 anagrafica congelata (azienda, P.IVA, nome, email, telefono, indirizzo di
 fatturazione con provincia e paese); spedizione (`ship_to_mode`
 `billing`|`other`, campi del destinatario); `shipping_zone`, `vat_scheme`

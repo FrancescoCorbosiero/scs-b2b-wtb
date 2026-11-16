@@ -3,6 +3,18 @@
 Una riga per ogni modifica, in italiano semplice: cosa cambia per il titolare
 o per i suoi clienti. Le più recenti in alto.
 
+## 16/11/2026
+
+- Per ora la piattaforma è solo admin: sito, vetrina, login e area clienti
+  sono spenti (l'indirizzo principale porta all'admin) e dal menu spariscono
+  Clienti, Richieste profilo e Margini. Si riaccende tutto con una riga del
+  `.env` (`PUBLIC_SITE=1`).
+- Nuova pagina Admin › Ordine di prova: cerchi un prodotto, scegli taglie e
+  paia, scrivi l'indirizzo, la piattaforma verifica disponibilità e costi col
+  preventivo del fornitore e salva l'ordine; dalla sua pagina crei l'ordine
+  al fornitore (simulato in modalità test, vero in modalità live) e ne segui
+  pagamento, spedizione e tracking.
+
 ## 12/11/2026
 
 - Scelto l'indirizzo della piattaforma: ingrosso.shoesclothingstore.com.

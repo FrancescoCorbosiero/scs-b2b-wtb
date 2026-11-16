@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controller\Admin\AccountRequestsController as AdminRequestsController;
 use App\Http\Controller\Admin\AuthController as AdminAuthController;
 use App\Http\Controller\Admin\MarginsController as AdminMarginsController;
+use App\Http\Controller\Admin\NewOrderController as AdminNewOrderController;
 use App\Http\Controller\Admin\OrdersController as AdminOrdersController;
 use App\Http\Controller\Admin\ProductsController as AdminProductsController;
 use App\Http\Controller\Admin\CustomersController as AdminCustomersController;
@@ -26,14 +27,21 @@ use App\Http\Controller\Site\ImageController;
 use App\Http\Controller\Site\PageController;
 use App\Http\Middleware\RequireAdminMiddleware;
 use App\Http\Middleware\RequireCustomerMiddleware;
+use App\Support\Config;
+use Psr\Http\Message\ResponseInterface;
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
 
 /**
  * Mappa delle rotte. Pubbliche e indicizzabili: solo le pagine di presentazione (SecurityHeadersMiddleware::INDEXABLE).
  * Catalogo, carrello e account dietro login; admin dietro la sua sessione; webhook firmato.
+ *
+ * PUBLIC_SITE=0 (D-019, oggi il default): il lato cliente non esiste (sito, vetrina, login, catalogo, carrello,
+ * account danno 404) e "/" porta all'admin. Restano admin, webhook, immagini e /healthz.
  */
-return static function (App $app): void {
+
+/** Lato cliente: sito pubblico, vetrina, accesso e area clienti (solo con PUBLIC_SITE=1). */
+$siteRoutes = static function (App $app): void {
     // --- Sito pubblico -----------------------------------------------------------------------
     $app->get('/', [PageController::class, 'home']);
     $app->get('/come-ordinare', [PageController::class, 'how']);
@@ -42,12 +50,6 @@ return static function (App $app): void {
     $app->get('/richiedi-accesso', [PageController::class, 'requestForm']);
     $app->post('/richiedi-accesso', [PageController::class, 'requestSubmit']);
     $app->get('/richiedi-accesso/inviata', [PageController::class, 'requestSent']);
-    $app->get('/healthz', [PageController::class, 'health']);
-    // Immagini prodotto dal nostro dominio (D-011), pubbliche ma noindex.
-    $app->get('/img/{product:\\d+}/{position:\\d+}-{width:0|400|800}.jpg', [ImageController::class, 'show']);
-
-    // Webhook del fornitore: pubblico, senza sessione né CSRF, firmato (docs/06 § Webhook).
-    $app->post('/webhooks/wtb', [SupplierWebhookController::class, 'receive']);
 
     // Vetrina: catalogo senza prezzi, aperto a tutti ma noindex.
     $app->get('/vetrina', [ShowcaseController::class, 'index']);
@@ -85,8 +87,10 @@ return static function (App $app): void {
         $g->post('/account', [AccountController::class, 'update']);
         $g->post('/account/password', [AccountController::class, 'changePassword']);
     })->add(RequireCustomerMiddleware::class);
+};
 
-    // --- Admin -------------------------------------------------------------------------------
+/** Area admin, sempre attiva. */
+$adminRoutes = static function (App $app): void {
     $app->get('/admin/login', [AdminAuthController::class, 'loginForm']);
     $app->post('/admin/login', [AdminAuthController::class, 'login']);
     $app->group('/admin', function (RouteCollectorProxy $g): void {
@@ -98,6 +102,10 @@ return static function (App $app): void {
         $g->post('/impostazioni/{key}/ripristina', [AdminSettingsController::class, 'reset']);
 
         $g->get('/ordini', [AdminOrdersController::class, 'index']);
+        $g->get('/ordini/nuovo', [AdminNewOrderController::class, 'form']);
+        $g->post('/ordini/nuovo', [AdminNewOrderController::class, 'submit']);
+        $g->post('/ordini/nuovo/righe', [AdminNewOrderController::class, 'add']);
+        $g->post('/ordini/nuovo/svuota', [AdminNewOrderController::class, 'clear']);
         $g->get('/ordini/{id:\d+}', [AdminOrdersController::class, 'show']);
         $g->get('/ordini/{id:\d+}/proforma.pdf', [AdminOrdersController::class, 'proforma']);
         $g->post('/ordini/{id:\d+}/conferma', [AdminOrdersController::class, 'confirm']);
@@ -147,4 +155,24 @@ return static function (App $app): void {
         $g->post('/clienti/{id:\d+}/reset', [AdminCustomersController::class, 'reset']);
         $g->post('/clienti/{id:\d+}/stato', [AdminCustomersController::class, 'toggle']);
     })->add(RequireAdminMiddleware::class);
+};
+
+return static function (App $app) use ($siteRoutes, $adminRoutes): void {
+    $config = $app->getContainer()?->get(Config::class);
+    $publicSite = $config instanceof Config && $config->bool('PUBLIC_SITE', false);
+
+    // --- Sempre attive -----------------------------------------------------------------------
+    $app->get('/healthz', [PageController::class, 'health']);
+    // Immagini prodotto dal nostro dominio (D-011), pubbliche ma noindex.
+    $app->get('/img/{product:\\d+}/{position:\\d+}-{width:0|400|800}.jpg', [ImageController::class, 'show']);
+    // Webhook del fornitore: pubblico, senza sessione né CSRF, firmato (docs/06 § Webhook).
+    $app->post('/webhooks/wtb', [SupplierWebhookController::class, 'receive']);
+
+    if ($publicSite) {
+        $siteRoutes($app);
+    } else {
+        $app->get('/', fn ($request, ResponseInterface $response): ResponseInterface => $response->withHeader('Location', '/admin')->withStatus(302));
+    }
+
+    $adminRoutes($app);
 };
