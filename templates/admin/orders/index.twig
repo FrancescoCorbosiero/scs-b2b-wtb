@@ -2,7 +2,10 @@
 {% block title %}{{ t('admin.orders.title') }}{% endblock %}
 {% block content %}
   <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
-    <h1 class="h1">{{ t('admin.orders.title') }}</h1>
+    <div class="flex flex-wrap items-center gap-3">
+      <h1 class="h1">{{ t('admin.orders.title') }}</h1>
+      <a href="/admin/ordini/nuovo" class="btn btn-primary btn-sm">{{ t('admin.orders.new') }}</a>
+    </div>
     <form method="get" action="/admin/ordini" class="flex flex-wrap gap-2">
       <input class="input w-56" type="search" name="q" value="{{ q }}" placeholder="{{ t('admin.orders.search') }}">
       <select class="input w-auto" name="modalita">
@@ -31,8 +34,9 @@
             <td>{% include 'admin/orders/_status.twig' with {status: o.status} %}{% if o.receipt_number %}<span class="block text-xs text-muted">{{ o.receipt_number }}</span>{% endif %}</td>
             <td class="text-xs space-x-1">
               <span class="badge badge-muted">{{ o.mode|upper }}</span>
+              {% if (o.source ?? 'checkout') == 'admin' %}<span class="badge badge-ink" title="{{ t('admin.orders.admin_badge') }}">{{ t('admin.nav.new_order') }}</span>{% endif %}
               {% if o.quote_unverified %}<span class="badge badge-warn" title="{{ t('admin.orders.quote_unverified') }}">!</span>{% endif %}
-              {% if not o.email_customer_sent %}<span class="badge badge-danger" title="{{ t('admin.orders.email_not_sent') }}">@</span>{% endif %}
+              {% if not o.email_customer_sent and (o.source ?? 'checkout') != 'admin' %}<span class="badge badge-danger" title="{{ t('admin.orders.email_not_sent') }}">@</span>{% endif %}
             </td>
           </tr>
         {% else %}

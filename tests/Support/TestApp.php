@@ -74,6 +74,8 @@ final class TestApp
             'BANK_BIC' => 'DEMOITMM',
             'BANK_NAME' => 'Banca Demo',
             'TRUSTED_PROXIES' => '10.0.0.0/8',
+            // I test coprono anche il lato cliente (spento in produzione per ora, D-019).
+            'PUBLIC_SITE' => '1',
         ];
     }
 

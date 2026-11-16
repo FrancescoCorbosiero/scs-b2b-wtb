@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Admin;
 
 use App\Orders\PaymentInstructions;
+use App\Http\AdminMenu;
 use App\Support\Clock;
+use App\Support\Config;
 use App\Support\Db;
 use App\Support\Translator;
 
@@ -16,6 +18,7 @@ final class DashboardCards
         private readonly Db $db,
         private readonly Translator $t,
         private readonly Clock $clock,
+        private readonly Config $config,
     ) {
     }
 
@@ -32,7 +35,7 @@ final class DashboardCards
 
         $toPay = $this->toPay();
 
-        return [
+        $cards = [
             ['label' => $this->t->get('admin.dashboard.cards.pending_orders'), 'value' => $this->db->int("SELECT COUNT(*) FROM orders WHERE status = 'pending'"), 'href' => '/admin/ordini?stato=pending'],
             ['label' => $this->t->get('admin.dashboard.cards.to_pay'), 'value' => count($toPay), 'href' => '#da-pagare', 'note' => \App\Support\Money::format(array_sum(array_map(static fn (array $r): int => (int) $r['total_cents'], $toPay)))],
             ['label' => $this->t->get('admin.dashboard.cards.shipping_balance'), 'value' => \App\Support\Money::format($balance), 'href' => '/admin/ordini?stato=confirmed', 'note' => $this->t->get('admin.dashboard.cards.shipping_balance_note')],
@@ -40,6 +43,11 @@ final class DashboardCards
             ['label' => $this->t->get('admin.dashboard.cards.customers'), 'value' => $this->db->int('SELECT COUNT(*) FROM users WHERE is_active = 1 AND password_hash IS NOT NULL'), 'href' => '/admin/clienti'],
             ['label' => $this->t->get('admin.dashboard.cards.last_stock'), 'value' => $last === null ? '—' : substr((string) $last, 11, 5) . ' UTC', 'href' => '/admin/sync', 'note' => $last === null ? $this->t->get('admin.dashboard.cards.never') : substr((string) $last, 0, 10)],
         ];
+
+        // Lato cliente spento (PUBLIC_SITE=0, D-019): niente riquadri che portano alle sue pagine.
+        return $this->config->bool('PUBLIC_SITE', false)
+            ? $cards
+            : array_values(array_filter($cards, static fn (array $c): bool => !in_array($c['href'], AdminMenu::CUSTOMER_SIDE, true)));
     }
 
     /**

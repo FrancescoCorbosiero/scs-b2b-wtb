@@ -7,6 +7,10 @@ cliccabili quando aprono un dettaglio; componenti "Azzera / Ripristina" dove
 si configurano filtri o impostazioni; tutto funziona anche senza JavaScript
 (Alpine migliora, non è indispensabile).
 
+> **D-019 (16/11/2026)**: finché `PUBLIC_SITE=0` tutto il lato cliente qui
+> sotto è spento e si usa solo l'area admin, con gli ordini di prova in
+> `/admin/ordini/nuovo` (§ Area admin).
+
 ## Sito pubblico (senza login, indicizzabile)
 
 Pagine di presentazione: **mai prodotti, foto prodotto o prezzi**.
@@ -134,6 +138,16 @@ Banner permanente con la **modalità WTB** (`FIXTURE` / `TEST` / `LIVE`).
   "Ritenta" (nascosto con `on_confirm` finché l'ordine è in attesa) e, per gli
   ordini live, "Rileggi dal fornitore". "Segna come spedito" (ordine
   confermato o già spedito) chiede corriere, numero e link facoltativo.
+- **Ordine di prova** (`/admin/ordini/nuovo`, D-019): ricerca per SKU o
+  nome con le unità ordinabili (taglia × regime, disponibilità, costo,
+  partenza), bozza in sessione (le paia si sommano, si correggono o si
+  svuotano), indirizzo di spedizione con email e note interne. "Verifica col
+  preventivo e salva" chiede `POST /quote/`: paia mancanti ⇒ bozza ridotta e
+  nessun ordine; rifiuto ⇒ messaggio del fornitore; fornitore irraggiungibile
+  ⇒ ordine salvato `quote_unverified`. L'ordine nasce `pending` con
+  `source = admin`: niente email al cliente, niente "Conferma pagamento" né
+  pro-forma; il bottone "Crea ordine al fornitore" è sempre visibile (anche
+  con `on_confirm`). Nell'elenco ordini porta il badge "Ordine di prova".
 - **Ordini WTB** (`/admin/ordini-fornitore`): elenco dall'API
   (`GET /orders/`) collegato agli ordini della piattaforma, dettaglio live.
   Implementazione: elenco paginato letto al momento (con la chiave di prova

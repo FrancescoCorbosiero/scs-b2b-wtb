@@ -36,6 +36,9 @@ php bin/sync.php stock         # sync rapido
 php bin/dev-customer.php demo@example.com 'demo-password' IT
 ```
 
+Il lato cliente è spento di default (`PUBLIC_SITE=0`, D-019): per provare
+sito, catalogo e checkout metti `PUBLIC_SITE=1` nel `.env`.
+
 ## 4. Server
 
 ```bash
@@ -48,6 +51,11 @@ php -S 127.0.0.1:8080 -t public bin/dev-router.php
   modalità in alto, impostazioni con storico, clienti, sync, ordini, webhook.
 - Email: file `.eml` in `var/mail/` (inviti, reset, ordini). Il link d'invito
   è nel testo dell'email.
+- Ordine di prova dall'admin: `/admin/ordini/nuovo` → cerca uno SKU,
+  aggiungi paia, compila l'indirizzo, "Verifica col preventivo e salva",
+  poi nella pagina dell'ordine "Crea ordine al fornitore" (in `test` è
+  "Simulato"). Attento con Playwright: anche il modulo di ricerca punta a
+  `/admin/ordini/nuovo`, usa `form[method=post]`.
 - Ordine al fornitore: conferma un ordine in `/admin/ordini/<id>` (con
   `WTB_ORDER_TRIGGER=on_confirm` parte da solo; in fixture e test è
   "Simulato") e guarda la sezione "Ordine al fornitore".

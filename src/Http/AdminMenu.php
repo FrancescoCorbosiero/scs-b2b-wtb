@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http;
 
 use App\Support\Clock;
+use App\Support\Config;
 use App\Support\Db;
 use App\Support\Translator;
 
@@ -18,15 +19,31 @@ final class AdminMenu
         private readonly Db $db,
         private readonly Translator $t,
         private readonly Clock $clock,
+        private readonly Config $config,
     ) {
     }
+
+    /** Voci del lato cliente, nascoste finché il sito è spento (PUBLIC_SITE=0, D-019). */
+    public const CUSTOMER_SIDE = ['/admin/clienti', '/admin/richieste-profilo', '/admin/margini'];
 
     /** @return list<array{href: string, label: string, badge: int}> */
     public function items(): array
     {
+        $items = $this->all();
+        if ($this->config->bool('PUBLIC_SITE', false)) {
+            return $items;
+        }
+
+        return array_values(array_filter($items, static fn (array $i): bool => !in_array($i['href'], self::CUSTOMER_SIDE, true)));
+    }
+
+    /** @return list<array{href: string, label: string, badge: int}> */
+    private function all(): array
+    {
         return [
             ['href' => '/admin', 'label' => $this->t->get('admin.nav.dashboard'), 'badge' => 0],
             ['href' => '/admin/ordini', 'label' => $this->t->get('admin.nav.orders'), 'badge' => $this->count("SELECT COUNT(*) FROM orders WHERE status = 'pending'")],
+            ['href' => '/admin/ordini/nuovo', 'label' => $this->t->get('admin.nav.new_order'), 'badge' => 0],
             ['href' => '/admin/ordini-fornitore', 'label' => $this->t->get('admin.nav.supplier_orders'), 'badge' => $this->count(
                 "SELECT COUNT(*) FROM supplier_orders WHERE status IN ('received', 'confirmed') AND is_paid = 0 AND payment_method = 'bank_transfer'",
             )],

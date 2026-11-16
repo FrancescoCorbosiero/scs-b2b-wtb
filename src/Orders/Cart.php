@@ -14,7 +14,10 @@ final class Cart
 {
     public const KEY = 'cart';
 
-    public function __construct(private readonly Session $session)
+    /** Bozza dell'ordine composto dall'admin (D-019): stessa forma, chiave di sessione separata. */
+    public const ADMIN_KEY = 'admin_order_draft';
+
+    public function __construct(private readonly Session $session, private readonly string $key = self::KEY)
     {
     }
 
@@ -37,7 +40,7 @@ final class Cart
     /** @return array<string, int> chiave => paia */
     public function items(): array
     {
-        $data = $this->session->get(self::KEY, []);
+        $data = $this->session->get($this->key, []);
         $items = is_array($data) && is_array($data['items'] ?? null) ? $data['items'] : [];
         $out = [];
         foreach ($items as $key => $qty) {
@@ -78,7 +81,7 @@ final class Cart
     {
         $data = $this->data();
         $data['items'] = [];
-        $this->session->set(self::KEY, $data);
+        $this->session->set($this->key, $data);
     }
 
     public function pairs(): int
@@ -97,7 +100,7 @@ final class Cart
     {
         $data = $this->data();
         $data['country'] = strtoupper($country);
-        $this->session->set(self::KEY, $data);
+        $this->session->set($this->key, $data);
     }
 
     /** Impronta delle righe (per riconoscere un carrello cambiato tra due passaggi del checkout). */
@@ -114,13 +117,13 @@ final class Cart
     {
         $data = $this->data();
         $data['items'] = $items;
-        $this->session->set(self::KEY, $data);
+        $this->session->set($this->key, $data);
     }
 
     /** @return array<string, mixed> */
     private function data(): array
     {
-        $data = $this->session->get(self::KEY, []);
+        $data = $this->session->get($this->key, []);
 
         return is_array($data) ? $data : [];
     }

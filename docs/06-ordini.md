@@ -90,6 +90,19 @@ Dettagli dell'implementazione (`src/Orders/CheckoutService.php`):
 - **Segna come spedito** a mano, con tracking: solo come ripiego se il
   webhook non arriva.
 
+## Ordini di prova dell'admin (D-019)
+
+Con il lato cliente spento (`PUBLIC_SITE=0`) gli ordini nascono in
+`/admin/ordini/nuovo` (`AdminOrderService`): stesse righe, stesso preventivo
+WTB, stessa tabella `orders` con `source = 'admin'`, intestati a un utente
+tecnico inattivo. Differenze dal checkout: nessun ordine minimo nostro (vale
+solo quello di WTB, che risponde 400), nessuna email alla creazione, nessuna
+conferma del pagamento né pro-forma (`OrderService::confirm` risponde
+`admin_order`). L'ordine a WTB si crea con "Crea ordine al fornitore" dalla
+pagina dell'ordine, qualunque sia `WTB_ORDER_TRIGGER`. Il `ship_to` è
+l'indirizzo scritto dall'admin; l'email "spedito" col tracking va all'email
+indicata nel modulo.
+
 ## Ordine a WTB (`SupplierOrderService`)
 
 | `.env` | Default | Uso |

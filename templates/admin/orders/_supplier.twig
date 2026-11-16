@@ -67,7 +67,7 @@
   <p class="text-sm text-muted">{{ t('admin.supplier.none') }}</p>
 {% endfor %}
 
-{% set waiting_confirm = supplier_trigger == 'on_confirm' and order.status == 'pending' and supplier_orders is empty %}
+{% set waiting_confirm = supplier_trigger == 'on_confirm' and order.status == 'pending' and supplier_orders is empty and (order.source ?? 'checkout') != 'admin' %}
 {% if supplier_blocker is null and not waiting_confirm %}
   <form method="post" action="/admin/ordini/{{ order.id }}/fornitore" data-confirm="{{ t('admin.supplier.create_question', {mode: order.mode|upper}) }}">
     {{ csrf_field() }}

@@ -38,8 +38,9 @@ final class OrderService
      * @param array<string, string> $form dati validati del checkout
      * @param array<string, mixed> $view riepilogo del carrello (CartService::build, con la ripartizione confermata)
      * @param array<string, array{immediate: ?int, extended: ?int}> $costs costi unitari dal preventivo (RISERVATI)
+     * @param 'checkout'|'admin' $source origine: richiesta del cliente o ordine composto dall'admin (D-019)
      */
-    public function create(array $customer, array $form, array $view, ?SupplierQuote $quote, array $costs, bool $unverified, string $token, string $ip, string $userAgent, string $mode, string $locale): int
+    public function create(array $customer, array $form, array $view, ?SupplierQuote $quote, array $costs, bool $unverified, string $token, string $ip, string $userAgent, string $mode, string $locale, string $source = 'checkout'): int
     {
         /** @var \App\Tax\TaxResult $tax */
         $tax = $view['tax'];
@@ -66,7 +67,7 @@ final class OrderService
             ];
         $localCosts = $this->localCosts($view['lines']);
 
-        return $this->db->transaction(function (Db $db) use ($customer, $form, $view, $quote, $costs, $unverified, $token, $ip, $userAgent, $mode, $locale, $tax, $zone, $now, $billing, $ship, $localCosts): int {
+        return $this->db->transaction(function (Db $db) use ($customer, $form, $view, $quote, $costs, $unverified, $token, $ip, $userAgent, $mode, $locale, $source, $tax, $zone, $now, $billing, $ship, $localCosts): int {
             $expectedCost = 0;
             $lines = [];
             foreach ($view['lines'] as $line) {
@@ -106,6 +107,7 @@ final class OrderService
             $orderId = $db->insert('orders', $billing + $ship + [
                 'user_id' => (int) $customer['id'],
                 'status' => 'pending',
+                'source' => $source,
                 'mode' => $mode,
                 'locale' => $locale,
                 'checkout_token' => $token,
@@ -163,13 +165,17 @@ final class OrderService
     /**
      * Conferma del pagamento ricevuto (docs/06): numero pro-forma, email con PDF.
      *
-     * @return array{status: 'ok'|'not_pending'|'vies_required', receipt?: string, mailed?: bool, messages?: list<array{type: string, text: string}>}
+     * @return array{status: 'ok'|'not_pending'|'vies_required'|'admin_order', receipt?: string, mailed?: bool, messages?: list<array{type: string, text: string}>}
      */
     public function confirm(int $orderId, string $by, bool $viesChecked): array
     {
         $order = $this->orders->find($orderId);
         if ($order === null || $order['status'] !== 'pending') {
             return ['status' => 'not_pending'];
+        }
+        if (($order['source'] ?? 'checkout') === 'admin') {
+            // Ordine di prova dell'admin (D-019): nessun bonifico del cliente, nessuna pro-forma.
+            return ['status' => 'admin_order'];
         }
         if ($this->requiresVies($order) && !$viesChecked) {
             return ['status' => 'vies_required'];
