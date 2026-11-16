@@ -5,6 +5,11 @@ o per i suoi clienti. Le più recenti in alto.
 
 ## 16/11/2026
 
+- README riscritto sulla situazione reale: in produzione i comandi si lanciano
+  dentro il container (`docker compose exec php php bin/…`), le migrazioni
+  partono da sole, in modalità test il fornitore non manda webhook (si usa
+  "Simula evento") e il webhook va configurato solo per il live.
+
 - Per ora la piattaforma è solo admin: sito, vetrina, login e area clienti
   sono spenti (l'indirizzo principale porta all'admin) e dal menu spariscono
   Clienti, Richieste profilo e Margini. Si riaccende tutto con una riga del
