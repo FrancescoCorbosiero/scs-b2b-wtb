@@ -266,8 +266,10 @@ che WTB non conosce passa in `error` (ritentabile). Si può lanciare da
 1. IVA (docs/04) validata dal commercialista, diciture aggiornate.
 2. Risposte di WTB alle domande aperte (docs/10), decisioni aggiornate.
 3. Sul server: `WTB_API_KEY_LIVE`, `WTB_WEBHOOK_SECRET`; URL
-   `https://<dominio>/webhooks/wtb` impostato nel portale WTB; evento `ping`
-   ricevuto (visibile in `/admin/webhook`).
+   `https://<dominio>/webhooks/wtb` impostato nel portale WTB; primo evento
+   vero ricevuto con firma valida in `/admin/webhook` (un `ping`, se il
+   portale ne manda uno, o `order.created` del primo ordine live: in `test`
+   il fornitore non manda webhook).
 4. Tariffe di spedizione e margini confermati dal titolare.
 5. Backup giornaliero attivo e un ripristino provato.
 6. Primo ordine reale piccolo seguito dall'inizio alla fine: preventivo,
