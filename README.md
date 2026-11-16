@@ -89,6 +89,7 @@ modifica del solo `.env` basta `docker compose up -d --force-recreate php schedu
 | Sync catalogo / stock | `docker compose exec php php bin/sync.php products` · `… stock` |
 | Webhook simulato (solo `fixture`/`test`, serve un `WTB_WEBHOOK_SECRET` anche inventato) | `docker compose exec php php bin/wtb-webhook.php order.shipped <n. ordine>` |
 | Backup a mano | `docker compose exec php php bin/backup.php` |
+| Cancellare gli ordini di prova (`fixture`/`test`, mai i `live`): anteprima, poi `--yes` (backup automatico prima) | `docker compose exec php php bin/purge-test-orders.php` |
 | Hash della password admin | `docker compose exec php php bin/hash-password.php 'la-password'` |
 
 ## Prove degli ordini

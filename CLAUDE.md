@@ -136,6 +136,7 @@ php bin/migrate.php              # applica le migrazioni
 php bin/sync.php products        # sync completo del catalogo (idempotente)
 php bin/sync.php stock           # sync rapido di stock e prezzi
 php bin/wtb-webhook.php order.shipped 1001   # evento del fornitore simulato (solo fixture/test)
+php bin/purge-test-orders.php    # cancella gli ordini fixture/test (anteprima; --yes con backup), mai i live
 php bin/scheduler.php            # ciclo dei job periodici (container scheduler)
 php bin/hash-password.php        # hash Argon2id per ADMIN_PASSWORD_HASH
 php bin/dev-customer.php         # cliente di prova con password (solo sviluppo)

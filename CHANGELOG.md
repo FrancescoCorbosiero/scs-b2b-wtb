@@ -5,6 +5,10 @@ o per i suoi clienti. Le più recenti in alto.
 
 ## 16/11/2026
 
+- Nuovo comando per cancellare gli ordini fatti in modalità test prima di
+  passare alle chiavi vere: mostra prima cosa toglie, fa un backup e non tocca
+  mai gli ordini veri.
+
 - README riscritto sulla situazione reale: in produzione i comandi si lanciano
   dentro il container (`docker compose exec php php bin/…`), le migrazioni
   partono da sole, in modalità test il fornitore non manda webhook (si usa
