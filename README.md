@@ -120,8 +120,8 @@ modifica del solo `.env` basta `docker compose up -d --force-recreate php schedu
    Admin › Webhook (`order.created`, `order.paid`, `order.shipped`). Se un
    evento non arriva: "Rileggi dal fornitore" nella pagina dell'ordine (lo
    scheduler rilegge comunque ogni ora).
-4. Un ordine live non si annulla dall'API: si annulla dal portale del
-   fornitore.
+4. Un ordine live non si annulla dall'API: si annulla contattando
+   direttamente il fornitore (o dal portale).
 5. Si torna indietro rimettendo `WTB_MODE=test` (D-008).
 
 Prima di riaprire il lato cliente (`PUBLIC_SITE=1`) va completata la

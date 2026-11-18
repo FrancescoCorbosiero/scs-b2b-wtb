@@ -111,8 +111,16 @@ indicata nel modulo.
 | `WTB_ORDER_TRIGGER` | `on_confirm` | `on_confirm` / `on_request` / `manual` (D-009) |
 | `WTB_PAYMENT_METHOD` | `bank_transfer` | oppure `balance` (D-004) |
 | `WTB_REFERENCE_PREFIX` | `SCSW` | prefisso del reference |
-| `WTB_SHIP_TO_EMAIL` | `admin` | email passata a WTB nel `ship_to`: `admin` (la nostra) finché WTB non chiarisce se scrive al destinatario; `customer` dopo |
+| `WTB_SHIP_TO_EMAIL` | `admin` | email passata a WTB nel `ship_to`: `admin` (la nostra, D-020: WTB non contatta il destinatario) o `customer` |
+| `WTB_SHIP_TO_PHONE` | `admin` | telefono nel `ship_to`: `admin` (`company.phone`), `customer` (quello del destinatario, utile al corriere) o `none` (D-020) |
 | `WTB_MAX_ORDER_EUR` | 0 | tetto sul costo stimato di un ordine (0 = nessuno) |
+
+Impostazioni (`/admin/impostazioni`, gruppo Ordini): `orders.supplier_notes`
+(note fisse inviate con ogni ordine: l'API non ha un campo mittente, la
+richiesta di spedire a nome nostro e di non contattare il destinatario passa
+da qui; default in `Registry::DEFAULT_SUPPLIER_NOTES`, D-020) e
+`orders.supplier_unpaid_days` (default 7: avviso in dashboard per gli ordini
+al fornitore a bonifico non pagati da più giorni; 0 = spento).
 
 Passi:
 
@@ -131,13 +139,14 @@ Passi:
        "phone": "…", "email": "…"
      },
      "payment_method": "bank_transfer",
-     "notes": ""
+     "notes": "<orders.supplier_notes>"
    }
    ```
 
    Una riga per variante + regime: il tipo di stock lo assegna WTB (prima la
    pronta consegna). M0: la combinazione `variant_id` + `vat_regime` è
-   accettata. Mai prezzi né note del cliente nel payload. Le righe della
+   accettata. Mai prezzi né note del cliente nel payload: le note sono solo
+   quelle fisse di `orders.supplier_notes`. Le righe della
    risposta di WTB non dicono il tipo di stock: la ripartizione per fascia si
    prende dal preventivo e resta quella congelata nelle righe dell'ordine.
 4. Risposte: **201** creato; **200** reference già presente ⇒ è lo stesso

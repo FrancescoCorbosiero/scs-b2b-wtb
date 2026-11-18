@@ -32,6 +32,10 @@ final class Registry
         'myhermes.de', 'evri.com',
     ];
 
+    /** Note di default per il fornitore (D-020): spedizione a nome nostro, nessun contatto col destinatario. */
+    public const DEFAULT_SUPPLIER_NOTES = 'Dropship white-label: mittente su pacco ed etichetta SHOES & CLOTHING RESELLING OFFICIAL STORE. '
+        . 'Nessun prezzo, documento o riferimento al vostro marchio nel pacco. Non contattate il destinatario (email, SMS, telefono).';
+
     /** @var array<string, Definition> */
     private array $definitions = [];
 
@@ -102,6 +106,11 @@ final class Registry
                 'Si usa il maggiore tra questo valore e l\'eventuale minimo del fornitore (profilo Wholesaler).', min: 1, max: 1000),
             new Definition('orders.rethink_seconds', 'int', 15, 'Secondi per ripensarci prima dell\'invio', 'orders',
                 'Conto alla rovescia con "Annulla" prima che la richiesta d\'ordine parta davvero. 0 = invio diretto.', min: 0, max: 120),
+            new Definition('orders.supplier_notes', 'text', self::DEFAULT_SUPPLIER_NOTES, 'Note inviate al fornitore con ogni ordine', 'orders',
+                'Il campo note dell\'ordine al fornitore: l\'API non ha un campo per il mittente, la richiesta di spedire a nostro nome passa da qui (D-020). Mai le note del cliente. Vuoto = nessuna nota.',
+                validator: static fn (mixed $v): ?string => mb_strlen((string) $v) <= 500 ? null : 'Al massimo 500 caratteri.'),
+            new Definition('orders.supplier_unpaid_days', 'int', 7, 'Avviso ordini al fornitore non pagati dopo (giorni)', 'orders',
+                'Un ordine al fornitore a bonifico ancora non pagato dopo questi giorni compare tra gli avvisi della dashboard (D-020). 0 = nessun avviso.', min: 0, max: 60),
 
             // Catalogo
             new Definition('catalog.sell_extended', 'bool', true, 'Vendi anche lo stock esteso', 'catalog',

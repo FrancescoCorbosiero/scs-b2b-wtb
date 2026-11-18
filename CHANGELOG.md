@@ -3,6 +3,20 @@
 Una riga per ogni modifica, in italiano semplice: cosa cambia per il titolare
 o per i suoi clienti. Le più recenti in alto.
 
+## 18/11/2026
+
+- Gli ordini al fornitore partono "anonimi": nel pacco va come mittente il tuo
+  negozio, con la tua email e il tuo telefono al posto di quelli del
+  destinatario, e una nota fissa che chiede di spedire a nome tuo senza
+  prezzi né marchio del fornitore e di non contattare il destinatario. La
+  nota si cambia in Admin › Impostazioni › Ordini; il telefono con
+  `WTB_SHIP_TO_PHONE` nel `.env` (`customer` se il corriere deve chiamare il
+  destinatario).
+- Nuovo avviso in dashboard: ordini al fornitore pagati con bonifico ancora
+  non saldati dopo 7 giorni (giorni regolabili in Impostazioni, 0 = spento).
+- Per annullare un ordine al fornitore si contatta direttamente il fornitore:
+  il promemoria nella pagina dell'ordine lo dice.
+
 ## 16/11/2026
 
 - README riscritto sulla situazione reale: in produzione i comandi si lanciano

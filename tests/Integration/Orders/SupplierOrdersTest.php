@@ -33,11 +33,13 @@ final class SupplierOrdersTest extends TestCase
         self::assertGreaterThan(0, $row['total_cents']);
         self::assertSame($row['total_cents'], $row['expected_total_cents'], 'Totale uguale al preventivo');
 
-        // Payload: una riga per variante + regime, mai prezzi né note del cliente; email nostra nel ship_to.
+        // Payload: una riga per variante + regime, mai prezzi né note del cliente; email e telefono nostri nel ship_to,
+        // note fisse con la richiesta di spedire a nome nostro (D-020).
         $payload = json_decode((string) $row['request_payload'], true);
         self::assertSame('SCSW-1001-1', $payload['reference']);
-        self::assertSame('', $payload['notes']);
+        self::assertSame(\App\Settings\Registry::DEFAULT_SUPPLIER_NOTES, $payload['notes']);
         self::assertSame(self::ADMIN_EMAIL, $payload['ship_to']['email']);
+        self::assertSame('+39 392 772 0691', $payload['ship_to']['phone']);
         self::assertSame('IT', $payload['ship_to']['country']);
         foreach ($payload['lines'] as $line) {
             self::assertSame(['variant_id', 'vat_regime', 'quantity'], array_keys($line));
@@ -115,6 +117,34 @@ final class SupplierOrdersTest extends TestCase
         self::assertSame(1, $app->db->int('SELECT COUNT(*) FROM supplier_orders'));
     }
 
+    public function testNoPhoneAndEmptyNotesAreLeftOut(): void
+    {
+        $app = new TestApp(['WTB_SHIP_TO_PHONE' => 'none']);
+        $app->get(\App\Settings\SettingsService::class)->setValue('orders.supplier_notes', '', 'test');
+        [, $admin] = $this->placeOrder($app);
+        $admin->post('/admin/ordini/1001/conferma');
+        $payload = json_decode((string) $app->db->value('SELECT request_payload FROM supplier_orders WHERE order_id = 1001'), true);
+        self::assertArrayNotHasKey('phone', $payload['ship_to']);
+        self::assertSame('', $payload['notes']);
+    }
+
+    public function testUnpaidSupplierOrderRaisesAnAlertAfterTheConfiguredDays(): void
+    {
+        $app = new TestApp();
+        [, $admin] = $this->placeOrder($app);
+        $admin->post('/admin/ordini/1001/conferma');
+        $app->db->run("UPDATE supplier_orders SET status = 'received', is_paid = 0, created_at = :t WHERE order_id = 1001", ['t' => $app->clock->isoAgo(6 * 86400)]);
+        self::assertStringNotContainsString('Ordini al fornitore non ancora pagati', (string) $admin->get('/admin')->getBody());
+        $app->db->run('UPDATE supplier_orders SET created_at = :t WHERE order_id = 1001', ['t' => $app->clock->isoAgo(8 * 86400)]);
+        self::assertStringContainsString('Ordini al fornitore non ancora pagati', (string) $admin->get('/admin')->getBody());
+
+        $app->get(\App\Settings\SettingsService::class)->setValue('orders.supplier_unpaid_days', 0, 'test');
+        self::assertStringNotContainsString('Ordini al fornitore non ancora pagati', (string) $admin->get('/admin')->getBody());
+        $app->get(\App\Settings\SettingsService::class)->setValue('orders.supplier_unpaid_days', 7, 'test');
+        $app->db->run("UPDATE supplier_orders SET is_paid = 1, status = 'paid' WHERE order_id = 1001");
+        self::assertStringNotContainsString('Ordini al fornitore non ancora pagati', (string) $admin->get('/admin')->getBody());
+    }
+
     public function testKillSwitchStopsEveryOrderEvenManual(): void
     {
         $app = new TestApp(['WTB_ORDERS_ENABLED' => '0']);
@@ -157,12 +187,14 @@ final class SupplierOrdersTest extends TestCase
 
     public function testOnRequestTriggerCreatesTheOrderAfterTheCheckoutResponse(): void
     {
-        $app = new TestApp(['WTB_ORDER_TRIGGER' => 'on_request', 'WTB_SHIP_TO_EMAIL' => 'customer']);
+        $app = new TestApp(['WTB_ORDER_TRIGGER' => 'on_request', 'WTB_SHIP_TO_EMAIL' => 'customer', 'WTB_SHIP_TO_PHONE' => 'customer']);
         [, $admin] = $this->placeOrder($app);
         $row = $app->db->one('SELECT * FROM supplier_orders WHERE order_id = 1001');
         self::assertNotNull($row, 'Creato dopo la risposta al cliente');
         self::assertSame('checkout', $row['created_by']);
-        self::assertSame('cliente@example.com', json_decode((string) $row['request_payload'], true)['ship_to']['email']);
+        $shipTo = json_decode((string) $row['request_payload'], true)['ship_to'];
+        self::assertSame('cliente@example.com', $shipTo['email']);
+        self::assertSame('+39 333 1234567', $shipTo['phone']);
         self::assertSame('pending', $app->db->value('SELECT status FROM orders WHERE id = 1001'));
 
         $admin->post('/admin/ordini/1001/conferma');

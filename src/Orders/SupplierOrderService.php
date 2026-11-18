@@ -234,7 +234,8 @@ final class SupplierOrderService
 
     /**
      * Payload per il fornitore: una riga per variante + regime, il tipo di stock lo assegna il fornitore.
-     * Mai prezzi né note del cliente.
+     * Mai prezzi né note del cliente: email e telefono del ship_to sono i nostri salvo WTB_SHIP_TO_*=customer,
+     * le note sono quelle fisse dell'impostazione orders.supplier_notes (D-020).
      *
      * @param array<string, mixed> $order
      * @param list<array<string, mixed>> $lines
@@ -244,6 +245,11 @@ final class SupplierOrderService
         $email = $this->config->string('WTB_SHIP_TO_EMAIL', 'admin') === 'customer'
             ? (string) $order['email']
             : ($this->settings->list('company.admin_emails')[0] ?? (string) $order['email']);
+        $phone = match ($this->config->string('WTB_SHIP_TO_PHONE', 'admin')) {
+            'customer' => (string) ($order['ship_phone'] !== '' ? $order['ship_phone'] : $order['phone']),
+            'none' => '',
+            default => $this->settings->string('company.phone'),
+        };
         $quantities = [];
         foreach ($lines as $l) {
             $key = (int) $l['wtb_variant_id'] . '|' . $l['vat_regime'];
@@ -268,11 +274,11 @@ final class SupplierOrderService
                 'zip_code' => (string) $order['ship_zip'],
                 'province' => (string) $order['ship_province'],
                 'country' => (string) $order['ship_country'],
-                'phone' => (string) ($order['ship_phone'] !== '' ? $order['ship_phone'] : $order['phone']),
+                'phone' => $phone,
                 'email' => $email,
             ], static fn (string $v): bool => $v !== ''),
             $this->config->string('WTB_PAYMENT_METHOD', 'bank_transfer') === 'balance' ? 'balance' : 'bank_transfer',
-            '',
+            trim($this->settings->string('orders.supplier_notes')),
         );
     }
 

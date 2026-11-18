@@ -6,6 +6,7 @@ namespace App\Admin;
 
 use App\Catalog\ProductSync;
 use App\Orders\SupplierOrderService;
+use App\Settings\SettingsService;
 use App\Supplier\Wtb\WtbClient;
 use App\Support\Clock;
 use App\Support\Db;
@@ -24,6 +25,7 @@ final class Alerts
         private readonly Translator $t,
         private readonly SupplierOrderService $supplierOrders,
         private readonly Clock $clock,
+        private readonly SettingsService $settings,
     ) {
     }
 
@@ -111,6 +113,20 @@ final class Alerts
         if ($missing !== []) {
             $alerts[] = $this->orderAlert('warning', 'supplier_missing', $missing);
         }
+        // Ordini al fornitore a bonifico non ancora pagati dopo N giorni (D-020): le paia potrebbero non essere più riservate.
+        $days = $this->settings->int('orders.supplier_unpaid_days');
+        if ($days > 0) {
+            $unpaid = $this->db->column(
+                "SELECT DISTINCT s.order_id FROM supplier_orders s JOIN orders o ON o.id = s.order_id
+                 WHERE s.status IN ('received', 'confirmed') AND s.is_paid = 0 AND s.payment_method = 'bank_transfer'
+                   AND o.status != 'cancelled' AND s.created_at < :t
+                 ORDER BY s.order_id",
+                ['t' => $this->clock->isoAgo($days * 86400)],
+            );
+            if ($unpaid !== []) {
+                $alerts[] = $this->orderAlert('warning', 'supplier_unpaid', $unpaid, ['days' => $days]);
+            }
+        }
         $warned = $this->db->column(
             "SELECT DISTINCT s.order_id FROM supplier_orders s JOIN orders o ON o.id = s.order_id
              WHERE s.warnings != '[]' AND s.status != 'cancelled' AND o.status != 'cancelled' AND s.updated_at > :t
@@ -138,9 +154,10 @@ final class Alerts
 
     /**
      * @param list<mixed> $ids
+     * @param array<string, string|int> $extra
      * @return array{level: string, title: string, text: string, href: string}
      */
-    private function orderAlert(string $level, string $key, array $ids): array
+    private function orderAlert(string $level, string $key, array $ids, array $extra = []): array
     {
         $ids = array_map('intval', $ids);
         $shown = array_slice($ids, 0, 10);
@@ -148,7 +165,7 @@ final class Alerts
         return [
             'level' => $level,
             'title' => $this->t->get('admin.alerts.' . $key . '_title'),
-            'text' => $this->t->get('admin.alerts.' . $key . '_text', ['n' => count($ids), 'ids' => implode(', ', $shown) . (count($ids) > 10 ? '…' : '')]),
+            'text' => $this->t->get('admin.alerts.' . $key . '_text', ['n' => count($ids), 'ids' => implode(', ', $shown) . (count($ids) > 10 ? '…' : '')] + $extra),
             'href' => count($ids) === 1 ? '/admin/ordini/' . $ids[0] . '#fornitore' : '/admin/ordini',
         ];
     }

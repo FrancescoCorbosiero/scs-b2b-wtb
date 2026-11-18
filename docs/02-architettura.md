@@ -101,6 +101,8 @@ Voci iniziali (i nomi sono indicativi, il significato no):
 |---|---|---|
 | `orders.min_items` | 5 | ordine minimo in paia (si usa il maggiore tra questo e il minimo WTB del profilo Wholesaler) |
 | `orders.rethink_seconds` | 15 | conto alla rovescia "Annulla" prima dell'invio reale |
+| `orders.supplier_notes` | richiesta di dropship anonimo | note fisse inviate al fornitore con ogni ordine (D-020) |
+| `orders.supplier_unpaid_days` | 7 | avviso per ordini al fornitore non pagati (0 = spento, D-020) |
 | `catalog.sell_extended` | true | vendere anche lo stock esteso (D-005) |
 | `catalog.regimes` | `margin,ordinary` | regimi IVA in vendita (docs/04) |
 | `catalog.per_page` | 24 | prodotti per pagina |

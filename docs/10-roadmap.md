@@ -107,12 +107,14 @@ manuali, verifica VIES automatica, descrizioni SEO di WTB, report vendite.
 
 **A WTB**
 
-13. Come si annulla un ordine? La documentazione non prevede un endpoint.
+13. ~~Come si annulla un ordine?~~ Risposto dal titolare (D-020): contattando
+    direttamente il fornitore.
 14. Ordini a bonifico non pagati: per quanto restano aperti, le paia restano
-    riservate, ci sono penali? (decide se passare a `WTB_ORDER_TRIGGER=on_request`)
-15. Dropship: chi risulta mittente su pacco ed etichetta? WTB scrive o manda
-    SMS al destinatario (`ship_to.email`/`phone`)? Con quale nome?
-    (decide `WTB_SHIP_TO_EMAIL`)
+    riservate, ci sono penali? Il titolare stima una settimana, non
+    confermato da WTB (D-020: avviso dopo 7 giorni, si resta su `on_confirm`).
+15. ~~Dropship: chi risulta mittente?~~ Deciso dal titolare (D-020): mittente
+    il nostro negozio, WTB mai visibile, nessun contatto col destinatario.
+    Da verificare sul primo pacco reale che WTB rispetti la nota.
 16. Ordine misto pronta consegna + stock esteso: uno o due pacchi? Con quali
     tempi?
 17. La sezione "Regole" della documentazione (manca nel testo copiato):
@@ -132,7 +134,8 @@ manuali, verifica VIES automatica, descrizioni SEO di WTB, report vendite.
   (D-007); passaggio test/live con `WTB_MODE` (D-008); ordine WTB alla
   conferma del pagamento (D-009); SQLite (D-010); immagini dal nostro dominio
   (D-011); fornitore mai nominato al cliente (D-012); repository pubblico,
-  nessun dato commerciale reale nei file (D-016).
+  nessun dato commerciale reale nei file (D-016); dropship anonimo e
+  annullamenti a mano (D-020).
 - Valuta EUR; taglie primarie EU; lingue IT (default) + EN; area admin solo
   in italiano; paesi serviti UE-27 + GB + CH; partita IVA obbligatoria.
 - Deploy: Docker Compose sulla VPS del titolare dietro Caddy Docker Proxy,

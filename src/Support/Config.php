@@ -188,6 +188,9 @@ final class Config
         if (!in_array($this->string('WTB_SHIP_TO_EMAIL', 'admin'), ['admin', 'customer'], true)) {
             throw new ConfigException('WTB_SHIP_TO_EMAIL deve essere admin o customer.');
         }
+        if (!in_array($this->string('WTB_SHIP_TO_PHONE', 'admin'), ['admin', 'customer', 'none'], true)) {
+            throw new ConfigException('WTB_SHIP_TO_PHONE deve essere admin, customer o none.');
+        }
         if (!in_array($this->string('MAIL_TRANSPORT', 'log'), ['log', 'smtp', 'array'], true)) {
             throw new ConfigException('MAIL_TRANSPORT deve essere log o smtp.');
         }

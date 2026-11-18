@@ -219,3 +219,25 @@ Formato:
   il lato cliente e le voci di menu; la pagina "Ordine di prova" può restare
   (utile anche dopo) o si toglie con un `git revert` di questa modifica (la
   colonna `source` resta, innocua).
+
+### D-020 · 18/11/2026 · Dropship anonimo, annullamenti a mano, avviso sui non pagati
+- Decisione: (1) WTB non deve comparire da nessuna parte né contattare il
+  destinatario: nel `ship_to` vanno la nostra email e il nostro telefono
+  (`WTB_SHIP_TO_EMAIL=admin`, nuovo `WTB_SHIP_TO_PHONE=admin`), e ogni ordine
+  porta nel campo `notes` la richiesta di spedire con mittente il nostro
+  negozio, senza prezzi né marchio del fornitore e senza contattare il
+  destinatario (impostazione `orders.supplier_notes`). L'API non ha un campo
+  per il mittente: la nota è una richiesta, da verificare sul primo pacco
+  reale. (2) Gli ordini al fornitore si annullano contattandolo direttamente
+  (o dal portale): nessun endpoint. (3) Un ordine al fornitore a bonifico
+  ancora non pagato dopo 7 giorni compare tra gli avvisi
+  (`orders.supplier_unpaid_days`). Resta `WTB_ORDER_TRIGGER=on_confirm`
+  (D-009): la durata reale degli ordini non pagati presso WTB non è nota.
+- Perché: risposte del titolare alle domande 13-15 di docs/10; dove WTB non
+  ha dato l'informazione, il comportamento è una manopola.
+- Dove vive: `.env` (`WTB_SHIP_TO_EMAIL`, `WTB_SHIP_TO_PHONE`), impostazioni
+  `orders.supplier_notes` e `orders.supplier_unpaid_days`,
+  `SupplierOrderService::request`, `src/Admin/Alerts.php`.
+- Come si torna indietro: `WTB_SHIP_TO_PHONE=customer` (o `none`) se il
+  corriere deve poter chiamare il destinatario; note vuote in
+  /admin/impostazioni; `orders.supplier_unpaid_days` a 0 spegne l'avviso.
