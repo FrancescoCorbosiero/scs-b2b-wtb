@@ -33,8 +33,8 @@ final class AdminSyncPageTest extends TestCase
         $app->get(SystemFlags::class)->setJson(WtbClient::FLAG_AUTH_ERROR, ['message' => 'x']);
         $http = $app->http();
         $http->loginAdmin();
-        self::assertStringContainsString('Chiave del fornitore rifiutata', (string) $http->get('/admin')->getBody());
+        self::assertStringContainsString('Il fornitore non riconosce il nostro accesso', (string) $http->get('/admin')->getBody());
         $app->syncCatalog();
-        self::assertStringNotContainsString('Chiave del fornitore rifiutata', (string) $http->get('/admin')->getBody());
+        self::assertStringNotContainsString('Il fornitore non riconosce il nostro accesso', (string) $http->get('/admin')->getBody());
     }
 }

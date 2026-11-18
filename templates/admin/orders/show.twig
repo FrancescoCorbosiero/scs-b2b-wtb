@@ -7,7 +7,7 @@
   <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
     <div>
       <h1 class="h1">{{ t('admin.orders.order', {id: o.id}) }}</h1>
-      <p class="text-sm text-muted">{% include 'admin/orders/_status.twig' with {status: o.status} %} {{ o.created_at|local_datetime }} · {{ o.company }} · {{ t('admin.orders.mode_badge', {mode: o.mode|upper}) }}{% if o.receipt_number %} · {{ o.receipt_number }}{% endif %}</p>
+      <p class="text-sm text-muted">{% include 'admin/orders/_status.twig' with {status: o.status} %} {{ o.created_at|local_datetime }} · {{ o.company }} · {{ t('admin.orders.mode_badge', {mode: t('admin.mode.names.' ~ o.mode)|upper}) }}{% if o.receipt_number %} · {{ o.receipt_number }}{% endif %}</p>
     </div>
     {% if o.receipt_number %}<a href="/admin/ordini/{{ o.id }}/proforma.pdf" class="btn btn-ghost">{{ t('admin.orders.proforma') }}</a>{% endif %}
   </div>
@@ -16,7 +16,7 @@
   <div class="space-y-2 mb-6">
     {% if is_admin_order %}<p class="alert alert-info"><strong>{{ t('admin.orders.admin_badge') }}.</strong> {{ t('admin.orders.admin_info') }}</p>{% endif %}
     {% if o.admin_notes %}<p class="alert alert-info">{{ o.admin_notes }}</p>{% endif %}
-    {% if other_mode %}<p class="alert alert-warning">{{ t('admin.orders.other_mode', {mode: o.mode|upper}) }}</p>{% endif %}
+    {% if other_mode %}<p class="alert alert-warning">{{ t('admin.orders.other_mode', {mode: t('admin.mode.names.' ~ o.mode)|upper}) }}</p>{% endif %}
     {% if o.quote_unverified %}<p class="alert alert-warning">{{ t('admin.orders.quote_unverified') }}</p>{% endif %}
     {% if not o.email_customer_sent and not is_admin_order %}<p class="alert alert-error">{{ t('admin.orders.email_not_sent') }}</p>{% endif %}
     {% if o.notes %}<p class="alert alert-info"><strong>{{ t('admin.orders.customer_notes') }}:</strong> {{ o.notes }}</p>{% endif %}

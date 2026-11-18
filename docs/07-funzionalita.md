@@ -126,7 +126,7 @@ Banner permanente con la **modalità WTB** (`FIXTURE` / `TEST` / `LIVE`).
   (`supplier.orders_enabled` spento), annullati dal fornitore mentre l'ordine è aperto,
   confermati senza ordine al fornitore, ordini al fornitore non pagati da più
   di `supplier.unpaid_days` giorni, differenze segnalate dal fornitore,
-  webhook non elaborati. Il menu mostra i contatori di "Ordini fornitore" (da
+  webhook non elaborati. Il menu mostra i contatori di "Ordini al fornitore" (da
   pagare) e "Webhook" (sconosciuti o in errore negli ultimi 7 giorni).
 - **Ordini** (`/admin/ordini`): elenco con filtri per stato e ricerca;
   dettaglio con righe (vendita, costo, margine), totali, spedizione incassata
@@ -135,20 +135,21 @@ Banner permanente con la **modalità WTB** (`FIXTURE` / `TEST` / `LIVE`).
   pagamento, stati, tracking ed eventi webhook.
   Implementazione: la sezione "Ordine al fornitore" mostra tutti i tentativi
   (stato, reference e numero da copiare, costi, totale rispetto al
-  preventivo, errori e differenze, eventi ricevuti), il bottone "Crea" /
-  "Ritenta" (nascosto con `on_confirm` finché l'ordine è in attesa) e, per gli
-  ordini live, "Rileggi dal fornitore". "Segna come spedito" (ordine
+  preventivo, errori e differenze, eventi ricevuti), il bottone "Invia
+  l'ordine al fornitore" / "Riprova a inviare al fornitore" (nascosto con
+  `on_confirm` finché l'ordine è in attesa) e, per gli ordini live, "Aggiorna
+  dal fornitore". "Segna come spedito" (ordine
   confermato o già spedito) chiede corriere, numero e link facoltativo.
-- **Ordine di prova** (`/admin/ordini/nuovo`, D-019): ricerca per SKU o
+- **Nuovo ordine** (`/admin/ordini/nuovo`, D-019, prima "Ordine di prova"): ricerca per SKU o
   nome con le unità ordinabili (taglia × regime, disponibilità, costo,
   partenza), bozza in sessione (le paia si sommano, si correggono o si
-  svuotano), indirizzo di spedizione con email e note interne. "Verifica col
-  preventivo e salva" chiede `POST /quote/`: paia mancanti ⇒ bozza ridotta e
+  svuotano), indirizzo di spedizione con email e note interne. "Verifica la
+  disponibilità e salva" chiede `POST /quote/`: paia mancanti ⇒ bozza ridotta e
   nessun ordine; rifiuto ⇒ messaggio del fornitore; fornitore irraggiungibile
   ⇒ ordine salvato `quote_unverified`. L'ordine nasce `pending` con
   `source = admin`: niente email al cliente, niente "Conferma pagamento" né
-  pro-forma; il bottone "Crea ordine al fornitore" è sempre visibile (anche
-  con `on_confirm`). Nell'elenco ordini porta il badge "Ordine di prova".
+  pro-forma; il bottone "Invia l'ordine al fornitore" è sempre visibile (anche
+  con `on_confirm`). Nella pagina porta il badge "Inserito da te".
 - **Ordini WTB** (`/admin/ordini-fornitore`): elenco dall'API
   (`GET /orders/`) collegato agli ordini della piattaforma, dettaglio live.
   Implementazione: elenco paginato letto al momento (con la chiave di prova
@@ -164,16 +165,21 @@ Banner permanente con la **modalità WTB** (`FIXTURE` / `TEST` / `LIVE`).
 - **Spedizione** (`/admin/spedizione`): zone, paesi, tariffe, soglie, tempi
   di transito; tariffe WTB correnti a confronto (dettagli in docs/05).
 - **Impostazioni** (`/admin/impostazioni`): generata dal registro (docs/02),
-  con storico delle modifiche e "Ripristina default".
-- **Sync** (`/admin/sync`): ultimi job con esito e conteggi, "Sincronizza ora"
-  (catalogo, stock), profilo WTB e fotografia delle tariffe.
-- **Webhook** (`/admin/webhook`): eventi ricevuti con esito; "Simula evento"
-  solo nelle modalità `fixture` e `test`.
+  con storico delle modifiche e "Torna al valore iniziale". Le chiavi
+  tecniche (`supplier.order_trigger`…) non si mostrano al titolare.
+- **Aggiornamenti** (`/admin/sync`, prima "Sync"): ultimi job con esito e
+  conteggi, "Aggiorna ora" (catalogo, stock), profilo WTB e fotografia delle
+  tariffe. Job, esiti e origini con nomi comprensibili, mai i codici.
+- **Notifiche fornitore** (`/admin/webhook`, prima "Webhook"): eventi ricevuti
+  con esito e nome comprensibile ("Spedito", "Pagamento ricevuto"…); codice e
+  contenuto dell'evento in "Mostra i dettagli tecnici"; "Simula" solo nelle
+  modalità `fixture` e `test`.
   Implementazione: ultimi 100 eventi con filtro per esito, contenuto
   dell'evento, collegamento all'ordine, data dell'ultimo `ping` vero
-  (checklist del live); "Simula evento" sceglie evento e reference (anche
-  sconosciuto, per provare l'avviso) e richiede `WTB_WEBHOOK_SECRET`
-  impostato. Le email partono davvero. Da riga di comando:
+  (checklist del live, mostrata solo in live); "Simula" sceglie evento e
+  reference (anche sconosciuto, per provare l'avviso); senza
+  `WTB_WEBHOOK_SECRET` l'evento simulato passa senza firma (D-021). Le email
+  partono davvero. Da riga di comando:
   `php bin/wtb-webhook.php <evento> <ordine|reference> [--url=…]`.
 - **Prodotti** (`/admin/prodotti`): catalogo con costo, prezzo di vendita,
   margine lordo, stima netta e regola applicata per ogni offerta; da qui il

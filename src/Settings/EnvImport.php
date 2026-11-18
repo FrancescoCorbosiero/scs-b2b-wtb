@@ -14,7 +14,8 @@ use App\Support\Config;
  */
 final class EnvImport
 {
-    public const BY = 'importato dal .env';
+    /** Autore nello storico delle impostazioni: lo legge il titolare, quindi niente nomi di file. */
+    public const BY = 'configurazione precedente del server';
 
     /** Variabile del .env => impostazione che la sostituisce. */
     public const MAP = [

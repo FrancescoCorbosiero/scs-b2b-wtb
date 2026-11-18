@@ -16,10 +16,7 @@
             {% for item in group.items %}
               {% set d = item.def %}
               <div class="p-4 space-y-2" id="{{ d.key }}">
-                <div class="flex flex-wrap items-baseline justify-between gap-2">
-                  <label class="font-semibold" for="s-{{ d.key }}">{{ d.label }}</label>
-                  <code class="text-xs text-muted">{{ d.key }}</code>
-                </div>
+                <label class="font-semibold block" for="s-{{ d.key }}">{{ d.label }}</label>
                 {% if d.help %}<p class="text-sm text-muted">{{ d.help }}</p>{% endif %}
                 <div class="flex flex-wrap items-start gap-2">
                   <form method="post" action="/admin/impostazioni/{{ d.key|url_encode }}" class="flex flex-wrap items-start gap-2 flex-1">

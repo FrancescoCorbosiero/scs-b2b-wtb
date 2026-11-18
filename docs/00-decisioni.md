@@ -272,3 +272,14 @@ Formato:
   `src/Jobs/Scheduler.php`, `.env.example`.
 - Come si torna indietro: `git revert` della modifica e i valori di nuovo nel
   `.env`; le righe rimaste nella tabella `settings` sono innocue.
+- Con la stessa decisione, i testi dell'area admin sono scritti per il
+  titolare: niente nomi di variabili, codici delle modalità (DEMO, PROVA,
+  REALE al posto di fixture, test, live), codici degli eventi o gergo
+  (webhook → "Notifiche fornitore", sync → "Aggiornamenti", "Ordine di
+  prova" → "Nuovo ordine", reference → "Riferimento"); i dettagli tecnici
+  restano in un riquadro "Mostra i dettagli tecnici". Lo controlla
+  `tests/Integration/Http/AdminPlainLanguageTest.php`. In `fixture` e `test`
+  la simulazione delle notifiche non chiede più `WTB_WEBHOOK_SECRET`: è una
+  chiamata interna (admin o CLI senza `--url`), mai dalla rete, quindi
+  l'evento passa senza firma; l'indirizzo pubblico dei webhook continua a
+  rifiutare tutto ciò che non è firmato.

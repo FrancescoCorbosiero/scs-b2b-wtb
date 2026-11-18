@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-// Evento del fornitore simulato (solo fixture e test, docs/03): firmato con WTB_WEBHOOK_SECRET e fatto passare
-// dallo stesso codice dei webhook veri.
+// Evento del fornitore simulato (solo fixture e test, docs/03), fatto passare dallo stesso codice dei webhook veri:
+// firmato con WTB_WEBHOOK_SECRET se c'è (obbligatorio con --url), altrimenti in processo senza firma (D-021).
 //   php bin/wtb-webhook.php <evento> [<ordine>|<reference>] [--url=http://127.0.0.1:8080]
 // <ordine> = numero d'ordine (si usa il suo ultimo ordine al fornitore), <reference> = es. SCSW-1001-1.
 // Con --url l'evento va via HTTP a <url>/webhooks/wtb (prova anche rotta e middleware), altrimenti in processo.
@@ -37,8 +37,8 @@ if ($container->get(SupplierOrders::class)->mode() === 'live') {
     fwrite(STDERR, "In modalità live gli eventi simulati non esistono.\n");
     exit(1);
 }
-if (!$webhooks->isConfigured()) {
-    fwrite(STDERR, "WTB_WEBHOOK_SECRET non impostato nel .env (in sviluppo basta un valore qualsiasi).\n");
+if ($url !== '' && !$webhooks->isConfigured()) {
+    fwrite(STDERR, "Con --url serve WTB_WEBHOOK_SECRET nel .env (in sviluppo basta un valore qualsiasi).\n");
     exit(1);
 }
 

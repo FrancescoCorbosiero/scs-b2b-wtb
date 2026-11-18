@@ -90,7 +90,8 @@ Il titolare chiederà spesso modifiche, e alcune verranno annullate. Il progetto
   default nel codice e stanno nel blocco "Avanzate" di `.env.example`.
 - **Testi per chi non è tecnico.** Il titolare usa l'admin e non conosce il
   codice: niente nomi di variabili, gergo (webhook, payload, sync, fixture…)
-  o codici nei testi che vede; quelli servono solo nei log e nei documenti.
+  o codici nei testi che vede; quelli servono solo nei log e nei documenti
+  (lo controlla `tests/Integration/Http/AdminPlainLanguageTest.php`).
 - **Confini netti.** Solo `src/Supplier/Wtb/` conosce endpoint e JSON di WTB;
   il resto lavora su modelli interni. Prezzi, IVA e spedizione sono servizi
   puri con test unitari: una regola si cambia in un punto solo.

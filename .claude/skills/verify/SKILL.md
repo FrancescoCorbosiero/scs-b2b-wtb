@@ -48,19 +48,23 @@ php -S 127.0.0.1:8080 -t public bin/dev-router.php
 - Sito: http://127.0.0.1:8080/ — vetrina `/vetrina`, login `/login`
   (demo@example.com / demo-password), catalogo `/catalogo`, carrello `/carrello`.
 - Admin: http://127.0.0.1:8080/admin (password scelta al punto 2): banner della
-  modalità in alto, impostazioni con storico, clienti, sync, ordini, webhook.
+  modalità in alto (DEMO = fixture, PROVA = test, REALE = live), impostazioni
+  con storico, clienti, Aggiornamenti (sync), ordini, Notifiche fornitore
+  (webhook). I testi sono per il titolare, non tecnico: niente codici né
+  gergo (lo controlla `tests/Integration/Http/AdminPlainLanguageTest.php`).
 - Email: file `.eml` in `var/mail/` (inviti, reset, ordini). Il link d'invito
   è nel testo dell'email.
-- Ordine di prova dall'admin: `/admin/ordini/nuovo` → cerca uno SKU,
-  aggiungi paia, compila l'indirizzo, "Verifica col preventivo e salva",
-  poi nella pagina dell'ordine "Crea ordine al fornitore" (in `test` è
+- Nuovo ordine dall'admin: `/admin/ordini/nuovo` → cerca uno SKU,
+  aggiungi paia, compila l'indirizzo, "Verifica la disponibilità e salva",
+  poi nella pagina dell'ordine "Invia l'ordine al fornitore" (in `test` è
   "Simulato"). Attento con Playwright: anche il modulo di ricerca punta a
   `/admin/ordini/nuovo`, usa `form[method=post]`.
 - Ordine al fornitore: conferma un ordine in `/admin/ordini/<id>` (con
   "Quando inviare l'ordine al fornitore" sul default, in Impostazioni, parte da solo; in fixture e test è
   "Simulato") e guarda la sezione "Ordine al fornitore".
-- Webhook di prova (serve `WTB_WEBHOOK_SECRET` nel `.env`, anche inventato):
-  "Simula evento" in `/admin/webhook` oppure
+- Webhook di prova (nessun segreto richiesto; con `--url` serve
+  `WTB_WEBHOOK_SECRET` nel `.env`, anche inventato): "Simula" in
+  `/admin/webhook` oppure
   `php bin/wtb-webhook.php order.shipped <id ordine>`; con
   `--url=http://127.0.0.1:8080` passa dal server (rotta e middleware).
   Sequenza tipica: `order.created` (compare in "Da pagare al fornitore" in

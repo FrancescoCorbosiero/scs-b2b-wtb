@@ -77,7 +77,7 @@ Dettagli dell'implementazione (`src/Orders/CheckoutService.php`):
   Per clienti UE con righe ordinarie chiede la spunta "P.IVA verificata su
   VIES" (docs/04). Poi, con `supplier.order_trigger` = `on_confirm`, crea l'ordine a
   WTB e mostra l'esito; se la creazione fallisce, la conferma resta valida.
-- **Riallinea** (finché non esiste un ordine WTB): quantità riga per riga
+- **Riallinea** ("Adegua alle paia disponibili", finché non esiste un ordine WTB): quantità riga per riga
   con lo stock corrente accanto, totali ricalcolati, eventuale nuova email al
   cliente con l'importo aggiornato. Solo in riduzione e a prezzi congelati: si
   tolgono prima le paia in stock esteso; la spedizione si ricalcola con la
@@ -98,7 +98,7 @@ WTB, stessa tabella `orders` con `source = 'admin'`, intestati a un utente
 tecnico inattivo. Differenze dal checkout: nessun ordine minimo nostro (vale
 solo quello di WTB, che risponde 400), nessuna email alla creazione, nessuna
 conferma del pagamento né pro-forma (`OrderService::confirm` risponde
-`admin_order`). L'ordine a WTB si crea con "Crea ordine al fornitore" dalla
+`admin_order`). L'ordine a WTB si crea con "Invia l'ordine al fornitore" dalla
 pagina dell'ordine, qualunque sia `supplier.order_trigger`. Il `ship_to` è
 l'indirizzo scritto dall'admin; l'email "spedito" col tracking va all'email
 indicata nel modulo.
@@ -152,7 +152,7 @@ Passi:
 4. Risposte: **201** creato; **200** reference già presente ⇒ è lo stesso
    ordine, si aggiorna e basta; errore di rete, timeout o 5xx ⇒ nuovo
    tentativo con lo **stesso** reference (max 3), poi stato `error` col bottone
-   "Ritenta" (sicuro); **400** ⇒ fallimento certo, messaggio WTB all'admin.
+   "Riprova a inviare al fornitore" (sicuro); **400** ⇒ fallimento certo, messaggio WTB all'admin.
 5. Totale WTB diverso dal costo atteso di oltre 1 € ⇒ avviso all'admin.
 6. Bonifico: le `payment_instructions` (IBAN, causale, importo) compaiono
    nell'ordine con i bottoni "copia", nella lista "Da pagare a WTB" della
@@ -243,9 +243,11 @@ Dettagli dell'implementazione (`src/Orders/WebhookProcessor.php`,
 - Differenze (totale diverso di oltre 1 € dall'ultimo visto o dal preventivo,
   paia per articolo diverse dalle righe dell'ordine) ⇒ salvate in
   `warnings`, email all'admin una volta per differenza, avviso in dashboard.
-- "Simula evento" (`/admin/webhook`, `php bin/wtb-webhook.php`) costruisce
+- "Simula" (`/admin/webhook`, `php bin/wtb-webhook.php`) costruisce
   l'evento dalla risposta salvata dell'ordine al fornitore e lo firma con
-  `WTB_WEBHOOK_SECRET`: passa dallo stesso codice e manda le stesse email.
+  `WTB_WEBHOOK_SECRET`; se il segreto manca, l'evento simulato in processo
+  passa senza firma (D-021; con `--url` il segreto resta obbligatorio): passa
+  dallo stesso codice e manda le stesse email.
 
 ## Tracking al cliente
 
@@ -268,7 +270,7 @@ stati `pending`, `received`, `confirmed`, `paid` (e `error` delle ultime 48
 ore, per scoprire ordini creati nonostante un timeout); creati negli ultimi
 60 giorni; al massimo 50 per giro. Una riga `pending` più vecchia di un'ora
 che WTB non conosce passa in `error` (ritentabile). Si può lanciare da
-`/admin/sync` e, per un singolo ordine, con "Rileggi dal fornitore".
+`/admin/sync` e, per un singolo ordine, con "Aggiorna dal fornitore".
 
 ## Checklist prima di `WTB_MODE=live`
 

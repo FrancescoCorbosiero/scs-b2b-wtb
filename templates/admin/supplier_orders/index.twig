@@ -3,7 +3,7 @@
 {% block content %}
   <div class="flex flex-wrap items-end justify-between gap-4 mb-2">
     <h1 class="h1">{{ t('admin.supplier_orders.title') }}</h1>
-    <span class="badge badge-muted">{{ mode|upper }}</span>
+    <span class="badge badge-muted">{{ t('admin.mode.names.' ~ mode)|upper }}</span>
   </div>
   <p class="text-sm text-muted mb-4">{{ t('admin.supplier_orders.intro') }}</p>
   {% if mode == 'test' %}<p class="alert alert-info mb-4">{{ t('admin.supplier_orders.test_note') }}</p>{% endif %}

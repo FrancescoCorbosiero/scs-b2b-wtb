@@ -5,7 +5,7 @@
   <article class="border border-line p-3 space-y-3 {{ loop.first ? '' : 'opacity-75' }}">
     <div class="flex flex-wrap items-center gap-2">
       {% include 'admin/orders/_supplier_status.twig' with {status: so.status} only %}
-      <span class="badge badge-muted">{{ so.mode|upper }}</span>
+      <span class="badge badge-muted">{{ t('admin.mode.names.' ~ so.mode)|upper }}</span>
       {% if so.is_paid %}<span class="badge badge-ok">{{ t('admin.supplier.paid') }}</span>{% elseif so.status in ['received', 'confirmed'] %}<span class="badge badge-warn">{{ t('admin.supplier.to_pay') }}</span>{% endif %}
       <span class="text-sm">{{ t('admin.supplier.reference') }} {{ m.copy(so.reference) }}</span>
       {% if so.wtb_number %}<span class="text-sm">{{ t('admin.supplier.number') }} <strong>{{ so.wtb_number }}</strong></span>{% endif %}
@@ -51,7 +51,8 @@
         <summary class="cursor-pointer text-sm">{{ t('admin.supplier.events', {n: so.events|length}) }}</summary>
         <ul class="text-xs mt-2 space-y-1">
           {% for e in so.events %}
-            <li>{{ e.received_at|local_datetime }} · <code>{{ e.event }}</code> · {{ t('admin.webhooks.outcomes.' ~ (e.outcome ?: 'pending')) }}{% if e.simulated %} · {{ t('admin.webhooks.simulated_badge') }}{% endif %}{% if e.error %} · {{ e.error }}{% endif %}</li>
+            {% set event_label = t('admin.webhooks.events.' ~ e.event) %}
+            <li>{{ e.received_at|local_datetime }} · {{ event_label starts with 'admin.' ? e.event : event_label }} · {{ t('admin.webhooks.outcomes.' ~ (e.outcome ?: 'pending')) }}{% if e.simulated %} · {{ t('admin.webhooks.simulated_badge') }}{% endif %}{% if e.error %} · {{ e.error }}{% endif %}</li>
           {% endfor %}
         </ul>
       </details>
@@ -69,7 +70,7 @@
 
 {% set waiting_confirm = supplier_trigger == 'on_confirm' and order.status == 'pending' and supplier_orders is empty and (order.source ?? 'checkout') != 'admin' %}
 {% if supplier_blocker is null and not waiting_confirm %}
-  <form method="post" action="/admin/ordini/{{ order.id }}/fornitore" data-confirm="{{ t('admin.supplier.create_question', {mode: order.mode|upper}) }}">
+  <form method="post" action="/admin/ordini/{{ order.id }}/fornitore" data-confirm="{{ order.mode == 'live' ? t('admin.supplier.create_question_live') : t('admin.supplier.create_question', {mode: t('admin.mode.names.' ~ order.mode)|upper}) }}">
     {{ csrf_field() }}
     <button type="submit" class="btn btn-primary">{{ t(supplier_orders is not empty and supplier_orders[0].status in ['error', 'pending'] ? 'admin.supplier.retry' : 'admin.supplier.create') }}</button>
     <p class="text-xs text-muted mt-1">{{ t('admin.supplier.create_hint') }}</p>

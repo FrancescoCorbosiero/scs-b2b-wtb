@@ -27,6 +27,6 @@ final class ImagePrefetchJob implements Job
     {
         $done = $this->images->prefetch($force ? 1000 : 150);
 
-        return new JobOutcome('ok', ['images' => $done], $done . ' immagini in cache.');
+        return new JobOutcome('ok', ['images' => $done], $done . ' immagini scaricate.');
     }
 }

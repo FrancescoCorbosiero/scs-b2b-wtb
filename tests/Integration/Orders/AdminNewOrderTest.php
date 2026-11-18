@@ -69,7 +69,7 @@ final class AdminNewOrderTest extends TestCase
         self::assertSame(0, $app->db->int('SELECT is_active FROM users WHERE email = :e', ['e' => AdminOrderService::INTERNAL_EMAIL]), 'Utente tecnico inattivo');
 
         $show = (string) $admin->get('/admin/ordini/' . $order['id'])->getBody();
-        self::assertStringContainsString('Ordine di prova (admin)', $show);
+        self::assertStringContainsString('Inserito da te', $show);
         self::assertStringNotContainsString('/conferma"', $show, 'Niente conferma del pagamento');
         self::assertStringContainsString('/admin/ordini/' . $order['id'] . '/fornitore"', $show, 'Bottone per l\'ordine al fornitore');
 

@@ -26,7 +26,7 @@ final class OrdersPollJobTest extends TestCase
         $app = new TestApp();
         $outcome = $app->get(OrdersPollJob::class)->run();
         self::assertSame('ok', $outcome->status);
-        self::assertStringContainsString('solo live', $outcome->message);
+        self::assertStringContainsString('solo in modalità reale', $outcome->message);
         self::assertSame('orders_poll', $app->get(OrdersPollJob::class)->name());
     }
 

@@ -43,7 +43,7 @@ final class OrdersPollJob implements Job
     public function run(bool $force = false): JobOutcome
     {
         if ($this->supplier->mode() !== 'live') {
-            return new JobOutcome('ok', ['checked' => 0], 'Modalità ' . strtoupper($this->supplier->mode()) . ': nessun ordine da rileggere (solo live).');
+            return new JobOutcome('ok', ['checked' => 0], 'Niente da aggiornare: gli ordini al fornitore sono veri solo in modalità reale.');
         }
         $stale = $this->clock->isoAgo(self::STALE_SECONDS);
         $rows = $this->db->all(
@@ -86,6 +86,6 @@ final class OrdersPollJob implements Job
 
         return new JobOutcome($status, $counts, $status === 'error'
             ? 'Fornitore non raggiungibile: ' . mb_substr($lastError, 0, 300)
-            : sprintf('%d ordini riletti, %d aggiornati.', $counts['checked'], $counts['applied']));
+            : sprintf('%d ordini controllati, %d aggiornati.', $counts['checked'], $counts['applied']));
     }
 }

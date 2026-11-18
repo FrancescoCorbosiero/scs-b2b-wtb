@@ -135,7 +135,8 @@ manuali, verifica VIES automatica, descrizioni SEO di WTB, report vendite.
   conferma del pagamento (D-009); SQLite (D-010); immagini dal nostro dominio
   (D-011); fornitore mai nominato al cliente (D-012); repository pubblico,
   nessun dato commerciale reale nei file (D-016); dropship anonimo e
-  annullamenti a mano (D-020).
+  annullamenti a mano (D-020); scelte sugli ordini al fornitore nell'admin,
+  `.env` corto e testi admin per chi non è tecnico (D-021).
 - Valuta EUR; taglie primarie EU; lingue IT (default) + EN; area admin solo
   in italiano; paesi serviti UE-27 + GB + CH; partita IVA obbligatoria.
 - Deploy: Docker Compose sulla VPS del titolare dietro Caddy Docker Proxy,

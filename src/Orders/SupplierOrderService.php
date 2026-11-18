@@ -61,6 +61,12 @@ final class SupplierOrderService
         return $this->supplier->mode();
     }
 
+    /** Nome della modalità per il titolare (DEMO, PROVA, REALE): mai i codici fixture/test/live nei messaggi. */
+    private function modeName(string $mode): string
+    {
+        return mb_strtoupper($this->t->get('admin.mode.names.' . $mode));
+    }
+
     /** Ordine al fornitore ancora valido per l'ordine (non annullato, non in errore, non interrotto). @return array<string, mixed>|null */
     public function live(int $orderId): ?array
     {
@@ -110,7 +116,7 @@ final class SupplierOrderService
             return ['status' => 'existing', 'message' => $this->t->get('admin.supplier.result.existing', ['reference' => (string) ($live['reference'] ?? '')]), 'supplier_order_id' => (int) ($live['id'] ?? 0)];
         }
         if ($blocker !== null) {
-            return ['status' => 'refused', 'message' => $this->t->get('admin.supplier.result.' . $blocker, ['order' => strtoupper((string) $order['mode']), 'current' => strtoupper($this->supplier->mode())])];
+            return ['status' => 'refused', 'message' => $this->t->get('admin.supplier.result.' . $blocker, ['order' => $this->modeName((string) $order['mode']), 'current' => $this->modeName($this->supplier->mode())])];
         }
         $lines = $this->orders->lines($orderId);
         if ($lines === []) {
@@ -190,7 +196,7 @@ final class SupplierOrderService
         $this->logger->info('Ordine al fornitore creato', ['order' => $orderId, 'reference' => $reference, 'simulated' => $simulated, 'existing' => !$result->created, 'by' => $by]);
         $this->mailer->notify($simulated ? 'simulated' : 'created', $order, $this->row($id), $warnings);
         $message = $this->t->get($simulated ? 'admin.supplier.result.simulated' : 'admin.supplier.result.created', [
-            'number' => $data->number, 'reference' => $reference, 'mode' => strtoupper($this->supplier->mode()),
+            'number' => $data->number, 'reference' => $reference, 'mode' => $this->modeName($this->supplier->mode()),
         ]);
 
         return [

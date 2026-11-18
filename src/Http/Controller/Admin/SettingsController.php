@@ -36,7 +36,7 @@ final class SettingsController
                     'value' => $value,
                     'input' => $definition->formatInput($value),
                     'customized' => $this->settings->isCustomized($definition->key),
-                    'default_text' => $this->settings->describeStored($definition->key, null),
+                    'default_text' => $this->settings->describeStored($definition->key, null, false),
                 ];
             }
             $groups[] = ['key' => $group, 'label' => Registry::GROUPS[$group] ?? $group, 'items' => $items];

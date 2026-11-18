@@ -48,7 +48,7 @@ final class ProductSync
         if (!$force && $previous > 0 && $now * 100 < $previous * (100 - $maxDrop)) {
             $this->flags->setJson(self::FLAG_BLOCKED, ['previous' => $previous, 'now' => $now, 'max_drop_percent' => $maxDrop]);
             throw new SyncBlockedException(sprintf(
-                'Sync bloccato: il feed passerebbe da %d a %d prodotti (calo oltre il %d%%). Controlla e, se è giusto, forza dal pannello sync.',
+                'Aggiornamento fermato: i prodotti del fornitore passerebbero da %d a %d (calo oltre il %d%%). Se il calo è vero, rilancia il catalogo completo con "forza".',
                 $previous,
                 $now,
                 $maxDrop,
@@ -101,7 +101,7 @@ final class ProductSync
         $this->reprice->repriceAll();
 
         return new SyncResult('ok', $counts + ['warnings' => count($warnings)], sprintf(
-            '%d prodotti nel feed (%d nuovi, %d spariti, %d usciti dal catalogo).',
+            '%d prodotti dal fornitore (%d nuovi, %d spariti, %d usciti dal catalogo).',
             $now,
             $counts['created'],
             $counts['gone'],

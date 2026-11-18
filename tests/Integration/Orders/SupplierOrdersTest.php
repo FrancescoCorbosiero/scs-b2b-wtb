@@ -76,15 +76,15 @@ final class SupplierOrdersTest extends TestCase
         $row = $app->db->one('SELECT * FROM supplier_orders WHERE order_id = 1001');
         self::assertSame('error', $row['status']);
         self::assertSame('SCSW-1001-1', $row['reference']);
-        self::assertStringContainsString('ritentare in sicurezza', (string) $row['last_error']);
+        self::assertStringContainsString('riprovare senza rischi', (string) $row['last_error']);
         $posts = array_filter($app->fixtures()->requests, static fn (array $r): bool => $r['method'] === 'POST' && str_contains($r['url'], '/orders/'));
         self::assertCount(3, $posts, 'Tre tentativi');
         foreach ($posts as $post) {
             self::assertSame('SCSW-1001-1', json_decode((string) $post['body'], true)['reference'], 'Sempre lo stesso reference');
         }
         $mails = $app->mail->sentTo(self::ADMIN_EMAIL);
-        self::assertStringContainsString('NON creato', end($mails)->subject);
-        self::assertStringContainsString('Ritenta', (string) $admin->get('/admin/ordini/1001')->getBody());
+        self::assertStringContainsString('NON arrivato al fornitore', end($mails)->subject);
+        self::assertStringContainsString('Riprova a inviare al fornitore', (string) $admin->get('/admin/ordini/1001')->getBody());
 
         $admin->post('/admin/ordini/1001/fornitore');
         self::assertSame(1, $app->db->int('SELECT COUNT(*) FROM supplier_orders'), 'Nessun doppione');
@@ -106,7 +106,8 @@ final class SupplierOrdersTest extends TestCase
         $row = $app->db->one('SELECT * FROM supplier_orders WHERE order_id = 1001');
         self::assertSame('error', $row['status']);
         self::assertStringContainsString('only 1 available', (string) $row['last_error']);
-        self::assertStringContainsString('Riallinea', (string) $row['last_error']);
+        self::assertStringContainsString('togli quelle mancanti', (string) $row['last_error']);
+        self::assertStringNotContainsString('..', (string) $row['last_error']);
         $after = array_slice($app->fixtures()->requests, $before);
         self::assertSame([], array_filter($after, static fn (array $r): bool => str_contains($r['url'], '/orders/')), 'Paia mancanti: nessuna creazione');
 
@@ -160,7 +161,7 @@ final class SupplierOrdersTest extends TestCase
         self::assertSame([], array_filter($app->fixtures()->requests, static fn (array $r): bool => str_contains($r['url'], '/orders/')));
         $dashboard = (string) $admin->get('/admin')->getBody();
         self::assertStringContainsString('Ordini al fornitore spenti', $dashboard);
-        self::assertStringContainsString('Confermati senza ordine al fornitore', $dashboard);
+        self::assertStringContainsString('Pagati dal cliente ma non inviati al fornitore', $dashboard);
     }
 
     public function testModeMismatchAndSpendingCapRefuse(): void
@@ -177,7 +178,8 @@ final class SupplierOrdersTest extends TestCase
         $service = $app->get(\App\Orders\SupplierOrderService::class);
         $result = $service->create(1001, 'test');
         self::assertSame('refused', $result['status']);
-        self::assertStringContainsString('non si mescolano', $result['message']);
+        self::assertStringContainsString('restano separati', $result['message']);
+        self::assertStringNotContainsString('fixture', strtolower($result['message']), 'Mai i codici delle modalità');
     }
 
     public function testNewAttemptOnlyAfterCancellation(): void

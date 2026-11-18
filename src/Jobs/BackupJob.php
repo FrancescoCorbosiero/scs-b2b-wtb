@@ -44,6 +44,6 @@ final class BackupJob implements Job
             }
         }
 
-        return new JobOutcome('ok', ['bytes' => (int) filesize($file), 'removed' => $removed], 'Backup: ' . basename($file));
+        return new JobOutcome('ok', ['bytes' => (int) filesize($file), 'removed' => $removed], 'Copia di sicurezza salvata: ' . basename($file));
     }
 }

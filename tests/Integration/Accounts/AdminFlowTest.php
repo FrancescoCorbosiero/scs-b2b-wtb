@@ -26,7 +26,7 @@ final class AdminFlowTest extends TestCase
         $http = $app->http();
         $http->loginAdmin();
         self::assertSame(200, $http->get('/admin')->getStatusCode());
-        self::assertStringContainsString('FIXTURE', $http->body(), 'Banner della modalità sempre visibile');
+        self::assertStringContainsString('Modalità: DEMO', $http->body(), 'Banner della modalità sempre visibile');
 
         $http->post('/admin/impostazioni/orders.min_items', ['value' => '7']);
         self::assertSame(303, $http->last->getStatusCode());
@@ -34,7 +34,7 @@ final class AdminFlowTest extends TestCase
 
         $page = (string) $http->get('/admin/impostazioni')->getBody();
         self::assertStringContainsString('Ordine minimo (paia)', $page);
-        self::assertStringContainsString('5 (default) → ', $page);
+        self::assertStringContainsString('5 (valore iniziale) → ', $page);
         self::assertStringContainsString('Test', $page, 'Nome di chi ha cambiato');
 
         $http->post('/admin/impostazioni/orders.min_items/ripristina');

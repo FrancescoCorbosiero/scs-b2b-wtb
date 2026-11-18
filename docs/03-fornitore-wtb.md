@@ -156,8 +156,10 @@ selezione" del portale) non è più `WTB_CATALOG_ALL` ma l'impostazione
   `"number": "TEST"`, nulla salvato, nessuna paia riservata, nessuna notifica):
   l'ordine al fornitore si registra con `mode=test` e stato `simulated`, non
   si rilegge mai e non riceve webhook.
-- In `fixture` e `test` l'admin ha "Simula evento": costruisce un webhook
-  firmato col segreto di sviluppo e lo manda al nostro endpoint, per provare
+- In `fixture` e `test` l'admin ha "Simula" (Notifiche fornitore): costruisce
+  un webhook firmato con `WTB_WEBHOOK_SECRET` (senza firma se il segreto
+  manca, D-021: è una chiamata interna, mai dalla rete) e lo fa passare dal
+  nostro codice dei webhook, per provare
   tutto il percorso (anche da CLI: `php bin/wtb-webhook.php <evento> <ordine>`).
   L'evento parte dalla risposta salvata dell'ordine al fornitore (o da un
   ordine minimo se manca) con lo stato dell'evento; `order.shipped` e

@@ -16,8 +16,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Exception\HttpNotFoundException;
 
 /**
- * /admin/webhook: eventi ricevuti con esito; "Simula evento" solo in fixture e test: un evento firmato col segreto
- * configurato passa dallo stesso codice dei webhook veri (docs/03, docs/07).
+ * /admin/webhook: eventi ricevuti con esito; "Simula" solo in fixture e test: l'evento passa dallo stesso codice
+ * dei webhook veri (firmato col segreto se c'è, altrimenti senza firma: D-021) (docs/03, docs/07).
  */
 final class WebhooksController
 {
@@ -48,7 +48,8 @@ final class WebhooksController
             'outcomes' => WebhookProcessor::OUTCOMES,
             'mode' => $mode,
             'can_simulate' => $mode !== 'live',
-            'configured' => $this->webhooks->isConfigured(),
+            // Senza segreto non arriva nessun aggiornamento vero: conta solo in live (in test il fornitore non ne manda).
+            'configured' => $mode !== 'live' || $this->webhooks->isConfigured(),
             'event_names' => $this->webhooks->events(),
             'references' => $mode === 'live' ? [] : $this->db->column(
                 'SELECT reference FROM supplier_orders WHERE mode = :m ORDER BY id DESC LIMIT 30',
@@ -64,11 +65,6 @@ final class WebhooksController
             throw new HttpNotFoundException($request);
         }
         $session = Req::session($request);
-        if (!$this->webhooks->isConfigured()) {
-            $session->flash('error', $this->t->get('admin.webhooks.no_secret'));
-
-            return $this->responder->redirect($response, '/admin/webhook');
-        }
         $event = Req::str($request, 'event');
         $reference = Req::str($request, 'reference');
         if (!in_array($event, $this->webhooks->events(), true) || ($event !== 'ping' && preg_match('/^[A-Za-z0-9._\-]{1,60}$/', $reference) !== 1)) {
@@ -86,7 +82,7 @@ final class WebhooksController
         $simulated = $this->webhooks->simulate($event, $order);
         $result = $this->processor->handle($simulated['headers'], $simulated['body'], true);
         $session->flash($result['status'] < 300 ? 'success' : 'error', $this->t->get('admin.webhooks.simulated', [
-            'event' => $event,
+            'event' => $this->t->get('admin.webhooks.events.' . $event),
             'status' => $result['status'],
             'outcome' => $this->t->get('admin.webhooks.outcomes.' . $result['outcome']),
         ]));

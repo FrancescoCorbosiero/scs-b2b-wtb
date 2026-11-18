@@ -3,12 +3,12 @@
 {% block content %}
   <div class="flex flex-wrap items-end justify-between gap-4 mb-2">
     <h1 class="h1">{{ t('admin.webhooks.title') }}</h1>
-    <span class="badge badge-muted">{{ mode|upper }}</span>
+    <span class="badge badge-muted">{{ t('admin.mode.names.' ~ mode)|upper }}</span>
   </div>
   <p class="text-sm text-muted mb-4">{{ t('admin.webhooks.intro') }}</p>
   <div class="space-y-2 mb-6">
     {% if not configured %}<p class="alert alert-warning">{{ t('admin.webhooks.no_secret') }}</p>{% endif %}
-    <p class="text-sm">{{ last_ping ? t('admin.webhooks.last_ping', {date: last_ping|local_datetime}) : t('admin.webhooks.no_ping') }}</p>
+    {% if mode == 'live' %}<p class="text-sm">{{ last_ping ? t('admin.webhooks.last_ping', {date: last_ping|local_datetime}) : t('admin.webhooks.no_ping') }}</p>{% endif %}
   </div>
 
   {% if can_simulate %}
@@ -20,7 +20,7 @@
         <div>
           <label class="label" for="sim-event">{{ t('admin.webhooks.event') }}</label>
           <select class="input w-auto" id="sim-event" name="event">
-            {% for e in event_names %}<option value="{{ e }}">{{ e }}</option>{% endfor %}
+            {% for e in event_names|filter(e => e != 'ping')|merge(['ping']) %}<option value="{{ e }}">{{ t('admin.webhooks.events.' ~ e) }}</option>{% endfor %}
           </select>
         </div>
         <div>
@@ -28,7 +28,7 @@
           <input class="input w-56" id="sim-reference" name="reference" list="sim-references" value="{{ references|first ?: '' }}" maxlength="60">
           <datalist id="sim-references">{% for r in references %}<option value="{{ r }}"></option>{% endfor %}</datalist>
         </div>
-        <button type="submit" class="btn btn-primary" {{ configured ? '' : 'disabled' }}>{{ t('admin.webhooks.simulate_submit') }}</button>
+        <button type="submit" class="btn btn-primary">{{ t('admin.webhooks.simulate_submit') }}</button>
       </form>
     </section>
   {% endif %}
@@ -41,20 +41,23 @@
   </nav>
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th>{{ t('admin.webhooks.received') }}</th><th>{{ t('admin.webhooks.event') }}</th><th>{{ t('admin.webhooks.outcome') }}</th><th>{{ t('admin.supplier.reference') }}</th><th>{{ t('admin.webhooks.delivery') }}</th></tr></thead>
+      <thead><tr><th>{{ t('admin.webhooks.received') }}</th><th>{{ t('admin.webhooks.event') }}</th><th>{{ t('admin.webhooks.outcome') }}</th><th>{{ t('admin.supplier.reference') }}</th><th>{{ t('admin.webhooks.details') }}</th></tr></thead>
       <tbody>
         {% for e in events %}
           <tr>
             <td class="whitespace-nowrap">{{ e.received_at|local_datetime }}</td>
-            <td><code>{{ e.event }}</code>{% if e.simulated %} <span class="badge badge-muted">{{ t('admin.webhooks.simulated_badge') }}</span>{% endif %}</td>
+            {% set event_label = t('admin.webhooks.events.' ~ e.event) %}
+            <td>{{ event_label starts with 'admin.' ? e.event : event_label }}{% if e.simulated %} <span class="badge badge-muted">{{ t('admin.webhooks.simulated_badge') }}</span>{% endif %}</td>
             <td>
               <span class="badge {{ e.outcome in ['error', 'unknown_order'] ? 'badge-danger' : (e.outcome in ['applied', 'ping'] ? 'badge-ok' : 'badge-muted') }}">{{ t('admin.webhooks.outcomes.' ~ (e.outcome ?: 'pending')) }}</span>
               {% if e.error %}<span class="block text-xs text-accent">{{ e.error }}</span>{% endif %}
             </td>
             <td>{% if e.order_id %}<a class="link" href="/admin/ordini/{{ e.order_id }}#fornitore">{{ e.reference }}</a>{% else %}<span class="text-muted">—</span>{% endif %}</td>
             <td class="text-xs">
-              <code>{{ e.delivery_id }}</code>
-              <details><summary class="cursor-pointer">{{ t('admin.webhooks.payload') }}</summary><pre class="text-xs whitespace-pre-wrap break-all max-w-xl">{{ e.payload|slice(0, 4000) }}</pre></details>
+              <details><summary class="cursor-pointer">{{ t('admin.webhooks.payload') }}</summary>
+                <p class="mt-1">{{ t('admin.webhooks.delivery') }}: <code>{{ e.delivery_id }}</code> · <code>{{ e.event }}</code></p>
+                <pre class="text-xs whitespace-pre-wrap break-all max-w-xl">{{ e.payload|slice(0, 4000) }}</pre>
+              </details>
             </td>
           </tr>
         {% else %}

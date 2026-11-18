@@ -34,7 +34,7 @@ final class StockSync
         $feed = $this->catalog->stock();
         $warnings = $this->catalog->warnings();
         if (!$force && $feed->hash === $this->flags->get(self::FLAG_HASH)) {
-            return new SyncResult('skipped', ['rows' => count($feed->rows)], 'Stock invariato dal giro precedente.', $warnings);
+            return new SyncResult('skipped', ['rows' => count($feed->rows)], 'Nessuna novità dall\'ultimo aggiornamento.', $warnings);
         }
 
         $variants = [];
@@ -103,7 +103,7 @@ final class StockSync
         $this->flags->set(self::FLAG_HASH, $feed->hash);
 
         return new SyncResult('ok', $counts + ['warnings' => count($warnings)], sprintf(
-            '%d righe: %d offerte cambiate, %d azzerate, %d prodotti nuovi importati.',
+            '%d righe lette: %d prezzi o disponibilità cambiati, %d esauriti, %d prodotti nuovi.',
             $counts['rows'],
             $counts['changed'],
             $counts['zeroed'],

@@ -139,7 +139,7 @@ final class WebhooksTest extends TestCase
         $this->send('order.paid', $this->data(['status' => 'paid', 'is_paid' => true]), 'dlv-23');
         self::assertSame('cancelled', $this->supplierStatus(), 'Annullato è definitivo');
         $mails = $this->app->mail->sentTo(self::ADMIN_EMAIL);
-        self::assertStringContainsString('ha annullato', end($mails)->subject);
+        self::assertStringContainsString('annullato dal fornitore', end($mails)->subject);
         self::assertSame('shipped', $this->app->db->value('SELECT status FROM orders WHERE id = 1001'), 'Il cliente non viene toccato');
     }
 
@@ -159,7 +159,7 @@ final class WebhooksTest extends TestCase
         $response = $this->send('order.created', $this->data(['reference' => 'PORTALE-77', 'id' => 777]), 'dlv-30');
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('unknown_order', $this->app->db->value("SELECT outcome FROM webhook_events WHERE delivery_id = 'dlv-30'"));
-        self::assertStringContainsString('Webhook per ordini sconosciuti', (string) $admin->get('/admin')->getBody());
+        self::assertStringContainsString('Notifiche su ordini non fatti da qui', (string) $admin->get('/admin')->getBody());
         $list = (string) $admin->get('/admin/webhook?esito=unknown_order')->getBody();
         self::assertStringContainsString('dlv-30', $list);
     }
@@ -176,10 +176,10 @@ final class WebhooksTest extends TestCase
         self::assertCount(2, $warnings, 'Totale e righe');
         $mails = $this->app->mail->sentTo(self::ADMIN_EMAIL);
         self::assertCount($before + 1, $mails);
-        self::assertStringContainsString('differenze', end($mails)->subject);
+        self::assertStringContainsString('ha cambiato qualcosa', end($mails)->subject);
         $this->send('order.updated', $data, 'dlv-41');
         self::assertCount($before + 1, $this->app->mail->sentTo(self::ADMIN_EMAIL), 'Stesse differenze: nessuna nuova email');
-        self::assertStringContainsString('Differenze segnalate dal fornitore', (string) $admin->get('/admin')->getBody());
+        self::assertStringContainsString('Il fornitore ha cambiato degli ordini', (string) $admin->get('/admin')->getBody());
     }
 
     public function testSignedButUnreadableBodyIsKeptAsError(): void
@@ -190,21 +190,28 @@ final class WebhooksTest extends TestCase
         $row = $this->app->db->one("SELECT * FROM webhook_events WHERE delivery_id = 'dlv-50'");
         self::assertSame('error', $row['outcome']);
         self::assertStringContainsString('Stato', (string) $row['error']);
-        self::assertStringContainsString('Webhook non elaborati', (string) $admin->get('/admin')->getBody());
+        self::assertStringContainsString('Notifiche del fornitore non andate a buon fine', (string) $admin->get('/admin')->getBody());
     }
 
-    public function testWithoutSecretNothingIsValid(): void
+    public function testWithoutSecretNothingFromOutsideIsValidButTheAdminCanStillSimulate(): void
     {
-        $this->boot(['WTB_WEBHOOK_SECRET' => '']);
+        $admin = $this->boot(['WTB_WEBHOOK_SECRET' => '']);
         self::assertSame(401, $this->send('ping', [], 'dlv-60', secret: '')->getStatusCode());
+        self::assertSame(401, $this->send('order.shipped', $this->data(['status' => 'shipped']), 'dlv-61', secret: '')->getStatusCode());
         self::assertSame(0, $this->app->db->int('SELECT COUNT(*) FROM webhook_events'));
+
+        // D-021: in prova la simulazione dall'admin non chiede nessun segreto nel .env.
+        $admin->post('/admin/webhook/simula', ['event' => 'order.paid', 'reference' => 'SCSW-1001-1']);
+        self::assertSame('paid', $this->supplierStatus());
+        self::assertSame(1, $this->app->db->int('SELECT simulated FROM webhook_events ORDER BY id DESC LIMIT 1'));
     }
 
     public function testSimulateEventFromAdmin(): void
     {
         $admin = $this->boot();
         $page = (string) $admin->get('/admin/webhook')->getBody();
-        self::assertStringContainsString('Simula evento', $page);
+        self::assertStringContainsString('Simula un aggiornamento del fornitore', $page);
+        self::assertStringContainsString('>Spedito</option>', $page, 'Aggiornamenti con nomi comprensibili');
         $admin->post('/admin/webhook/simula', ['event' => 'order.shipped', 'reference' => 'SCSW-1001-1']);
         self::assertSame('shipped', $this->supplierStatus());
         self::assertSame('shipped', $this->app->db->value('SELECT status FROM orders WHERE id = 1001'));

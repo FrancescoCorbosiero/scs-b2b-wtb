@@ -151,8 +151,8 @@ final class SettingsService
         return $this->db->all('SELECT * FROM settings_audit ORDER BY id DESC LIMIT :limit', ['limit' => $limit]);
     }
 
-    /** Testo leggibile di un valore salvato nello storico (NULL = default). */
-    public function describeStored(string $key, ?string $stored): string
+    /** Testo leggibile di un valore salvato nello storico (NULL = valore iniziale, segnato tale se $mark). */
+    public function describeStored(string $key, ?string $stored, bool $mark = true): string
     {
         if (!$this->registry->has($key)) {
             return (string) $stored;
@@ -168,7 +168,7 @@ final class SettingsService
             default => (string) $value,
         };
 
-        return $stored === null ? $text . ' (default)' : $text;
+        return $stored === null && $mark ? $text . ' (valore iniziale)' : $text;
     }
 
     /** @return array<string, string> */

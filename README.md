@@ -10,15 +10,15 @@ dietro Caddy Docker Proxy.
 
 **Stato attuale (D-019)**: si usa solo l'area admin. Il lato cliente (sito,
 vetrina, login, catalogo, carrello) è spento con `PUBLIC_SITE=0` e `/` porta a
-`/admin`. Gli ordini si compongono in **Admin › Ordine di prova** per provare
+`/admin`. Gli ordini si compongono in **Admin › Nuovo ordine** per provare
 il fornitore, prima in `test` (ordini simulati) e poi in `live`.
 
 ## Modalità del fornitore
 
 | `WTB_MODE` | Dati | Ordini al fornitore | Webhook dal fornitore |
 |---|---|---|---|
-| `fixture` | file in `fixtures/wtb/`, nessuna rete | simulati in locale | solo "Simula evento" |
-| `test` | API vera con `WTB_API_KEY_TEST` | simulati dal fornitore (`"test": true`, niente salvato) | **nessuno** (il fornitore non notifica gli ordini di prova): solo "Simula evento" |
+| `fixture` | file in `fixtures/wtb/`, nessuna rete | simulati in locale | solo "Simula" in Notifiche fornitore |
+| `test` | API vera con `WTB_API_KEY_TEST` | simulati dal fornitore (`"test": true`, niente salvato) | **nessuno** (il fornitore non notifica gli ordini di prova): solo "Simula" in Notifiche fornitore |
 | `live` | API vera con `WTB_API_KEY_LIVE` | **veri**, solo con `APP_ENV=production` | veri, firmati con `WTB_WEBHOOK_SECRET` |
 
 L'area admin mostra sempre la modalità attiva. Gli ordini ricordano la modalità
@@ -47,8 +47,9 @@ solo nell'immagine.
    - `MAIL_TRANSPORT=smtp`, `MAIL_FROM`, `MAIL_FROM_NAME`, `SMTP_HOST`,
      `SMTP_USER`, `SMTP_PASSWORD` (AWS SES);
    - `BANK_*` (servono solo col lato cliente acceso);
-   - `PUBLIC_SITE=0`, `WTB_MODE=test`, `WTB_API_KEY_TEST=wtb_test_…`,
-     `WTB_WEBHOOK_SECRET` con un valore inventato (serve a "Simula evento").
+   - `PUBLIC_SITE=0`, `WTB_MODE=test`, `WTB_API_KEY_TEST=wtb_test_…`;
+     `WTB_WEBHOOK_SECRET` resta vuoto finché si prova in `test` (la
+     simulazione dall'admin non lo chiede).
 
    Il blocco "Avanzate" resta commentato: ha già i default giusti (anche
    `TRUSTED_PROXIES` vuoto, l'IP reale lo ricava nginx). Le scelte sugli
@@ -67,8 +68,8 @@ solo nell'immagine.
    ```bash
    docker compose exec php php bin/sync.php stock
    ```
-   oppure da **Admin › Sync › Sincronizza ora**.
-6. Apri `https://<dominio>/admin`: banner `TEST` in alto, prodotti in
+   oppure da **Admin › Aggiornamenti › Aggiorna ora**.
+6. Apri `https://<dominio>/admin`: banner "Modalità: PROVA" in alto, prodotti in
    Admin › Prodotti.
 
 ### Aggiornare
@@ -106,16 +107,18 @@ loro valore viene copiato in Admin › Impostazioni (una volta sola) e
 
 ### In `test` (ordini simulati, nessun rischio)
 
-1. **Admin › Ordine di prova**: cerca uno SKU, aggiungi le paia, scrivi
-   l'indirizzo di spedizione, "Verifica col preventivo e salva" (preventivo
+1. **Admin › Nuovo ordine**: cerca uno SKU, aggiungi le paia, scrivi
+   l'indirizzo di consegna, "Verifica la disponibilità e salva" (preventivo
    vero del fornitore: disponibilità e costi reali).
-2. Nella pagina dell'ordine: **Crea ordine al fornitore** → stato "Simulato",
-   reference `SCSW-<n>-1`, totali del fornitore accanto al preventivo.
-3. Il fornitore non manda webhook per gli ordini di prova: per vedere il resto
-   del giro usa **Admin › Webhook › Simula evento** (`order.created`,
-   `order.paid`, `order.shipped`) con un `WTB_WEBHOOK_SECRET` qualsiasi.
-4. In `test` le istruzioni di bonifico del fornitore arrivano vuote e
-   Admin › Ordini fornitore non mostra gli ordini simulati: è normale.
+2. Nella pagina dell'ordine: **Invia l'ordine al fornitore** → stato
+   "Simulato", riferimento `SCSW-<n>-1`, totali del fornitore accanto al
+   previsto.
+3. Il fornitore non manda notifiche (webhook) per gli ordini di prova: per
+   vedere il resto del giro usa **Admin › Notifiche fornitore › Simula**
+   ("Ordine ricevuto dal fornitore", "Pagamento ricevuto", "Spedito"). Non
+   serve nessun segreto nel `.env`.
+4. In `test` i dati per il bonifico al fornitore arrivano vuoti e
+   Admin › Ordini al fornitore non mostra gli ordini simulati: è normale.
 
 ### In `live` (ordini veri, soldi veri)
 
@@ -125,11 +128,11 @@ loro valore viene copiato in Admin › Impostazioni (una volta sola) e
 2. Nel `.env`: `WTB_MODE=live`, `WTB_API_KEY_LIVE=…`; poi
    `docker compose up -d --force-recreate php scheduler`. Per i primi ordini
    conviene una spesa massima in Admin › Impostazioni › Ordini al fornitore.
-3. Primo ordine piccolo da Admin › Ordine di prova, seguito dall'inizio alla
+3. Primo ordine piccolo da Admin › Nuovo ordine, seguito dall'inizio alla
    fine: creazione (stato "Ricevuto"), bonifico al fornitore con IBAN,
    causale e importo mostrati nell'ordine e in dashboard, eventi in
-   Admin › Webhook (`order.created`, `order.paid`, `order.shipped`). Se un
-   evento non arriva: "Rileggi dal fornitore" nella pagina dell'ordine (lo
+   Admin › Notifiche fornitore (ordine ricevuto, pagamento ricevuto, spedito).
+   Se una notifica non arriva: "Aggiorna dal fornitore" nella pagina dell'ordine (lo
    scheduler rilegge comunque ogni ora).
 4. Un ordine live non si annulla dall'API: si annulla contattando
    direttamente il fornitore (o dal portale).
@@ -147,7 +150,7 @@ checklist di [`docs/06-ordini.md`](docs/06-ordini.md#checklist-prima-di-wtb_mode
   poi ricrea i container.
 - **Rotazione della chiave del fornitore**: genera la nuova chiave nel portale,
   sostituisci `WTB_API_KEY_TEST` o `WTB_API_KEY_LIVE` nel `.env`, ricrea i
-  container, controlla in Admin › Sync che il sync riesca, revoca la vecchia
+  container, controlla in Admin › Aggiornamenti che l'aggiornamento riesca, revoca la vecchia
   chiave nel portale.
 - **Segreto dei webhook**: stessa procedura con `WTB_WEBHOOK_SECRET`; tra il
   cambio nel portale e il riavvio i webhook firmati col segreto nuovo vengono

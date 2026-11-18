@@ -33,7 +33,7 @@
             <td class="num">{{ money(o.total_cents) }}</td>
             <td>{% include 'admin/orders/_status.twig' with {status: o.status} %}{% if o.receipt_number %}<span class="block text-xs text-muted">{{ o.receipt_number }}</span>{% endif %}</td>
             <td class="text-xs space-x-1">
-              <span class="badge badge-muted">{{ o.mode|upper }}</span>
+              <span class="badge badge-muted">{{ t('admin.mode.names.' ~ o.mode)|upper }}</span>
               {% if (o.source ?? 'checkout') == 'admin' %}<span class="badge badge-ink" title="{{ t('admin.orders.admin_badge') }}">{{ t('admin.nav.new_order') }}</span>{% endif %}
               {% if o.quote_unverified %}<span class="badge badge-warn" title="{{ t('admin.orders.quote_unverified') }}">!</span>{% endif %}
               {% if not o.email_customer_sent and (o.source ?? 'checkout') != 'admin' %}<span class="badge badge-danger" title="{{ t('admin.orders.email_not_sent') }}">@</span>{% endif %}

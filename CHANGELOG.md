@@ -5,6 +5,16 @@ o per i suoi clienti. Le più recenti in alto.
 
 ## 18/11/2026
 
+- Area admin riscritta in italiano semplice, senza termini tecnici: il menu
+  ora dice "Nuovo ordine", "Ordini al fornitore", "Notifiche fornitore" e
+  "Aggiornamenti"; la modalità si chiama DEMO, PROVA o REALE; i bottoni
+  dicono cosa fanno ("Invia l'ordine al fornitore", "Verifica la
+  disponibilità e salva"); avvisi, email e messaggi spiegano cosa fare senza
+  nomi di file o codici.
+- In modalità prova la simulazione degli aggiornamenti del fornitore (ordine
+  ricevuto, pagato, spedito…) funziona subito, senza configurare niente sul
+  server.
+
 - Le scelte sugli ordini al fornitore si fanno da Admin › Impostazioni ›
   Ordini al fornitore, senza toccare il server: invio acceso o spento (freno
   d'emergenza), quando inviarli (alla conferma del pagamento, subito o solo

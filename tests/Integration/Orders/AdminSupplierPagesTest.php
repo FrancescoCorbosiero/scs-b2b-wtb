@@ -23,7 +23,7 @@ final class AdminSupplierPagesTest extends TestCase
         $html = (string) $list->getBody();
         self::assertStringContainsString('WTB/2026/11/9042', $html);
         self::assertStringContainsString('SCSW-1-1', $html);
-        self::assertStringContainsString('Non nostro', $html);
+        self::assertStringContainsString('Non fatto da qui', $html);
 
         $detail = (string) $admin->get('/admin/ordini-fornitore/9042')->getBody();
         self::assertStringContainsString('71,37', $detail, 'Costi visibili in admin');
@@ -47,7 +47,7 @@ final class AdminSupplierPagesTest extends TestCase
         self::assertStringContainsString('SCSW-1001-1', $dashboard);
         self::assertStringContainsString('data-copy="IT60X0542811101000000123456"', $dashboard);
         $page = (string) $admin->get('/admin/ordini/1001')->getBody();
-        self::assertStringContainsString('Istruzioni di pagamento al fornitore', $page);
+        self::assertStringContainsString('Dati per il bonifico al fornitore', $page);
         self::assertStringContainsString('Causale', $page);
         self::assertStringContainsString('Da pagare', $page);
 

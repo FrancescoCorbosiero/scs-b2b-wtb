@@ -4,7 +4,7 @@
   <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
     <div>
       <h1 class="h1">{{ t('admin.sync.title') }}</h1>
-      <p class="text-sm text-muted">{{ t('admin.sync.intro', {mode: mode|upper, url: base_url}) }}</p>
+      <p class="text-sm text-muted">{{ t('admin.sync.intro') }}</p>
     </div>
   </div>
 
@@ -24,12 +24,12 @@
       <tbody>
         {% for job in jobs %}
           <tr>
-            <td class="font-semibold">{{ job.label }}<br><code class="text-xs text-muted">{{ job.name }}</code></td>
+            <td class="font-semibold">{{ job.label }}</td>
             <td>{{ (job.interval / 60)|round }} min</td>
             <td>{{ job.last ? job.last.started_at|local_datetime : '—' }}</td>
             <td>
               {% if job.last %}
-                <span class="badge {{ job.last.status == 'ok' ? 'badge-ok' : (job.last.status == 'error' ? 'badge-danger' : 'badge-muted') }}">{{ job.last.status }}</span>
+                <span class="badge {{ job.last.status == 'ok' ? 'badge-ok' : (job.last.status == 'error' ? 'badge-danger' : 'badge-muted') }}">{{ t('admin.sync.statuses.' ~ job.last.status) }}</span>
                 <span class="text-xs text-muted whitespace-pre-line">{{ job.last.message|split("\n")|first }}</span>
               {% else %}—{% endif %}
             </td>
@@ -88,9 +88,11 @@
           <tbody>
             {% for r in runs %}
               <tr>
-                <td class="whitespace-nowrap">{{ r.started_at|local_datetime }}<br><span class="text-xs text-muted">{{ r.trigger }}</span></td>
-                <td><code class="text-xs">{{ r.job }}</code></td>
-                <td><span class="badge {{ r.status == 'ok' ? 'badge-ok' : (r.status == 'error' ? 'badge-danger' : 'badge-muted') }}">{{ r.status }}</span></td>
+                {% set trigger_label = t('admin.sync.triggers.' ~ r.trigger) %}
+                {% set job_label = t('admin.sync.jobs.' ~ r.job) %}
+                <td class="whitespace-nowrap">{{ r.started_at|local_datetime }}<br><span class="text-xs text-muted">{{ trigger_label starts with 'admin.' ? r.trigger : trigger_label }}</span></td>
+                <td class="text-sm">{{ job_label starts with 'admin.' ? r.job : job_label }}</td>
+                <td><span class="badge {{ r.status == 'ok' ? 'badge-ok' : (r.status == 'error' ? 'badge-danger' : 'badge-muted') }}">{{ t('admin.sync.statuses.' ~ r.status) }}</span></td>
                 <td class="text-xs whitespace-pre-line">{{ r.message|slice(0, 600) }}</td>
               </tr>
             {% else %}

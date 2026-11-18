@@ -44,7 +44,10 @@ final class WebhookProcessor
         if ($type !== 'application/json') {
             return ['status' => 415, 'outcome' => 'unsupported_type'];
         }
-        if (!$this->webhooks->verify($headers, $rawBody)) {
+        // Evento simulato in processo (admin o CLI, mai dalla rete) senza segreto configurato: non c'è firma da
+        // controllare, così in fixture e test la simulazione funziona senza WTB_WEBHOOK_SECRET (D-021).
+        $unsigned = $simulated && !$this->webhooks->isConfigured();
+        if (!$unsigned && !$this->webhooks->verify($headers, $rawBody)) {
             // Nessun segreto e nessun corpo nel log: solo cosa serve a capire chi bussa.
             $this->logger->warning('Webhook con firma non valida', [
                 'configured' => $this->webhooks->isConfigured(),
