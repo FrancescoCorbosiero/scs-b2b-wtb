@@ -192,7 +192,7 @@ final class OrderService
         $this->logger->info('Ordine confermato', ['order' => $orderId, 'receipt' => $receipt, 'by' => $by]);
         $confirmed = $this->orders->find($orderId) ?? $order;
         $mailed = $this->mailer->orderConfirmed($confirmed, $this->orders->lines($orderId));
-        // Con WTB_ORDER_TRIGGER=on_confirm parte l'ordine al fornitore; se non riesce la conferma resta valida.
+        // Con supplier.order_trigger = on_confirm parte l'ordine al fornitore; se non riesce la conferma resta valida.
         $messages = $this->supplierOrders->afterConfirm($orderId, $by);
 
         return ['status' => 'ok', 'receipt' => $receipt, 'mailed' => $mailed, 'messages' => $messages];

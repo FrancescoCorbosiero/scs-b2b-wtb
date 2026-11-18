@@ -57,7 +57,7 @@ php -S 127.0.0.1:8080 -t public bin/dev-router.php
   "Simulato"). Attento con Playwright: anche il modulo di ricerca punta a
   `/admin/ordini/nuovo`, usa `form[method=post]`.
 - Ordine al fornitore: conferma un ordine in `/admin/ordini/<id>` (con
-  `WTB_ORDER_TRIGGER=on_confirm` parte da solo; in fixture e test è
+  "Quando inviare l'ordine al fornitore" sul default, in Impostazioni, parte da solo; in fixture e test è
   "Simulato") e guarda la sezione "Ordine al fornitore".
 - Webhook di prova (serve `WTB_WEBHOOK_SECRET` nel `.env`, anche inventato):
   "Simula evento" in `/admin/webhook` oppure

@@ -29,7 +29,10 @@ final class RegistryTest extends TestCase
             'catalog.regimes' => 'margin,ordinary', 'catalog.per_page' => 24, 'catalog.availability_high_min' => 60,
             'catalog.availability_low_max' => 20, 'catalog.sold_out_days' => 30, 'prices.rounding' => 'whole',
             'prices.default_margin_type' => 'percent', 'prices.default_margin_value' => '5.00', 'tax.vat_rate_it' => 22,
-            'tax.shipping_regime' => 'ordinary', 'images.proxy' => true, 'orders.supplier_unpaid_days' => 7,
+            'tax.shipping_regime' => 'ordinary', 'images.proxy' => true, 'supplier.unpaid_days' => 7,
+            'supplier.orders_enabled' => true, 'supplier.order_trigger' => 'on_confirm', 'supplier.payment_method' => 'bank_transfer',
+            'supplier.max_order' => 0, 'supplier.ship_to_email' => 'admin', 'supplier.ship_to_phone' => 'admin',
+            'catalog.supplier_all' => false,
         ] as $key => $default) {
             self::assertSame($default, $registry->get($key)->default, $key);
         }
@@ -55,8 +58,9 @@ final class RegistryTest extends TestCase
             ['orders.min_items', '0'], ['orders.min_items', 'cinque'], ['prices.rounding', 'down'],
             ['prices.default_margin_value', '5,555'], ['company.email', 'non-una-email'],
             ['shipping.carrier_domains', 'not a domain!'], ['company.website', 'http://insicuro.example'],
-            ['company.whatsapp', '+39 333'], ['orders.supplier_notes', str_repeat('x', 501)],
-            ['orders.supplier_unpaid_days', '-1'],
+            ['company.whatsapp', '+39 333'], ['supplier.notes', str_repeat('x', 501)],
+            ['supplier.unpaid_days', '-1'], ['supplier.order_trigger', 'sometimes'], ['supplier.payment_method', 'card'],
+            ['supplier.max_order', '-5'],
         ] as [$key, $input]) {
             try {
                 $r->get($key)->parseInput($input);

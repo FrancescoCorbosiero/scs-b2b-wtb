@@ -47,7 +47,7 @@ All'invio, in quest'ordine:
    (coordinate `BANK_*`, importo, causale = numero d'ordine) con l'avviso che
    l'ordine si conferma all'arrivo del pagamento; all'admin, in italiano,
    tutto compresi costi, margine, preventivo WTB ed eventuali avvisi.
-6. Con `WTB_ORDER_TRIGGER=on_request`: creazione immediata dell'ordine a WTB.
+6. Con `supplier.order_trigger` = `on_request`: creazione immediata dell'ordine a WTB.
 7. Carrello svuotato, pagina di conferma.
 
 Un errore SMTP non perde mai l'ordine: è già salvato, i flag
@@ -75,7 +75,7 @@ Dettagli dell'implementazione (`src/Orders/CheckoutService.php`):
 - **Conferma pagamento ricevuto** → `confirmed`, numero pro-forma
   (`RECEIPT_PREFIX`, serie annuale), email al cliente con la **pro-forma PDF**.
   Per clienti UE con righe ordinarie chiede la spunta "P.IVA verificata su
-  VIES" (docs/04). Poi, con `WTB_ORDER_TRIGGER=on_confirm`, crea l'ordine a
+  VIES" (docs/04). Poi, con `supplier.order_trigger` = `on_confirm`, crea l'ordine a
   WTB e mostra l'esito; se la creazione fallisce, la conferma resta valida.
 - **Riallinea** (finché non esiste un ordine WTB): quantità riga per riga
   con lo stock corrente accanto, totali ricalcolati, eventuale nuova email al
@@ -99,28 +99,28 @@ tecnico inattivo. Differenze dal checkout: nessun ordine minimo nostro (vale
 solo quello di WTB, che risponde 400), nessuna email alla creazione, nessuna
 conferma del pagamento né pro-forma (`OrderService::confirm` risponde
 `admin_order`). L'ordine a WTB si crea con "Crea ordine al fornitore" dalla
-pagina dell'ordine, qualunque sia `WTB_ORDER_TRIGGER`. Il `ship_to` è
+pagina dell'ordine, qualunque sia `supplier.order_trigger`. Il `ship_to` è
 l'indirizzo scritto dall'admin; l'email "spedito" col tracking va all'email
 indicata nel modulo.
 
 ## Ordine a WTB (`SupplierOrderService`)
 
-| `.env` | Default | Uso |
-|---|---|---|
-| `WTB_ORDERS_ENABLED` | 1 | kill switch: 0 = nessun ordine parte, nemmeno a mano |
-| `WTB_ORDER_TRIGGER` | `on_confirm` | `on_confirm` / `on_request` / `manual` (D-009) |
-| `WTB_PAYMENT_METHOD` | `bank_transfer` | oppure `balance` (D-004) |
-| `WTB_REFERENCE_PREFIX` | `SCSW` | prefisso del reference |
-| `WTB_SHIP_TO_EMAIL` | `admin` | email passata a WTB nel `ship_to`: `admin` (la nostra, D-020: WTB non contatta il destinatario) o `customer` |
-| `WTB_SHIP_TO_PHONE` | `admin` | telefono nel `ship_to`: `admin` (`company.phone`), `customer` (quello del destinatario, utile al corriere) o `none` (D-020) |
-| `WTB_MAX_ORDER_EUR` | 0 | tetto sul costo stimato di un ordine (0 = nessuno) |
+Impostazioni dell'admin, gruppo "Ordini al fornitore" (D-021; prima erano
+variabili `WTB_*` del `.env`, copiate una volta all'avvio da `EnvImport`):
 
-Impostazioni (`/admin/impostazioni`, gruppo Ordini): `orders.supplier_notes`
-(note fisse inviate con ogni ordine: l'API non ha un campo mittente, la
-richiesta di spedire a nome nostro e di non contattare il destinatario passa
-da qui; default in `Registry::DEFAULT_SUPPLIER_NOTES`, D-020) e
-`orders.supplier_unpaid_days` (default 7: avviso in dashboard per gli ordini
-al fornitore a bonifico non pagati da più giorni; 0 = spento).
+| Impostazione | Default | Uso |
+|---|---|---|
+| `supplier.orders_enabled` | sì | freno d'emergenza: spento, nessun ordine parte, nemmeno a mano |
+| `supplier.order_trigger` | `on_confirm` | `on_confirm` / `on_request` / `manual` (D-009) |
+| `supplier.payment_method` | `bank_transfer` | oppure `balance` (D-004) |
+| `supplier.max_order` | 0 | spesa massima per ordine (costo del preventivo; 0 = nessun limite) |
+| `supplier.ship_to_email` | `admin` | email nel `ship_to`: `admin` (la nostra, D-020: WTB non contatta il destinatario) o `customer` |
+| `supplier.ship_to_phone` | `admin` | telefono nel `ship_to`: `admin` (`company.phone`), `customer` (quello del destinatario, utile al corriere) o `none` (D-020) |
+| `supplier.notes` | richiesta di dropship anonimo | nota fissa inviata con ogni ordine: l'API non ha un campo mittente, la richiesta di spedire a nome nostro e di non contattare il destinatario passa da qui (`Registry::DEFAULT_SUPPLIER_NOTES`, D-020) |
+| `supplier.unpaid_days` | 7 | avviso in dashboard per gli ordini al fornitore a bonifico non pagati da più giorni (0 = spento) |
+
+Nel `.env` resta solo `WTB_REFERENCE_PREFIX` (facoltativa, default `SCSW`):
+cambiarla con ordini aperti impedirebbe di riconoscerne i webhook.
 
 Passi:
 
@@ -139,14 +139,14 @@ Passi:
        "phone": "…", "email": "…"
      },
      "payment_method": "bank_transfer",
-     "notes": "<orders.supplier_notes>"
+     "notes": "<supplier.notes>"
    }
    ```
 
    Una riga per variante + regime: il tipo di stock lo assegna WTB (prima la
    pronta consegna). M0: la combinazione `variant_id` + `vat_regime` è
    accettata. Mai prezzi né note del cliente nel payload: le note sono solo
-   quelle fisse di `orders.supplier_notes`. Le righe della
+   quelle fisse di `supplier.notes`. Le righe della
    risposta di WTB non dicono il tipo di stock: la ripartizione per fascia si
    prende dal preventivo e resta quella congelata nelle righe dell'ordine.
 4. Risposte: **201** creato; **200** reference già presente ⇒ è lo stesso
@@ -180,9 +180,9 @@ Dettagli dell'implementazione (`src/Orders/SupplierOrderService.php`):
 - Il payload ha una riga per variante + regime (somma delle due fasce); i
   campi vuoti del `ship_to` non si mandano. Mai prezzi, mai note del cliente
   (`notes` vuoto).
-- Rifiuti senza chiamare WTB: kill switch, modalità diversa da quella
+- Rifiuti senza chiamare WTB: freno d'emergenza (`supplier.orders_enabled`), modalità diversa da quella
   dell'ordine, ordine annullato o spedito, ordine al fornitore già vivo,
-  costo stimato oltre `WTB_MAX_ORDER_EUR` (dal preventivo).
+  costo stimato oltre `supplier.max_order` (dal preventivo).
 - Email all'admin (`templates/emails/supplier_order_admin.twig`, solo
   `company.admin_emails`): creato con le istruzioni di pagamento, simulato,
   non creato (con il messaggio di WTB), annullato dal fornitore, differenze.

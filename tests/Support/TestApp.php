@@ -86,6 +86,12 @@ final class TestApp
         return $hash ??= password_hash(self::ADMIN_PASSWORD, PASSWORD_ARGON2ID);
     }
 
+    /** Cambia un'impostazione come farebbe l'admin in /admin/impostazioni (storico compreso). */
+    public function setting(string $key, mixed $value): void
+    {
+        $this->container->get(\App\Settings\SettingsService::class)->setValue($key, $value, 'test');
+    }
+
     /** @return App<ContainerInterface> */
     public function app(): App
     {

@@ -42,16 +42,18 @@ final class SupplierOrderService
     ) {
     }
 
+    /** Quando parte l'ordine al fornitore: impostazione supplier.order_trigger (D-009, D-021). */
     public function trigger(): string
     {
-        $trigger = $this->config->string('WTB_ORDER_TRIGGER', 'on_confirm');
+        $trigger = $this->settings->string('supplier.order_trigger');
 
         return in_array($trigger, self::TRIGGERS, true) ? $trigger : 'on_confirm';
     }
 
+    /** Freno d'emergenza: impostazione supplier.orders_enabled (D-021). */
     public function enabled(): bool
     {
-        return $this->config->bool('WTB_ORDERS_ENABLED', true);
+        return $this->settings->bool('supplier.orders_enabled');
     }
 
     public function mode(): string
@@ -126,9 +128,9 @@ final class SupplierOrderService
         try {
             $quote = $this->supplier->quote($request);
             $quoteTotal = $quote->totalCents;
-            $cap = $this->config->int('WTB_MAX_ORDER_EUR', 0);
-            if ($cap > 0 && $quote->totalCents > $cap * 100) {
-                return ['status' => 'refused', 'message' => $this->t->get('admin.supplier.result.over_cap', ['cost' => Money::format($quote->totalCents), 'cap' => $cap])];
+            $cap = $this->settings->int('supplier.max_order');
+            if ($cap > 0 && $quote->totalCents > $cap) {
+                return ['status' => 'refused', 'message' => $this->t->get('admin.supplier.result.over_cap', ['cost' => Money::format($quote->totalCents), 'cap' => Money::format($cap)])];
             }
         } catch (SupplierRejectedException $e) {
             $detail = implode(' · ', $e->hasStockIssues() ? $e->stockIssues() : [$e->getMessage()]);
@@ -198,7 +200,7 @@ final class SupplierOrderService
         ];
     }
 
-    /** Dopo la richiesta del cliente (WTB_ORDER_TRIGGER=on_request): gli esiti arrivano all'admin per email. */
+    /** Dopo la richiesta del cliente (supplier.order_trigger = on_request): gli esiti arrivano all'admin per email. */
     public function afterRequest(int $orderId): void
     {
         if ($this->trigger() === 'on_request') {
@@ -208,7 +210,7 @@ final class SupplierOrderService
     }
 
     /**
-     * Dopo la conferma del pagamento (WTB_ORDER_TRIGGER=on_confirm, D-009). La conferma resta valida comunque.
+     * Dopo la conferma del pagamento (supplier.order_trigger = on_confirm, D-009). La conferma resta valida comunque.
      *
      * @return list<array{type: string, text: string}>
      */
@@ -234,18 +236,18 @@ final class SupplierOrderService
 
     /**
      * Payload per il fornitore: una riga per variante + regime, il tipo di stock lo assegna il fornitore.
-     * Mai prezzi né note del cliente: email e telefono del ship_to sono i nostri salvo WTB_SHIP_TO_*=customer,
-     * le note sono quelle fisse dell'impostazione orders.supplier_notes (D-020).
+     * Mai prezzi né note del cliente: email e telefono del ship_to sono i nostri salvo diversa impostazione
+     * (supplier.ship_to_email, supplier.ship_to_phone), le note sono quelle fisse di supplier.notes (D-020).
      *
      * @param array<string, mixed> $order
      * @param list<array<string, mixed>> $lines
      */
     public function request(array $order, array $lines, string $reference): SupplierOrderRequest
     {
-        $email = $this->config->string('WTB_SHIP_TO_EMAIL', 'admin') === 'customer'
+        $email = $this->settings->string('supplier.ship_to_email') === 'customer'
             ? (string) $order['email']
             : ($this->settings->list('company.admin_emails')[0] ?? (string) $order['email']);
-        $phone = match ($this->config->string('WTB_SHIP_TO_PHONE', 'admin')) {
+        $phone = match ($this->settings->string('supplier.ship_to_phone')) {
             'customer' => (string) ($order['ship_phone'] !== '' ? $order['ship_phone'] : $order['phone']),
             'none' => '',
             default => $this->settings->string('company.phone'),
@@ -277,8 +279,8 @@ final class SupplierOrderService
                 'phone' => $phone,
                 'email' => $email,
             ], static fn (string $v): bool => $v !== ''),
-            $this->config->string('WTB_PAYMENT_METHOD', 'bank_transfer') === 'balance' ? 'balance' : 'bank_transfer',
-            trim($this->settings->string('orders.supplier_notes')),
+            $this->settings->string('supplier.payment_method') === 'balance' ? 'balance' : 'bank_transfer',
+            trim($this->settings->string('supplier.notes')),
         );
     }
 

@@ -24,7 +24,7 @@ final class ConfigTest extends TestCase
 
     public function testUnknownValuesAreRefused(): void
     {
-        foreach ([['WTB_MODE' => 'prod'], ['WTB_ORDER_TRIGGER' => 'sometimes'], ['WTB_PAYMENT_METHOD' => 'card'], ['APP_ENV' => 'staging']] as $bad) {
+        foreach ([['WTB_MODE' => 'prod'], ['MAIL_TRANSPORT' => 'carrier-pigeon'], ['APP_ENV' => 'staging']] as $bad) {
             try {
                 Config::fromArray('/tmp', $bad + ['APP_ENV' => 'test']);
                 self::fail('Valore accettato: ' . json_encode($bad));

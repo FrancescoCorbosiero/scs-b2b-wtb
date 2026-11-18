@@ -57,7 +57,8 @@ final class AdminSupplierPagesTest extends TestCase
 
     public function testManualShippingEmailsTheCustomer(): void
     {
-        $app = new TestApp(['WTB_ORDER_TRIGGER' => 'manual']);
+        $app = new TestApp();
+        $app->setting('supplier.order_trigger', 'manual');
         [$customer, $admin] = $this->placeOrder($app);
         $admin->post('/admin/ordini/1001/spedito', ['carrier' => 'BRT', 'number' => 'DEMO1234567', 'url' => '']);
         self::assertSame('pending', $app->db->value('SELECT status FROM orders WHERE id = 1001'), 'Solo ordini confermati');

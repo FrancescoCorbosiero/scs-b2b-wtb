@@ -81,12 +81,16 @@ Il titolare chiederà spesso modifiche, e alcune verranno annullate. Il progetto
 - **Una modifica = un PR piccolo**, autosufficiente e annullabile con un
   `git revert`. Commit in italiano, all'imperativo ("Aggiungi filtro per
   linea").
-- **Manopole, non codice.** Ciò che il titolare cambia spesso (tariffe,
-  margini, ordine minimo, regimi in vendita, soglie…) è un'impostazione da
-  admin: registro tipizzato in `src/Settings/` (aggiungere una manopola = una
-  voce con tipo, default, etichetta e validazione, più un test). Segreti e
-  interruttori rischiosi (modalità WTB, chiavi, trigger degli ordini, kill
-  switch) stanno in `.env`.
+- **Manopole, non codice.** Ciò che il titolare può voler cambiare (tariffe,
+  margini, ordine minimo, regimi in vendita, soglie, scelte sugli ordini al
+  fornitore…) è un'impostazione da admin: registro tipizzato in
+  `src/Settings/` (aggiungere una manopola = una voce con tipo, default,
+  etichetta e validazione, più un test). Nel `.env` solo server, segreti,
+  coordinate bancarie e modalità WTB (D-021); le variabili tecniche hanno un
+  default nel codice e stanno nel blocco "Avanzate" di `.env.example`.
+- **Testi per chi non è tecnico.** Il titolare usa l'admin e non conosce il
+  codice: niente nomi di variabili, gergo (webhook, payload, sync, fixture…)
+  o codici nei testi che vede; quelli servono solo nei log e nei documenti.
 - **Confini netti.** Solo `src/Supplier/Wtb/` conosce endpoint e JSON di WTB;
   il resto lavora su modelli interni. Prezzi, IVA e spedizione sono servizi
   puri con test unitari: una regola si cambia in un punto solo.
@@ -150,7 +154,7 @@ composer check                   # test + PHPStan (con COMPOSER_ALLOW_SUPERUSER=
 | Avvio, contenitore, rotte | `src/Bootstrap.php`, `config/container.php`, `config/routes.php`, `src/Http/AppFactory.php` (ordine dei middleware) |
 | Configurazione `.env` | `src/Support/Config.php` (controlli bloccanti: `live` solo in produzione), `.env.example` |
 | Database e migrazioni | `src/Support/Db.php`, `src/Support/Migrator.php`, `database/migrations/` |
-| Impostazioni (manopole) | `src/Settings/Registry.php` (elenco), `SettingsService.php` (storico), `src/Http/Controller/Admin/SettingsController.php` |
+| Impostazioni (manopole) | `src/Settings/Registry.php` (elenco), `SettingsService.php` (storico), `EnvImport.php` (vecchie variabili del `.env` copiate una volta, D-021), `src/Http/Controller/Admin/SettingsController.php` |
 | Sessioni, CSRF, IP reale | `src/Support/Session*.php`, `src/Support/Csrf.php`, `src/Support/ClientIp.php`, `src/Http/Middleware/` |
 | Account clienti e admin | `src/Accounts/` (utenti, token d'invito/reset, lockout, P.IVA), `src/Http/Controller/Site/AuthController.php`, `AccountController.php`, `src/Http/Controller/Admin/CustomersController.php` |
 | Email | `src/Support/Mail/` (trasporti `log`/`smtp`), template in `templates/emails/` |

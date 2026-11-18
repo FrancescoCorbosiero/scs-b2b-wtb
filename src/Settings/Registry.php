@@ -14,6 +14,7 @@ final class Registry
     /** Gruppi nell'ordine in cui compaiono in /admin/impostazioni. */
     public const GROUPS = [
         'orders' => 'Ordini',
+        'supplier' => 'Ordini al fornitore',
         'catalog' => 'Catalogo',
         'prices' => 'Prezzi',
         'tax' => 'IVA',
@@ -106,13 +107,47 @@ final class Registry
                 'Si usa il maggiore tra questo valore e l\'eventuale minimo del fornitore (profilo Wholesaler).', min: 1, max: 1000),
             new Definition('orders.rethink_seconds', 'int', 15, 'Secondi per ripensarci prima dell\'invio', 'orders',
                 'Conto alla rovescia con "Annulla" prima che la richiesta d\'ordine parta davvero. 0 = invio diretto.', min: 0, max: 120),
-            new Definition('orders.supplier_notes', 'text', self::DEFAULT_SUPPLIER_NOTES, 'Note inviate al fornitore con ogni ordine', 'orders',
-                'Il campo note dell\'ordine al fornitore: l\'API non ha un campo per il mittente, la richiesta di spedire a nostro nome passa da qui (D-020). Mai le note del cliente. Vuoto = nessuna nota.',
+
+            // Ordini al fornitore (D-021: spostate dal .env, prima WTB_ORDERS_ENABLED, WTB_ORDER_TRIGGER, …)
+            new Definition('supplier.orders_enabled', 'bool', true, 'Invia gli ordini al fornitore', 'supplier',
+                'Freno d\'emergenza: spento, nessun ordine parte verso il fornitore, nemmeno col bottone nella pagina dell\'ordine.'),
+            new Definition('supplier.order_trigger', 'enum', 'on_confirm', 'Quando inviare l\'ordine al fornitore', 'supplier',
+                'Con "Subito" le paia si bloccano prima, ma se il cliente poi non paga l\'ordine al fornitore va annullato contattando il fornitore (D-009).',
+                options: [
+                    'on_confirm' => 'Quando confermi che il cliente ha pagato (consigliato)',
+                    'on_request' => 'Subito, appena il cliente invia l\'ordine',
+                    'manual' => 'Solo quando premi il bottone nella pagina dell\'ordine',
+                ]),
+            new Definition('supplier.payment_method', 'enum', 'bank_transfer', 'Come paghi il fornitore', 'supplier',
+                'Vale per i nuovi ordini al fornitore; quelli già fatti restano come sono (D-004).',
+                options: [
+                    'bank_transfer' => 'Bonifico: per ogni ordine ricevi IBAN, causale e importo',
+                    'balance' => 'Credito prepagato: scalato subito alla creazione dell\'ordine',
+                ]),
+            new Definition('supplier.max_order', 'money', 0, 'Spesa massima per ordine al fornitore (€)', 'supplier',
+                'Se il costo di un ordine supera questa cifra, l\'ordine non parte e ricevi un avviso. 0 = nessun limite.', min: 0),
+            new Definition('supplier.ship_to_email', 'enum', 'admin', 'Email per la consegna data al fornitore', 'supplier',
+                'Il fornitore e il corriere usano questa email per la consegna (D-020).',
+                options: [
+                    'admin' => 'La tua: il fornitore non scrive mai al tuo cliente (consigliato)',
+                    'customer' => 'Quella del destinatario del pacco',
+                ]),
+            new Definition('supplier.ship_to_phone', 'enum', 'admin', 'Telefono per la consegna dato al fornitore', 'supplier',
+                'Il corriere chiama questo numero se ha problemi con la consegna (D-020).',
+                options: [
+                    'admin' => 'Il tuo (telefono in Azienda e contatti): il corriere chiama te',
+                    'customer' => 'Quello del destinatario: il corriere chiama lui',
+                    'none' => 'Nessun telefono',
+                ]),
+            new Definition('supplier.notes', 'text', self::DEFAULT_SUPPLIER_NOTES, 'Nota inviata al fornitore con ogni ordine', 'supplier',
+                'Serve a chiedere di spedire a nome tuo e di non contattare il destinatario: il fornitore non ha un campo apposta (D-020). Le note dei clienti non vanno mai al fornitore. Vuoto = nessuna nota.',
                 validator: static fn (mixed $v): ?string => mb_strlen((string) $v) <= 500 ? null : 'Al massimo 500 caratteri.'),
-            new Definition('orders.supplier_unpaid_days', 'int', 7, 'Avviso ordini al fornitore non pagati dopo (giorni)', 'orders',
-                'Un ordine al fornitore a bonifico ancora non pagato dopo questi giorni compare tra gli avvisi della dashboard (D-020). 0 = nessun avviso.', min: 0, max: 60),
+            new Definition('supplier.unpaid_days', 'int', 7, 'Avvisami se un ordine al fornitore non è pagato dopo (giorni)', 'supplier',
+                'Compare un avviso nella dashboard (D-020). 0 = nessun avviso.', min: 0, max: 60),
 
             // Catalogo
+            new Definition('catalog.supplier_all', 'bool', false, 'Prendi tutto il catalogo del fornitore', 'catalog',
+                'Spento: solo i prodotti che hai scelto nel portale del fornitore. Acceso: tutti i suoi prodotti. Vale dal prossimo aggiornamento del catalogo (D-021).'),
             new Definition('catalog.sell_extended', 'bool', true, 'Vendi anche lo stock esteso', 'catalog',
                 'Paia in un magazzino esterno, partenza in 3-5 giorni lavorativi, prezzo diverso (D-005). Spento: solo pronta consegna.'),
             new Definition('catalog.regimes', 'enum', 'margin,ordinary', 'Regimi IVA in vendita', 'catalog',

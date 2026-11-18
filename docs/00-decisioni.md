@@ -48,9 +48,10 @@ Formato:
 - Decisione: gli ordini a WTB si creano con `payment_method: bank_transfer`
   (pro-forma WTB con IBAN, causale e importo da saldare).
 - Perché: scelta del titolare.
-- Dove vive: `WTB_PAYMENT_METHOD=bank_transfer` in `.env`.
-- Come si torna indietro: `WTB_PAYMENT_METHOD=balance` (credito prepagato,
-  scalato alla creazione).
+- Dove vive: impostazione `supplier.payment_method` (prima
+  `WTB_PAYMENT_METHOD` nel `.env`, spostata da D-021).
+- Come si torna indietro: "Credito prepagato" in Impostazioni › Ordini al
+  fornitore (scalato alla creazione).
 
 ### D-005 · 12/11/2026 · In vendita sia pronta consegna sia stock esteso
 - Decisione: si vendono le paia `immediate` (partenza 1-2 gg) e `extended`
@@ -95,10 +96,12 @@ Formato:
   del cliente è arrivato.
 - Perché: con il bonifico a WTB e senza un endpoint di annullamento, è il
   modo che non lascia mai ordini a WTB per clienti che non pagano.
-- Dove vive: `WTB_ORDER_TRIGGER=on_confirm` in `.env`.
-- Come si torna indietro: `on_request` (ordine a WTB già alla richiesta del
-  cliente, blocca subito lo stock) quando WTB conferma che gli ordini a
-  bonifico non pagati scadono senza penali; `manual` per crearli solo a mano.
+- Dove vive: impostazione `supplier.order_trigger` (prima `WTB_ORDER_TRIGGER`
+  nel `.env`, spostata da D-021).
+- Come si torna indietro: `on_request` ("Subito", ordine a WTB già alla
+  richiesta del cliente, blocca subito lo stock) quando WTB conferma che gli
+  ordini a bonifico non pagati scadono senza penali; `manual` per crearli solo
+  a mano.
 
 ### D-010 · 12/11/2026 · SQLite in tutti gli ambienti *(default)*
 - Decisione: un solo database SQLite (modalità WAL) in sviluppo, test e
@@ -223,21 +226,49 @@ Formato:
 ### D-020 · 18/11/2026 · Dropship anonimo, annullamenti a mano, avviso sui non pagati
 - Decisione: (1) WTB non deve comparire da nessuna parte né contattare il
   destinatario: nel `ship_to` vanno la nostra email e il nostro telefono
-  (`WTB_SHIP_TO_EMAIL=admin`, nuovo `WTB_SHIP_TO_PHONE=admin`), e ogni ordine
+  (impostazioni `supplier.ship_to_email` e `supplier.ship_to_phone`), e ogni ordine
   porta nel campo `notes` la richiesta di spedire con mittente il nostro
   negozio, senza prezzi né marchio del fornitore e senza contattare il
-  destinatario (impostazione `orders.supplier_notes`). L'API non ha un campo
+  destinatario (impostazione `supplier.notes`). L'API non ha un campo
   per il mittente: la nota è una richiesta, da verificare sul primo pacco
   reale. (2) Gli ordini al fornitore si annullano contattandolo direttamente
   (o dal portale): nessun endpoint. (3) Un ordine al fornitore a bonifico
   ancora non pagato dopo 7 giorni compare tra gli avvisi
-  (`orders.supplier_unpaid_days`). Resta `WTB_ORDER_TRIGGER=on_confirm`
+  (`supplier.unpaid_days`). Resta l'invio alla conferma del pagamento
   (D-009): la durata reale degli ordini non pagati presso WTB non è nota.
 - Perché: risposte del titolare alle domande 13-15 di docs/10; dove WTB non
   ha dato l'informazione, il comportamento è una manopola.
-- Dove vive: `.env` (`WTB_SHIP_TO_EMAIL`, `WTB_SHIP_TO_PHONE`), impostazioni
-  `orders.supplier_notes` e `orders.supplier_unpaid_days`,
-  `SupplierOrderService::request`, `src/Admin/Alerts.php`.
-- Come si torna indietro: `WTB_SHIP_TO_PHONE=customer` (o `none`) se il
-  corriere deve poter chiamare il destinatario; note vuote in
-  /admin/impostazioni; `orders.supplier_unpaid_days` a 0 spegne l'avviso.
+- Dove vive: impostazioni del gruppo "Ordini al fornitore" (D-021):
+  `supplier.ship_to_email`, `supplier.ship_to_phone`, `supplier.notes`,
+  `supplier.unpaid_days`; `SupplierOrderService::request`,
+  `src/Admin/Alerts.php`.
+- Come si torna indietro: telefono "Quello del destinatario" (o "Nessuno")
+  se il corriere deve poter chiamare il destinatario; nota vuota;
+  `supplier.unpaid_days` a 0 spegne l'avviso.
+
+### D-021 · 18/11/2026 · Le scelte sugli ordini al fornitore nell'admin, `.env` corto
+- Decisione: ciò che il titolare può voler cambiare esce dal `.env` e diventa
+  un'impostazione dell'admin, con storico: gruppo "Ordini al fornitore"
+  (invio sì/no come freno d'emergenza, quando inviare, come si paga il
+  fornitore, spesa massima per ordine, email e telefono per la consegna, nota
+  al fornitore, avviso dei non pagati) e, nel gruppo Catalogo, "tutto il
+  catalogo del fornitore". Nel `.env` restano solo server, email, segreti,
+  coordinate bancarie dei clienti, `PUBLIC_SITE` e la modalità del fornitore;
+  le variabili tecniche hanno un default nel codice e in `.env.example`
+  stanno in un blocco "Avanzate" commentato. Le vecchie variabili, se ancora
+  nel `.env`, all'avvio vengono copiate una volta nelle impostazioni
+  (`EnvImport` da `bin/migrate.php`, solo se l'impostazione non è mai stata
+  toccata). Lo scheduler rilegge le impostazioni a ogni giro, così una
+  modifica nell'admin vale senza riavviare i container.
+- Perché: richiesta: il titolare non è tecnico e non mette mano al server; le
+  scelte sugli ordini sono sue. Chi ha la password admin poteva già creare
+  ordini al fornitore a mano, quindi spostarle non apre rischi nuovi. Restano
+  nel `.env` le coordinate bancarie (un IBAN cambiato da chi ruba la password
+  admin dirotterebbe i bonifici dei clienti) e la modalità `test`/`live` (il
+  passaggio alla chiave reale lo fa chi gestisce il server). Supera la regola
+  di docs/02 che teneva trigger e kill switch nel `.env`.
+- Dove vive: `src/Settings/Registry.php` (gruppo `supplier`,
+  `catalog.supplier_all`), `src/Settings/EnvImport.php`, `bin/migrate.php`,
+  `src/Jobs/Scheduler.php`, `.env.example`.
+- Come si torna indietro: `git revert` della modifica e i valori di nuovo nel
+  `.env`; le righe rimaste nella tabella `settings` sono innocue.

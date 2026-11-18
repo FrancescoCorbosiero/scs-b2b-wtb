@@ -7,8 +7,9 @@ namespace App\Support;
 use Dotenv\Dotenv;
 
 /**
- * Configurazione letta dall'ambiente (.env): segreti e interruttori.
- * Le manopole del titolare stanno invece nel registro delle impostazioni (src/Settings).
+ * Configurazione letta dall'ambiente (.env): server, segreti, modalità del fornitore (D-021).
+ * Le manopole del titolare (ordini al fornitore compresi) stanno nel registro delle impostazioni (src/Settings).
+ * Le variabili tecniche hanno un default qui o dove si leggono: nel .env servono solo se si cambiano.
  */
 final class Config
 {
@@ -178,18 +179,6 @@ final class Config
         }
         if ($mode === 'live' && $env !== 'production') {
             throw new ConfigException('WTB_MODE=live è ammesso solo con APP_ENV=production (sul server di produzione).');
-        }
-        if (!in_array($this->string('WTB_ORDER_TRIGGER', 'on_confirm'), ['on_confirm', 'on_request', 'manual'], true)) {
-            throw new ConfigException('WTB_ORDER_TRIGGER deve essere on_confirm, on_request o manual.');
-        }
-        if (!in_array($this->string('WTB_PAYMENT_METHOD', 'bank_transfer'), ['bank_transfer', 'balance'], true)) {
-            throw new ConfigException('WTB_PAYMENT_METHOD deve essere bank_transfer o balance.');
-        }
-        if (!in_array($this->string('WTB_SHIP_TO_EMAIL', 'admin'), ['admin', 'customer'], true)) {
-            throw new ConfigException('WTB_SHIP_TO_EMAIL deve essere admin o customer.');
-        }
-        if (!in_array($this->string('WTB_SHIP_TO_PHONE', 'admin'), ['admin', 'customer', 'none'], true)) {
-            throw new ConfigException('WTB_SHIP_TO_PHONE deve essere admin, customer o none.');
         }
         if (!in_array($this->string('MAIL_TRANSPORT', 'log'), ['log', 'smtp', 'array'], true)) {
             throw new ConfigException('MAIL_TRANSPORT deve essere log o smtp.');

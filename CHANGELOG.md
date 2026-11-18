@@ -5,6 +5,18 @@ o per i suoi clienti. Le più recenti in alto.
 
 ## 18/11/2026
 
+- Le scelte sugli ordini al fornitore si fanno da Admin › Impostazioni ›
+  Ordini al fornitore, senza toccare il server: invio acceso o spento (freno
+  d'emergenza), quando inviarli (alla conferma del pagamento, subito o solo
+  a mano), come paghi il fornitore, spesa massima per ordine, email e
+  telefono dati per la consegna, nota al fornitore. In Impostazioni ›
+  Catalogo scegli se prendere tutto il catalogo del fornitore o solo la tua
+  selezione. Le modifiche valgono subito e restano nello storico.
+- Il file di configurazione del server è molto più corto: restano solo
+  indirizzo, password, email, coordinate bancarie, chiavi e modalità del
+  fornitore. I valori che c'erano per gli ordini vengono copiati da soli
+  nelle impostazioni al primo avvio.
+
 - Gli ordini al fornitore partono "anonimi": nel pacco va come mittente il tuo
   negozio, con la tua email e il tuo telefono al posto di quelli del
   destinatario, e una nota fissa che chiede di spedire a nome tuo senza

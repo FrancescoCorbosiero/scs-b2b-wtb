@@ -174,7 +174,7 @@ final class CheckoutService
         $this->orders->notifyCreated($orderId);
         $this->logger->info('Richiesta d\'ordine salvata', ['order' => $orderId, 'unverified' => $unverified]);
         if ($this->supplierOrders->trigger() === 'on_request') {
-            // WTB_ORDER_TRIGGER=on_request: ordine al fornitore subito, ma dopo la risposta (il cliente non aspetta).
+            // supplier.order_trigger = on_request: ordine al fornitore subito, ma dopo la risposta (il cliente non aspetta).
             $this->deferred->add('ordine al fornitore alla richiesta', fn () => $this->supplierOrders->afterRequest($orderId));
         }
 

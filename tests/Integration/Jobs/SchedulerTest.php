@@ -16,6 +16,22 @@ use Tests\Support\TestApp;
 
 final class SchedulerTest extends TestCase
 {
+    public function testEveryRoundReadsTheAdminSettingsAgain(): void
+    {
+        $app = new TestApp();
+        $settings = $app->get(\App\Settings\SettingsService::class);
+        self::assertTrue($settings->bool('supplier.orders_enabled'));
+        // L'admin (un altro processo, il container php) spegne gli ordini al fornitore.
+        $app->db->run(
+            "INSERT INTO settings (key, value, updated_at, updated_by) VALUES ('supplier.orders_enabled', :v, :t, 'admin')",
+            ['v' => $settings->registry()->get('supplier.orders_enabled')->encode(false), 't' => $app->clock->iso()],
+        );
+        self::assertTrue($settings->bool('supplier.orders_enabled'), 'Valore ancora in memoria');
+        $runner = new JobRunner($app->db, $app->clock, new NullLogger(), sys_get_temp_dir() . '/scs-locks-' . bin2hex(random_bytes(3)));
+        (new Scheduler([], $runner, $app->db, $app->clock, $settings))->tick();
+        self::assertFalse($settings->bool('supplier.orders_enabled'), 'Riletto al giro dello scheduler');
+    }
+
     public function testJobsRunWhenDueAndRecordTheirOutcome(): void
     {
         $app = new TestApp();

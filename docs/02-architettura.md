@@ -101,8 +101,14 @@ Voci iniziali (i nomi sono indicativi, il significato no):
 |---|---|---|
 | `orders.min_items` | 5 | ordine minimo in paia (si usa il maggiore tra questo e il minimo WTB del profilo Wholesaler) |
 | `orders.rethink_seconds` | 15 | conto alla rovescia "Annulla" prima dell'invio reale |
-| `orders.supplier_notes` | richiesta di dropship anonimo | note fisse inviate al fornitore con ogni ordine (D-020) |
-| `orders.supplier_unpaid_days` | 7 | avviso per ordini al fornitore non pagati (0 = spento, D-020) |
+| `supplier.orders_enabled` | true | freno d'emergenza: spento, nessun ordine parte verso il fornitore, nemmeno a mano (D-021) |
+| `supplier.order_trigger` | `on_confirm` | quando parte l'ordine al fornitore: `on_confirm` / `on_request` / `manual` (D-009) |
+| `supplier.payment_method` | `bank_transfer` | come si paga il fornitore: bonifico o `balance` (credito prepagato, D-004) |
+| `supplier.max_order` | 0 | spesa massima per ordine al fornitore in centesimi (0 = nessun limite) |
+| `supplier.ship_to_email` / `_phone` | `admin` / `admin` | contatti per la consegna dati al fornitore: i nostri, quelli del destinatario o (telefono) nessuno (D-020) |
+| `supplier.notes` | richiesta di dropship anonimo | nota fissa inviata al fornitore con ogni ordine (D-020) |
+| `supplier.unpaid_days` | 7 | avviso per ordini al fornitore non pagati (0 = spento, D-020) |
+| `catalog.supplier_all` | false | tutto il catalogo del fornitore (`all=1`) invece della selezione fatta nel suo portale |
 | `catalog.sell_extended` | true | vendere anche lo stock esteso (D-005) |
 | `catalog.regimes` | `margin,ordinary` | regimi IVA in vendita (docs/04) |
 | `catalog.per_page` | 24 | prodotti per pagina |
@@ -115,11 +121,21 @@ Voci iniziali (i nomi sono indicativi, il significato no):
 | `shipping.carrier_domains` | elenco | domini dei corrieri ammessi nei link di tracking |
 | `images.proxy` | true | immagini servite dal nostro dominio (D-011) |
 
-Restano in `.env` (servono accesso al server, quindi sono più protetti): chiavi
-e modalità WTB, trigger e kill switch degli ordini, coordinate bancarie,
-SMTP, password admin. `.env.example` elenca TUTTE le variabili citate nei
-documenti, commentate riga per riga, con valori di sviluppo sicuri
-(`WTB_MODE=fixture`).
+Restano in `.env` (servono accesso al server, quindi sono più protetti, D-021):
+server (`APP_ENV`, `APP_URL`, `APP_DOMAIN`, `PUBLIC_SITE`), password admin,
+email e SMTP, coordinate bancarie dei clienti, modalità e chiavi WTB, segreto
+dei webhook. Le variabili tecniche (intervalli dei job, timeout, soglie,
+prefissi, log, sessioni…) hanno un default nel codice: in `.env.example`
+stanno, commentate e col loro default, nel blocco "Avanzate", e nel `.env`
+servono solo per cambiarle. `.env.example` elenca TUTTE le variabili citate
+nei documenti, con valori di sviluppo sicuri (`WTB_MODE=fixture`).
+
+Le impostazioni si leggono a ogni richiesta; lo scheduler (processo lungo)
+le rilegge a ogni giro (`SettingsService::refresh`), quindi una modifica
+nell'admin vale subito anche per i job. Quando una variabile del `.env`
+diventa un'impostazione, la si aggiunge a `EnvImport::MAP`: all'avvio
+(`bin/migrate.php`) il vecchio valore viene copiato una volta
+nell'impostazione, se non è mai stata toccata.
 
 ## Scheduler e job
 
@@ -143,7 +159,7 @@ solo giro.
 
 **Lavori dopo la risposta** (`src/Support/Deferred.php`): ciò che non deve
 far aspettare chi ha fatto la richiesta (email dei webhook, ordine al
-fornitore con `WTB_ORDER_TRIGGER=on_request`) si accoda e parte dopo la
+fornitore con `supplier.order_trigger` = `on_request`) si accoda e parte dopo la
 risposta (`fastcgi_finish_request` in `public/index.php`); in CLI e nei test
 si esegue chiamando `run()`. Un errore di un lavoro rinviato finisce nel log
 e non tocca gli altri.

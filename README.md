@@ -40,15 +40,19 @@ solo nell'immagine.
 ### Primo avvio
 
 1. Clona il repository in una cartella dedicata (stack separato da scs-b2b).
-2. Crea il `.env` da `.env.example`:
-   - `APP_ENV=production`, `APP_DEBUG=0`, `APP_URL=https://<dominio>`,
-     `APP_DOMAIN=<dominio>` (label di Caddy), `TRUSTED_PROXIES` vuoto (l'IP
-     reale lo ricava nginx);
+2. Crea il `.env` da `.env.example` e compila solo la parte in alto (D-021):
+   - `APP_ENV=production`, `APP_URL=https://<dominio>`,
+     `APP_DOMAIN=<dominio>` (label di Caddy);
    - `ADMIN_PASSWORD_HASH` (vedi § Chiavi e segreti);
-   - `MAIL_TRANSPORT=smtp` e `SMTP_*` (AWS SES), `MAIL_FROM`;
+   - `MAIL_TRANSPORT=smtp`, `MAIL_FROM`, `MAIL_FROM_NAME`, `SMTP_HOST`,
+     `SMTP_USER`, `SMTP_PASSWORD` (AWS SES);
+   - `BANK_*` (servono solo col lato cliente acceso);
    - `PUBLIC_SITE=0`, `WTB_MODE=test`, `WTB_API_KEY_TEST=wtb_test_…`,
-     `WTB_ORDER_TRIGGER=manual`;
-   - `WTB_WEBHOOK_SECRET` può restare vuoto finché si prova in `test`.
+     `WTB_WEBHOOK_SECRET` con un valore inventato (serve a "Simula evento").
+
+   Il blocco "Avanzate" resta commentato: ha già i default giusti (anche
+   `TRUSTED_PROXIES` vuoto, l'IP reale lo ricava nginx). Le scelte sugli
+   ordini al fornitore e sul catalogo si fanno in **Admin › Impostazioni**.
 3. La network esterna `caddy` deve esistere (quella di Caddy Docker Proxy). Se
    usa una subnet diversa da quelle private standard, aggiungila in
    `docker/nginx/default.conf` (`set_real_ip_from`).
@@ -77,7 +81,14 @@ docker compose up -d --build
 ```
 
 Le migrazioni nuove si applicano all'avvio del container `php`. Dopo una
-modifica del solo `.env` basta `docker compose up -d --force-recreate php scheduler`.
+modifica del solo `.env` basta `docker compose up -d --force-recreate php scheduler`;
+le modifiche in Admin › Impostazioni valgono subito, senza riavvii.
+
+Se il `.env` ha ancora variabili spostate nell'admin (`WTB_ORDERS_ENABLED`,
+`WTB_ORDER_TRIGGER`, `WTB_PAYMENT_METHOD`, `WTB_MAX_ORDER_EUR`,
+`WTB_SHIP_TO_EMAIL`, `WTB_SHIP_TO_PHONE`, `WTB_CATALOG_ALL`), al primo avvio il
+loro valore viene copiato in Admin › Impostazioni (una volta sola) e
+`docker compose logs php` dice quali righe togliere dal `.env`.
 
 ### Comandi utili
 
@@ -111,9 +122,9 @@ modifica del solo `.env` basta `docker compose up -d --force-recreate php schedu
 1. Webhook: nel portale del fornitore imposta l'indirizzo
    `https://<dominio>/webhooks/wtb` e copia il segreto `whsec_…` (mostrato una
    volta sola) in `WTB_WEBHOOK_SECRET`.
-2. Nel `.env`: `WTB_MODE=live`, `WTB_API_KEY_LIVE=…`, consigliato un tetto
-   `WTB_MAX_ORDER_EUR` per i primi ordini; poi
-   `docker compose up -d --force-recreate php scheduler`.
+2. Nel `.env`: `WTB_MODE=live`, `WTB_API_KEY_LIVE=…`; poi
+   `docker compose up -d --force-recreate php scheduler`. Per i primi ordini
+   conviene una spesa massima in Admin › Impostazioni › Ordini al fornitore.
 3. Primo ordine piccolo da Admin › Ordine di prova, seguito dall'inizio alla
    fine: creazione (stato "Ricevuto"), bonifico al fornitore con IBAN,
    causale e importo mostrati nell'ordine e in dashboard, eventi in

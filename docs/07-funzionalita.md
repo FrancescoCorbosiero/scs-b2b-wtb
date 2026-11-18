@@ -123,9 +123,9 @@ Banner permanente con la **modalità WTB** (`FIXTURE` / `TEST` / `LIVE`).
   Implementazione (`src/Admin/`): sezione "Da pagare al fornitore" (ordini
   al fornitore ricevuti o confermati, non pagati, a bonifico) con IBAN,
   causale e importo da copiare; avvisi in più: ordini al fornitore spenti
-  (`WTB_ORDERS_ENABLED=0`), annullati dal fornitore mentre l'ordine è aperto,
+  (`supplier.orders_enabled` spento), annullati dal fornitore mentre l'ordine è aperto,
   confermati senza ordine al fornitore, ordini al fornitore non pagati da più
-  di `orders.supplier_unpaid_days` giorni, differenze segnalate dal fornitore,
+  di `supplier.unpaid_days` giorni, differenze segnalate dal fornitore,
   webhook non elaborati. Il menu mostra i contatori di "Ordini fornitore" (da
   pagare) e "Webhook" (sconosciuti o in errore negli ultimi 7 giorni).
 - **Ordini** (`/admin/ordini`): elenco con filtri per stato e ricerca;

@@ -66,6 +66,12 @@ final class SettingsService
         return array_values(array_map('strval', (array) $this->get($key)));
     }
 
+    /** Rilegge i valori dal database alla prossima lettura (processi lunghi come lo scheduler, D-021). */
+    public function refresh(): void
+    {
+        $this->stored = null;
+    }
+
     public function isCustomized(string $key): bool
     {
         return isset($this->stored()[$key]);

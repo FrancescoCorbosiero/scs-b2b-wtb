@@ -114,7 +114,7 @@ final class Alerts
             $alerts[] = $this->orderAlert('warning', 'supplier_missing', $missing);
         }
         // Ordini al fornitore a bonifico non ancora pagati dopo N giorni (D-020): le paia potrebbero non essere più riservate.
-        $days = $this->settings->int('orders.supplier_unpaid_days');
+        $days = $this->settings->int('supplier.unpaid_days');
         if ($days > 0) {
             $unpaid = $this->db->column(
                 "SELECT DISTINCT s.order_id FROM supplier_orders s JOIN orders o ON o.id = s.order_id

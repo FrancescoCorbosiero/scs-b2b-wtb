@@ -48,7 +48,7 @@ final class WtbCatalog implements SupplierCatalog
     public function stock(): StockFeed
     {
         $this->mapper->resetWarnings();
-        $query = $this->client->config()->catalogAll ? ['all' => 1] : [];
+        $query = $this->client->config()->catalogAll() ? ['all' => 1] : [];
         $data = $this->client->get('/stock/', $query);
         $rows = $this->mapper->stock($data);
         $results = is_array($data['results'] ?? null) ? $data['results'] : [];
@@ -74,7 +74,7 @@ final class WtbCatalog implements SupplierCatalog
     private function paged(array $query): array
     {
         $query += ['page_size' => 100];
-        if ($this->client->config()->catalogAll) {
+        if ($this->client->config()->catalogAll()) {
             $query['all'] = 1;
         }
         $products = [];

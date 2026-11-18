@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Settings\SettingsService;
 use App\Support\Clock;
 use App\Support\Db;
 
-/** Ciclo del container "scheduler": lancia i job scaduti secondo il loro intervallo. */
+/**
+ * Ciclo del container "scheduler": lancia i job scaduti secondo il loro intervallo.
+ * A ogni giro rilegge le impostazioni, così una modifica fatta nell'admin vale senza riavviare il container.
+ */
 final class Scheduler
 {
     /** @param list<Job> $jobs */
@@ -16,6 +20,7 @@ final class Scheduler
         private readonly JobRunner $runner,
         private readonly Db $db,
         private readonly Clock $clock,
+        private readonly ?SettingsService $settings = null,
     ) {
     }
 
@@ -53,6 +58,7 @@ final class Scheduler
     /** Un giro: esegue i job scaduti. @return list<string> nomi eseguiti */
     public function tick(): array
     {
+        $this->settings?->refresh();
         $ran = [];
         foreach ($this->jobs as $job) {
             if ($this->isDue($job)) {

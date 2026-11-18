@@ -14,9 +14,13 @@ vive in `src/Supplier/Wtb/` e nei job di sync.
 | `WTB_API_KEY_TEST` | vuota | chiave di prova `wtb_test_…` |
 | `WTB_API_KEY_LIVE` | vuota | chiave reale: **solo** nel `.env` di produzione |
 | `WTB_WEBHOOK_SECRET` | vuota | `whsec_…` dal portale WTB (mostrato una volta) |
-| `WTB_HTTP_TIMEOUT` | 20 | secondi |
-| `WTB_CATALOG_ALL` | 0 | 1 = aggiunge `all=1` (ignora "Solo la mia selezione" del portale) |
-| `WTB_SYNC_MAX_DROP_PERCENT` | 50 | il sync completo si ferma se i prodotti attivi calerebbero oltre questa soglia |
+| `WTB_HTTP_TIMEOUT` | 20 | secondi (facoltativa) |
+| `WTB_SYNC_MAX_DROP_PERCENT` | 50 | il sync completo si ferma se i prodotti attivi calerebbero oltre questa soglia (facoltativa) |
+
+Le variabili con un default sono facoltative (blocco "Avanzate" di
+`.env.example`, D-021). "Tutto il catalogo" (`all=1`, ignora "Solo la mia
+selezione" del portale) non è più `WTB_CATALOG_ALL` ma l'impostazione
+`catalog.supplier_all`, riletta a ogni chiamata.
 
 - La chiave si sceglie in base alla modalità e viaggia solo verso
   `WTB_BASE_URL`; i log la oscurano sempre.

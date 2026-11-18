@@ -130,7 +130,11 @@ return static function (Config $config): array {
         ]),
 
         // --- Fornitore (solo src/Supplier/Wtb conosce WTB) ---------------------------------------
-        WtbConfig::class => factory(static fn (): WtbConfig => WtbConfig::fromConfig($config)),
+        // "Tutto il catalogo" è un'impostazione (D-021): si rilegge a ogni chiamata, anche nello scheduler.
+        WtbConfig::class => factory(static fn (ContainerInterface $c): WtbConfig => WtbConfig::fromConfig(
+            $config,
+            static fn (): bool => $c->get(SettingsService::class)->bool('catalog.supplier_all'),
+        )),
         Transport::class => factory(static fn (ContainerInterface $c): Transport => $c->get(WtbConfig::class)->mode === 'fixture'
             ? $c->get(FixtureTransport::class)
             : new CurlTransport()),
@@ -209,6 +213,7 @@ return static function (Config $config): array {
             $c->get(JobRunner::class),
             $c->get(Db::class),
             $c->get(Clock::class),
+            $c->get(SettingsService::class),
         )),
     ];
 };

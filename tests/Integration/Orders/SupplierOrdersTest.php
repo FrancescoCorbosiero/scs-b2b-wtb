@@ -63,7 +63,8 @@ final class SupplierOrdersTest extends TestCase
 
     public function testRetryAfterNetworkErrorsReusesTheSameReference(): void
     {
-        $app = new TestApp(['WTB_ORDER_TRIGGER' => 'manual']);
+        $app = new TestApp();
+        $app->setting('supplier.order_trigger', 'manual');
         [, $admin] = $this->placeOrder($app);
         $admin->post('/admin/ordini/1001/conferma');
         self::assertSame(0, $app->db->int('SELECT COUNT(*) FROM supplier_orders'), 'Trigger manual: niente ordine alla conferma');
@@ -95,7 +96,8 @@ final class SupplierOrdersTest extends TestCase
 
     public function testRejectionAndMissingPairsAreCertainFailures(): void
     {
-        $app = new TestApp(['WTB_ORDER_TRIGGER' => 'manual']);
+        $app = new TestApp();
+        $app->setting('supplier.order_trigger', 'manual');
         [, $admin] = $this->placeOrder($app);
 
         $app->fixtures()->queue('POST', '/quote/', TransportResponse::json(400, ['stock' => ['ZX1001-100 EU 36 (margin): only 1 available.']]));
@@ -119,8 +121,9 @@ final class SupplierOrdersTest extends TestCase
 
     public function testNoPhoneAndEmptyNotesAreLeftOut(): void
     {
-        $app = new TestApp(['WTB_SHIP_TO_PHONE' => 'none']);
-        $app->get(\App\Settings\SettingsService::class)->setValue('orders.supplier_notes', '', 'test');
+        $app = new TestApp();
+        $app->setting('supplier.ship_to_phone', 'none');
+        $app->setting('supplier.notes', '');
         [, $admin] = $this->placeOrder($app);
         $admin->post('/admin/ordini/1001/conferma');
         $payload = json_decode((string) $app->db->value('SELECT request_payload FROM supplier_orders WHERE order_id = 1001'), true);
@@ -138,16 +141,17 @@ final class SupplierOrdersTest extends TestCase
         $app->db->run('UPDATE supplier_orders SET created_at = :t WHERE order_id = 1001', ['t' => $app->clock->isoAgo(8 * 86400)]);
         self::assertStringContainsString('Ordini al fornitore non ancora pagati', (string) $admin->get('/admin')->getBody());
 
-        $app->get(\App\Settings\SettingsService::class)->setValue('orders.supplier_unpaid_days', 0, 'test');
+        $app->setting('supplier.unpaid_days', 0);
         self::assertStringNotContainsString('Ordini al fornitore non ancora pagati', (string) $admin->get('/admin')->getBody());
-        $app->get(\App\Settings\SettingsService::class)->setValue('orders.supplier_unpaid_days', 7, 'test');
+        $app->setting('supplier.unpaid_days', 7);
         $app->db->run("UPDATE supplier_orders SET is_paid = 1, status = 'paid' WHERE order_id = 1001");
         self::assertStringNotContainsString('Ordini al fornitore non ancora pagati', (string) $admin->get('/admin')->getBody());
     }
 
     public function testKillSwitchStopsEveryOrderEvenManual(): void
     {
-        $app = new TestApp(['WTB_ORDERS_ENABLED' => '0']);
+        $app = new TestApp();
+        $app->setting('supplier.orders_enabled', false);
         [, $admin] = $this->placeOrder($app);
         $admin->post('/admin/ordini/1001/conferma');
         self::assertSame('confirmed', $app->db->value('SELECT status FROM orders WHERE id = 1001'), 'La conferma resta valida');
@@ -161,11 +165,13 @@ final class SupplierOrdersTest extends TestCase
 
     public function testModeMismatchAndSpendingCapRefuse(): void
     {
-        $app = new TestApp(['WTB_ORDER_TRIGGER' => 'manual', 'WTB_MAX_ORDER_EUR' => '100']);
+        $app = new TestApp();
+        $app->setting('supplier.order_trigger', 'manual');
+        $app->setting('supplier.max_order', 10000);
         [, $admin] = $this->placeOrder($app);
         $admin->post('/admin/ordini/1001/fornitore');
         self::assertSame(0, $app->db->int('SELECT COUNT(*) FROM supplier_orders'), 'Oltre il tetto: nessun ordine');
-        self::assertStringContainsString('WTB_MAX_ORDER_EUR', (string) $admin->get('/admin/ordini/1001')->getBody());
+        self::assertStringContainsString('spesa massima', (string) $admin->get('/admin/ordini/1001')->getBody());
 
         $app->db->run("UPDATE orders SET mode = 'test' WHERE id = 1001");
         $service = $app->get(\App\Orders\SupplierOrderService::class);
@@ -187,7 +193,10 @@ final class SupplierOrdersTest extends TestCase
 
     public function testOnRequestTriggerCreatesTheOrderAfterTheCheckoutResponse(): void
     {
-        $app = new TestApp(['WTB_ORDER_TRIGGER' => 'on_request', 'WTB_SHIP_TO_EMAIL' => 'customer', 'WTB_SHIP_TO_PHONE' => 'customer']);
+        $app = new TestApp();
+        $app->setting('supplier.order_trigger', 'on_request');
+        $app->setting('supplier.ship_to_email', 'customer');
+        $app->setting('supplier.ship_to_phone', 'customer');
         [, $admin] = $this->placeOrder($app);
         $row = $app->db->one('SELECT * FROM supplier_orders WHERE order_id = 1001');
         self::assertNotNull($row, 'Creato dopo la risposta al cliente');
