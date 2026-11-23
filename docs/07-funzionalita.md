@@ -112,6 +112,22 @@ comodità: il riepilogo vero lo calcola il server.
 Vedi docs/06 § Checkout: preventivo WTB, ripensamento, email con istruzioni
 di bonifico, pagina di conferma con i recapiti.
 
+## Menu a tendina "smart" (D-020, cliente e admin)
+
+- I menu lunghi (10 voci o più) e tutti quelli dei paesi hanno la **ricerca**:
+  si scrive e la lista si filtra (senza accenti, anche per codice paese),
+  frecce/Invio/Esc da tastiera; senza JavaScript resta il menu nativo.
+- **Paesi**: solo quelli serviti; in testa "Più usati" (al massimo 5), poi
+  "Tutti i paesi" in ordine alfabetico. Cliente: i paesi dei suoi ordini più
+  la sede; admin: tutti gli ordini; "Richiedi accesso": nessun gruppo.
+- **Precompilati**: carrello con la destinazione dell'ultimo ordine del
+  cliente (poi la sede); ordine di prova con il paese dell'ultimo ordine di
+  prova; regola margine nuova col tipo più usato.
+- **Filtri admin** con i conteggi e senza voci vuote (ordini per modalità,
+  clienti per stato), applicati appena si cambia la scelta; il valore delle
+  regole margine suggerisce i brand, le linee, i generi e le categorie del
+  catalogo col numero di prodotti.
+
 ## Area admin (`/admin`, password dedicata, solo italiano)
 
 Banner permanente con la **modalità WTB** (`FIXTURE` / `TEST` / `LIVE`).

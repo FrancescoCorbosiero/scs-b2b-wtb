@@ -63,4 +63,32 @@ final class MarginRuleRepository
             'priority', 'match_type', 'match_value', 'regime', 'stock_type', 'margin_type', 'margin_value', 'is_active', 'note',
         ]));
     }
+
+    /**
+     * Valori presenti nel catalogo per ogni tipo di regola, dal più frequente (D-020):
+     * suggerimenti per il campo "valore" (solo admin).
+     *
+     * @return array<string, list<array{value: string, count: int}>>
+     */
+    public function suggestions(int $limit = 200): array
+    {
+        $out = [];
+        foreach (['brand', 'line', 'gender', 'category', 'size_category'] as $column) {
+            $rows = $this->db->all(
+                "SELECT LOWER({$column}) AS v, COUNT(*) AS n FROM products WHERE is_active = 1 AND {$column} <> ''
+                 GROUP BY LOWER({$column}) ORDER BY n DESC, v LIMIT {$limit}",
+            );
+            $out[$column] = array_map(static fn (array $r): array => ['value' => (string) $r['v'], 'count' => (int) $r['n']], $rows);
+        }
+
+        return $out;
+    }
+
+    /** Il tipo di regola più usato, proposto per una regola nuova (D-020). */
+    public function mostUsedType(): string
+    {
+        $type = $this->db->value('SELECT match_type FROM margin_rules GROUP BY match_type ORDER BY COUNT(*) DESC, MAX(id) DESC LIMIT 1');
+
+        return is_string($type) && in_array($type, MarginRule::MATCH_TYPES, true) ? $type : 'brand';
+    }
 }

@@ -12,6 +12,12 @@ return [
         'description' => 'Catalogo sneakers B2B riservato ai rivenditori: disponibilità, tempi di partenza e prezzi dedicati.',
     ],
     'common' => [
+        'select' => [
+            'search' => 'Cerca…',
+            'empty' => 'Nessun risultato',
+            'frequent' => 'Più usati',
+            'all_countries' => 'Tutti i paesi',
+        ],
         'skip' => 'Vai al contenuto',
         'menu' => 'Menu',
         'save' => 'Salva',
@@ -996,6 +1002,7 @@ return [
             'match_type' => 'Si applica a',
             'match_value' => 'Valore',
             'match_value_hint' => 'Es. Nike, 9060, SKU separati da virgola',
+            'suggest_count' => ':n prodotti',
             'regime' => 'Regime',
             'stock_type' => 'Tipo di stock',
             'margin_type' => 'Margine',

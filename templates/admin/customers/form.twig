@@ -35,7 +35,7 @@
       {{ f.input('name', t('fields.name'), c.name ?? '', 'text', {required: true}) }}
       {{ f.input('email', t('fields.email'), c.email ?? '', 'email', {required: true}) }}
       {{ f.input('phone', t('fields.phone'), c.phone ?? '', 'tel', {required: true}) }}
-      {{ f.select('country_code', t('fields.country_code'), country_options(), c.country_code ?? 'IT', {required: true}) }}
+      {{ f.country_select('country_code', t('fields.country_code'), c.country_code ?? 'IT', {required: true}) }}
       {{ f.input('address_street', t('fields.address_street'), c.address_street ?? '', 'text', {required: true}) }}
       {{ f.input('address_city', t('fields.address_city'), c.address_city ?? '', 'text', {required: true}) }}
       {{ f.input('address_zip', t('fields.address_zip'), c.address_zip ?? '', 'text', {required: true}) }}

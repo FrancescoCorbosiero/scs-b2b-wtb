@@ -63,8 +63,8 @@
           <h2 class="h3">{{ t('cart.summary') }}</h2>
           <div class="field">
             <label class="label" for="destination">{{ t('cart.destination') }}</label>
-            <select id="destination" name="destination" class="input" data-autosubmit-field>
-              {% for code, name in country_options() %}<option value="{{ code }}" {{ cart.destination == code ? 'selected' }}>{{ name }}</option>{% endfor %}
+            <select id="destination" name="destination" class="input" data-autosubmit-field data-smart>
+              {% include 'partials/country_options.twig' with {selected: cart.destination} only %}
             </select>
           </div>
           {% include 'cart/_totals.twig' with {cart: cart} %}

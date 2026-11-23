@@ -3,11 +3,13 @@
   <label class="field"><span class="label text-xs">{{ t('admin.margins.priority') }}</span>
     <input class="input" name="priority" inputmode="numeric" value="{{ r ? r.priority : old('priority', '100') }}"></label>
   <label class="field"><span class="label text-xs">{{ t('admin.margins.match_type') }}</span>
-    <select class="input" name="match_type">
-      {% for k in ['sku', 'brand', 'name', 'line', 'gender', 'category', 'size_category'] %}<option value="{{ k }}" {{ (r ? r.matchType : old('match_type', 'brand')) == k ? 'selected' }}>{{ t('admin.margins.types.' ~ k) }}</option>{% endfor %}
+    {% set _type = r ? r.matchType : old('match_type', default_type ?? 'brand') %}
+    <select class="input" name="match_type" data-suggest-type>
+      {% for k in ['sku', 'brand', 'name', 'line', 'gender', 'category', 'size_category'] %}<option value="{{ k }}" {{ _type == k ? 'selected' }}>{{ t('admin.margins.types.' ~ k) }}{% if suggestions[k] is defined %} ({{ suggestions[k]|length }}){% endif %}</option>{% endfor %}
     </select></label>
   <label class="field"><span class="label text-xs">{{ t('admin.margins.match_value') }}</span>
-    <input class="input" name="match_value" value="{{ r ? r.matchValue : old('match_value') }}" placeholder="{{ t('admin.margins.match_value_hint') }}"></label>
+    {# D-020: suggerimenti dai valori presenti nel catalogo, secondo il tipo scelto. #}
+    <input class="input" name="match_value" value="{{ r ? r.matchValue : old('match_value') }}" placeholder="{{ t('admin.margins.match_value_hint') }}" autocomplete="off" {% if suggestions[_type] is defined %}list="mv-{{ _type }}"{% endif %} data-suggest-value></label>
   <label class="field"><span class="label text-xs">{{ t('admin.margins.regime') }}</span>
     <select class="input" name="regime">
       <option value="">{{ t('common.all') }}</option>

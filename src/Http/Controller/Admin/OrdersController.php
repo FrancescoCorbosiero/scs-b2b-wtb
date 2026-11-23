@@ -56,6 +56,7 @@ final class OrdersController
             'orders' => $this->orders->search($status, $q, $mode === 'tutte' ? '' : $mode),
             'status' => $status,
             'mode' => $mode,
+            'mode_counts' => $this->orders->countByMode(),
             'q' => $q,
         ]);
     }

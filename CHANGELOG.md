@@ -5,6 +5,12 @@ o per i suoi clienti. Le più recenti in alto.
 
 ## 23/11/2026
 
+- Menu a tendina più comodi, per te e per i clienti: nei menu lunghi (paesi
+  e simili) scrivi e la lista si filtra; i paesi più usati stanno in cima
+  (per il cliente solo i suoi) e quello dell'ultimo ordine è già scelto; i
+  filtri di Ordini e Clienti mostrano quanti ce ne sono e si applicano
+  subito; nelle regole margine il campo "valore" suggerisce brand, linee e
+  categorie presenti nel catalogo.
 - `.env.example` più leggibile: solo le variabili, divise in gruppi. Cosa
   fa ciascuna è spiegato in `docs/11-variabili-env.md`.
 

@@ -8,7 +8,7 @@ use App\Http\Req;
 use App\Http\Responder;
 use App\Orders\AdminOrderService;
 use App\Orders\Cart;
-use App\Shipping\CountryRepository;
+use App\Shipping\CountryChoices;
 use App\Supplier\Wtb\WtbConfig;
 use App\Support\Session;
 use App\Support\SystemFlags;
@@ -27,7 +27,7 @@ final class NewOrderController
     public function __construct(
         private readonly Responder $responder,
         private readonly AdminOrderService $service,
-        private readonly CountryRepository $countries,
+        private readonly CountryChoices $countries,
         private readonly WtbConfig $wtb,
         private readonly SystemFlags $flags,
         private readonly Translator $t,
@@ -47,7 +47,6 @@ final class NewOrderController
             'results' => $this->service->search($q),
             'draft' => $this->service->draft($cart->items(), $address['ship_country'] ?: 'IT'),
             'address' => $address,
-            'countries' => $this->countries->servedOptions('it'),
             'mode' => $this->wtb->mode,
             'supplier_min' => is_int($profile['min_order'] ?? null) ? $profile['min_order'] : null,
         ]);
@@ -112,7 +111,7 @@ final class NewOrderController
         $saved = $session->get(self::ADDRESS, []);
         $defaults = [
             'ship_name' => '', 'ship_company' => '', 'ship_street' => '', 'ship_city' => '', 'ship_zip' => '', 'ship_province' => '',
-            'ship_country' => 'IT', 'ship_phone' => '', 'email' => $this->service->defaultEmail(), 'admin_notes' => '',
+            'ship_country' => $this->countries->lastUsed(null) ?? 'IT', 'ship_phone' => '', 'email' => $this->service->defaultEmail(), 'admin_notes' => '',
         ];
         if (!is_array($saved)) {
             return $defaults;

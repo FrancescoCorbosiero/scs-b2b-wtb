@@ -16,7 +16,7 @@
         <div class="grid gap-4 sm:grid-cols-2">
           {{ f.input('company', t('fields.company'), '', 'text', {required: true, autocomplete: 'organization'}) }}
           {{ f.input('vat_number', t('fields.vat_number'), '', 'text', {required: true, hint: t('request.vat_hint')}) }}
-          {{ f.select('country_code', t('fields.country_code'), country_options(), 'IT', {required: true}) }}
+          {{ f.country_select('country_code', t('fields.country_code'), 'IT', {required: true}) }}
           {{ f.input('address_street', t('fields.address_street'), '', 'text', {required: true, autocomplete: 'street-address'}) }}
           {{ f.input('address_city', t('fields.address_city'), '', 'text', {required: true, autocomplete: 'address-level2'}) }}
           {{ f.input('address_zip', t('fields.address_zip'), '', 'text', {required: true, autocomplete: 'postal-code'}) }}

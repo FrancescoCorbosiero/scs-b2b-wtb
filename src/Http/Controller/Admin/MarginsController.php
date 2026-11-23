@@ -48,6 +48,8 @@ final class MarginsController
             'default_input' => MarginRuleService::formatValue($default->type, $default->value),
             'rounding' => $this->settings->string('prices.rounding'),
             'edit' => null,
+            'suggestions' => $this->rules->suggestions(),
+            'default_type' => $this->rules->mostUsedType(),
         ]);
     }
 

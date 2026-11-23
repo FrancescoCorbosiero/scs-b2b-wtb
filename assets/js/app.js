@@ -71,11 +71,221 @@ function refreshQtyForm(form) {
   if (totalOut) totalOut.textContent = pairs > 0 ? euros(total) : '—';
 }
 
+// Menu a tendina "smart" (D-020): sopra il <select> nativo (che resta nel modulo e funziona anche
+// senza JavaScript) un campo con ricerca. Si attiva sui menu lunghi o marcati data-smart; i gruppi
+// (<optgroup>, es. "Più usati") restano visibili mentre non si cerca.
+const SMART_MIN_OPTIONS = 10;
+const fold = (text) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+let smartSeq = 0;
+
+function enhanceSelect(select) {
+  if (select.dataset.smartReady || select.multiple || select.disabled) return;
+  select.dataset.smartReady = '1';
+  const i18n = document.documentElement.dataset;
+  const id = `smart-${(smartSeq += 1)}`;
+  const items = [];
+  [...select.children].forEach((node) => {
+    const add = (opt, group) => {
+      if (opt.value === '' && opt.textContent.trim() === '') return;
+      items.push({ value: opt.value, label: opt.textContent.trim(), key: fold(`${opt.textContent} ${opt.value}`), group });
+    };
+    if (node.tagName === 'OPTGROUP') [...node.children].forEach((opt) => add(opt, node.label));
+    else add(node, '');
+  });
+
+  const wrap = document.createElement('div');
+  wrap.className = 'smart-select';
+  select.parentNode.insertBefore(wrap, select);
+  wrap.append(select);
+  select.tabIndex = -1;
+  select.setAttribute('aria-hidden', 'true');
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = `${select.className.replace('sr-only', '')} smart-select-input`;
+  input.autocomplete = 'off';
+  input.spellcheck = false;
+  input.setAttribute('role', 'combobox');
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('aria-expanded', 'false');
+  input.setAttribute('aria-controls', `${id}-list`);
+  input.placeholder = i18n.smartSearch || '';
+  const label = select.id ? document.querySelector(`label[for="${select.id}"]`) : null;
+  if (label) {
+    input.id = `${select.id}-smart`;
+    label.htmlFor = input.id;
+  } else if (select.getAttribute('aria-label')) {
+    input.setAttribute('aria-label', select.getAttribute('aria-label'));
+  }
+  if (select.hasAttribute('aria-invalid')) input.setAttribute('aria-invalid', 'true');
+  wrap.append(input);
+
+  const list = document.createElement('ul');
+  list.id = `${id}-list`;
+  list.className = 'smart-select-list';
+  list.setAttribute('role', 'listbox');
+  list.hidden = true;
+  wrap.append(list);
+
+  let shown = [];
+  let active = -1;
+  const current = () => items.find((it) => it.value === select.value);
+  const showLabel = () => { input.value = current()?.label ?? ''; };
+
+  function render(query) {
+    const q = fold(query);
+    list.replaceChildren();
+    if (q === '') {
+      shown = items;
+    } else {
+      // Prima chi inizia con la ricerca (o ha il codice uguale), poi chi la contiene.
+      const starts = [];
+      const contains = [];
+      const seen = new Set();
+      items.forEach((it) => {
+        if (seen.has(it.value)) return;
+        const name = fold(it.label);
+        if (name.startsWith(q) || fold(it.value) === q || name.split(/[\s\-/(]+/).some((w) => w.startsWith(q))) {
+          starts.push({ ...it, group: '' }); seen.add(it.value);
+        } else if (it.key.includes(q)) {
+          contains.push({ ...it, group: '' }); seen.add(it.value);
+        }
+      });
+      shown = [...starts, ...contains];
+    }
+    let group = null;
+    shown.forEach((it, index) => {
+      if (it.group && it.group !== group) {
+        const head = document.createElement('li');
+        head.className = 'smart-select-group';
+        head.setAttribute('role', 'presentation');
+        head.textContent = it.group;
+        list.append(head);
+      }
+      group = it.group;
+      const li = document.createElement('li');
+      li.id = `${id}-${index}`;
+      li.className = 'smart-select-option';
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', it.value === select.value ? 'true' : 'false');
+      li.dataset.index = String(index);
+      const at = q === '' ? -1 : fold(it.label).indexOf(q);
+      if (at >= 0) {
+        // Evidenzia la parte cercata (gli accenti non cambiano la lunghezza dopo fold su testi latini).
+        li.append(it.label.slice(0, at));
+        const mark = document.createElement('mark');
+        mark.textContent = it.label.slice(at, at + q.length);
+        li.append(mark, it.label.slice(at + q.length));
+      } else {
+        li.textContent = it.label;
+      }
+      list.append(li);
+    });
+    if (shown.length === 0) {
+      const empty = document.createElement('li');
+      empty.className = 'smart-select-empty';
+      empty.setAttribute('role', 'presentation');
+      empty.textContent = i18n.smartEmpty || '—';
+      list.append(empty);
+    }
+    const selectedIndex = shown.findIndex((it) => it.value === select.value);
+    move(q === '' && selectedIndex >= 0 ? selectedIndex : 0, q === '');
+  }
+
+  function move(index, center = false) {
+    list.querySelector('.is-active')?.classList.remove('is-active');
+    active = shown.length === 0 ? -1 : Math.max(0, Math.min(shown.length - 1, index));
+    const li = active >= 0 ? list.querySelector(`[data-index="${active}"]`) : null;
+    if (li) {
+      li.classList.add('is-active');
+      input.setAttribute('aria-activedescendant', li.id);
+      if (center) list.scrollTop = li.offsetTop - list.clientHeight / 2 + li.offsetHeight / 2;
+      else li.scrollIntoView({ block: 'nearest' });
+    } else {
+      input.removeAttribute('aria-activedescendant');
+    }
+  }
+
+  function open() {
+    if (!list.hidden) return;
+    list.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+    render('');
+  }
+
+  function close(restore = true) {
+    list.hidden = true;
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+    if (restore) showLabel();
+  }
+
+  function choose(index) {
+    const it = shown[index];
+    if (!it) { close(); return; }
+    const changed = select.value !== it.value;
+    select.value = it.value;
+    close();
+    if (changed) select.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  showLabel();
+  input.addEventListener('focus', () => { open(); input.select(); });
+  input.addEventListener('click', open);
+  input.addEventListener('input', () => { list.hidden = false; input.setAttribute('aria-expanded', 'true'); render(input.value); });
+  input.addEventListener('blur', () => close());
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (list.hidden) open(); else move(active + (event.key === 'ArrowDown' ? 1 : -1));
+    } else if (event.key === 'PageDown' || event.key === 'PageUp') {
+      event.preventDefault();
+      move(active + (event.key === 'PageDown' ? 8 : -8));
+    } else if (event.key === 'Enter') {
+      if (!list.hidden) { event.preventDefault(); choose(active); }
+    } else if (event.key === 'Escape') {
+      if (!list.hidden) { event.preventDefault(); close(); input.select(); }
+    } else if (event.key === 'Tab' && !list.hidden && fold(input.value) !== fold(current()?.label ?? '') && input.value !== '') {
+      choose(active);
+    }
+  });
+  // mousedown e non click: il campo non perde il fuoco prima della scelta.
+  list.addEventListener('mousedown', (event) => {
+    event.preventDefault();
+    const li = event.target.closest('[data-index]');
+    if (li) choose(Number(li.dataset.index));
+  });
+  select.addEventListener('change', showLabel);
+  select.form?.addEventListener('reset', () => setTimeout(showLabel));
+}
+
+function enhanceSelects(root) {
+  root.querySelectorAll('select[data-smart], select:not([data-native])').forEach((select) => {
+    if (select.hasAttribute('data-native')) return;
+    if (select.hasAttribute('data-smart') || select.options.length >= SMART_MIN_OPTIONS) enhanceSelect(select);
+  });
+}
+
+// Regole margine (D-020): i suggerimenti del campo "valore" seguono il tipo scelto (datalist mv-<tipo>).
+function syncSuggestions(typeSelect) {
+  const field = typeSelect.closest('form')?.querySelector('[data-suggest-value]');
+  if (!field) return;
+  const listId = `mv-${typeSelect.value}`;
+  if (document.getElementById(listId)) field.setAttribute('list', listId); else field.removeAttribute('list');
+}
+
 function onReady(fn) {
   if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn);
 }
 
 onReady(() => {
+  enhanceSelects(document);
+  document.addEventListener('quickview:loaded', (event) => enhanceSelects(event.detail));
+  document.querySelectorAll('select[data-suggest-type]').forEach(syncSuggestions);
+  document.addEventListener('change', (event) => {
+    if (event.target.matches('select[data-suggest-type]')) syncSuggestions(event.target);
+  });
+
   // Righe di tabella interamente cliccabili (convenzione ripresa da scs-b2b).
   document.addEventListener('click', (event) => {
     const row = event.target.closest('tr[data-href]');

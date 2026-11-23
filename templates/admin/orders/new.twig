@@ -101,7 +101,7 @@
           {{ f.input('ship_city', t('fields.address_city'), address.ship_city, 'text', {required: true}) }}
           {{ f.input('ship_zip', t('fields.address_zip'), address.ship_zip, 'text', {required: true}) }}
           {{ f.input('ship_province', t('fields.address_province'), address.ship_province, 'text', {hint: t('fields.address_province_hint')}) }}
-          {{ f.select('ship_country', t('fields.country_code'), countries, address.ship_country, {required: true}) }}
+          {{ f.country_select('ship_country', t('fields.country_code'), address.ship_country, {required: true}) }}
           {{ f.input('ship_phone', t('fields.phone'), address.ship_phone, 'tel', {required: true}) }}
           {{ f.input('email', t('admin.new_order.email'), address.email, 'email', {required: true, hint: t('admin.new_order.email_hint')}) }}
         </div>

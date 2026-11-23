@@ -219,3 +219,36 @@ Formato:
   il lato cliente e le voci di menu; la pagina "Ordine di prova" può restare
   (utile anche dopo) o si toglie con un `git revert` di questa modifica (la
   colonna `source` resta, innocua).
+
+### D-020 · 23/11/2026 · Menu a tendina "smart"
+- Decisione: i menu a tendina si riempiono in modo intelligente, lato admin e
+  cliente:
+  1. **Ricerca**: i menu lunghi (10 voci o più, e sempre quelli dei paesi)
+     diventano un campo dove si scrive e la lista si filtra (senza accenti,
+     anche per codice: "de", "germ", "IT"), con frecce, Invio ed Esc.
+     Senza JavaScript resta il menu normale.
+  2. **Più usati in testa**: nei paesi un gruppo "Più usati" (fino a 5) e poi
+     "Tutti i paesi" in ordine alfabetico. Il cliente vede in testa solo i
+     paesi dei **suoi** ordini più quello della sua sede (mai dati di altri);
+     l'admin quelli di tutti gli ordini; il modulo pubblico "Richiedi
+     accesso" nessun gruppo.
+  3. **Solo valori esistenti, con i numeri**: paesi solo se serviti; filtro
+     ordini per modalità e filtro clienti per stato col conteggio, senza le
+     voci a zero; nelle regole margine il campo "valore" suggerisce brand,
+     linee, generi e categorie presenti nel catalogo (col numero di
+     prodotti) secondo il tipo scelto.
+  4. **Precompilato**: ordine di prova dell'admin col paese dell'ultimo
+     ordine di prova; carrello del cliente con la destinazione del suo
+     ultimo ordine (poi la sede); regola margine nuova col tipo più usato.
+     I filtri admin si applicano appena cambiano.
+- Perché: richiesta del titolare ("il più smart e comodo possibile").
+- Dove vive: `src/Shipping/CountryChoices.php` (gruppi e ultimo paese),
+  funzione Twig `country_groups()`, `templates/partials/country_options.twig`,
+  macro `country_select` in `templates/partials/forms.twig`;
+  `OrderRepository::countByMode`, `UserRepository::countByStatus`,
+  `MarginRuleRepository::suggestions`/`mostUsedType`; ricerca in
+  `assets/js/app.js` (`enhanceSelect`, soglia `SMART_MIN_OPTIONS`) e stile
+  `.smart-select*` in `assets/css/app.css`.
+- Come si torna indietro: un menu resta nativo con l'attributo
+  `data-native`; la soglia si cambia in `SMART_MIN_OPTIONS`; tutto il resto
+  con un `git revert` di questa modifica (nessuna migrazione).

@@ -8,8 +8,13 @@
     </div>
     <form method="get" action="/admin/ordini" class="flex flex-wrap gap-2">
       <input class="input w-56" type="search" name="q" value="{{ q }}" placeholder="{{ t('admin.orders.search') }}">
-      <select class="input w-auto" name="modalita">
-        {% for m in ['fixture', 'test', 'live', 'tutte'] %}<option value="{{ m }}" {{ mode == m ? 'selected' }}>{{ t('admin.orders.mode.' ~ m) }}</option>{% endfor %}
+      <select class="input w-auto" name="modalita" data-autosubmit-field>
+        {# D-020: solo le modalità con ordini (più quella attiva), col conteggio. #}
+        {% for m in ['fixture', 'test', 'live'] %}
+          {% set n = mode_counts[m] ?? 0 %}
+          {% if n > 0 or mode == m or wtb_mode == m %}<option value="{{ m }}" {{ mode == m ? 'selected' }}>{{ t('admin.orders.mode.' ~ m) }} ({{ n }})</option>{% endif %}
+        {% endfor %}
+        <option value="tutte" {{ mode == 'tutte' ? 'selected' }}>{{ t('admin.orders.mode.tutte') }} ({{ mode_counts|reduce((a, b) => a + b, 0) }})</option>
       </select>
       {% if status %}<input type="hidden" hidden name="stato" value="{{ status }}">{% endif %}
       <button class="btn btn-ghost" type="submit">{{ t('common.search') }}</button>

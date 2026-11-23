@@ -97,6 +97,7 @@ return static function (Config $config): array {
                 $config->root() . '/public',
                 $c->get(\App\Shipping\CountryRepository::class),
                 $c->get(\App\Http\AdminMenu::class),
+                $c->get(\App\Shipping\CountryChoices::class),
             ));
 
             return $twig;

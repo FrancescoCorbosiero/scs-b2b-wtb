@@ -42,4 +42,10 @@
     <p class="text-xs text-muted">{{ t('admin.margins.order_hint') }}</p>
     <button type="submit" class="btn btn-primary">{{ t('admin.margins.create') }}</button>
   </form>
+
+  {% for type, values in suggestions %}
+    <datalist id="mv-{{ type }}">
+      {% for v in values %}<option value="{{ v.value }}">{{ t('admin.margins.suggest_count', {n: v.count}) }}</option>{% endfor %}
+    </datalist>
+  {% endfor %}
 {% endblock %}

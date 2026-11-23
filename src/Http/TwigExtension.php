@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http;
 
 use App\Settings\SettingsService;
+use App\Shipping\CountryChoices;
 use App\Shipping\CountryRepository;
 use App\Support\Clock;
 use App\Support\Config;
@@ -31,6 +32,7 @@ final class TwigExtension extends AbstractExtension implements GlobalsInterface
         private readonly string $publicDir,
         private readonly CountryRepository $countries,
         private readonly AdminMenu $adminMenu,
+        private readonly CountryChoices $countryChoices,
     ) {
     }
 
@@ -58,6 +60,7 @@ final class TwigExtension extends AbstractExtension implements GlobalsInterface
                 'UTF-8',
             )),
             new TwigFunction('country_options', fn (): array => $this->countries->servedOptions($this->translator->locale())),
+            new TwigFunction('country_groups', $this->countryGroups(...)),
             new TwigFunction('admin_menu', fn (): array => $this->adminMenu->items()),
             new TwigFunction('country_name', fn (?string $code): string => $code === null || $code === '' ? '' : CountryRepository::name($code, $this->translator->locale())),
             new TwigFunction('setting', fn (string $key): mixed => $this->settings->get($key)),
@@ -79,6 +82,26 @@ final class TwigExtension extends AbstractExtension implements GlobalsInterface
             new TwigFilter('local_date', $this->localDate(...)),
             new TwigFilter('local_datetime', fn (?string $iso): string => $this->localDate($iso, 'd/m/Y H:i')),
         ];
+    }
+
+    /**
+     * Paesi per i menu (D-020): più usati in testa, poi tutti in ordine alfabetico.
+     * Cliente: solo i suoi ordini più il paese di fatturazione; admin: tutti gli ordini.
+     *
+     * @return array{top: array<string, string>, rest: array<string, string>}
+     */
+    public function countryGroups(): array
+    {
+        $locale = $this->translator->locale();
+        if ($this->context->area === 'admin') {
+            return $this->countryChoices->groups('it', null);
+        }
+        $customer = $this->context->customer;
+        if ($customer === null) {
+            return ['top' => [], 'rest' => $this->countries->servedOptions($locale)];
+        }
+
+        return $this->countryChoices->groups($locale, (int) $customer['id'], [(string) ($customer['country_code'] ?? '')]);
     }
 
     public function asset(string $path): string
