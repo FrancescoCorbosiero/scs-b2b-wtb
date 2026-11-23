@@ -115,7 +115,7 @@ Voci iniziali (i nomi sono indicativi, il significato no):
 
 Restano in `.env` (servono accesso al server, quindi sono più protetti): chiavi
 e modalità WTB, trigger e kill switch degli ordini, coordinate bancarie,
-SMTP, password admin. `.env.example` elenca TUTTE le variabili citate nei
+SMTP, password admin. `.env.example` (senza commenti; spiegazioni in `docs/11-variabili-env.md`) elenca TUTTE le variabili citate nei
 documenti, commentate riga per riga, con valori di sviluppo sicuri
 (`WTB_MODE=fixture`).
 

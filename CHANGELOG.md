@@ -3,6 +3,11 @@
 Una riga per ogni modifica, in italiano semplice: cosa cambia per il titolare
 o per i suoi clienti. Le più recenti in alto.
 
+## 23/11/2026
+
+- `.env.example` più leggibile: solo le variabili, divise in gruppi. Cosa
+  fa ciascuna è spiegato in `docs/11-variabili-env.md`.
+
 ## 16/11/2026
 
 - README riscritto sulla situazione reale: in produzione i comandi si lanciano

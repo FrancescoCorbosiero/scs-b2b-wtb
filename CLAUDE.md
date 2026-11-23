@@ -30,6 +30,7 @@ prima di ogni modifica.
 | `docs/08-modello-dati.md` | Schema del database |
 | `docs/09-sicurezza.md` | Autenticazione, sessioni, segreti, webhook, hardening |
 | `docs/10-roadmap.md` | Milestone, domande aperte, valori già decisi |
+| `docs/11-variabili-env.md` | Significato di ogni variabile del `.env` (`.env.example` è senza commenti) |
 | `docs/wtb-api.md` | Documentazione API del fornitore (fonte esterna, non modificarla se non per aggiungere ciò che manca) |
 
 ## Regole d'oro (non negoziabili)
@@ -148,7 +149,7 @@ composer check                   # test + PHPStan (con COMPOSER_ALLOW_SUPERUSER=
 | Area | Dove |
 |---|---|
 | Avvio, contenitore, rotte | `src/Bootstrap.php`, `config/container.php`, `config/routes.php`, `src/Http/AppFactory.php` (ordine dei middleware) |
-| Configurazione `.env` | `src/Support/Config.php` (controlli bloccanti: `live` solo in produzione), `.env.example` |
+| Configurazione `.env` | `src/Support/Config.php` (controlli bloccanti: `live` solo in produzione), `.env.example` (solo variabili), spiegazioni in `docs/11-variabili-env.md` |
 | Database e migrazioni | `src/Support/Db.php`, `src/Support/Migrator.php`, `database/migrations/` |
 | Impostazioni (manopole) | `src/Settings/Registry.php` (elenco), `SettingsService.php` (storico), `src/Http/Controller/Admin/SettingsController.php` |
 | Sessioni, CSRF, IP reale | `src/Support/Session*.php`, `src/Support/Csrf.php`, `src/Support/ClientIp.php`, `src/Http/Middleware/` |
