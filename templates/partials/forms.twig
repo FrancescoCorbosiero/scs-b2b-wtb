@@ -32,3 +32,16 @@
     {% if _err %}<p class="field-error" id="e-{{ name }}">{{ _err }}</p>{% endif %}
   </div>
 {% endmacro %}
+
+{# Menu dei paesi (D-020): più usati in testa, ricerca col JavaScript. #}
+{% macro country_select(name, label, value = '', attrs = {}) %}
+  {% set _err = field_error(name) %}
+  {% set _val = old(name, value) %}
+  <div class="field">
+    <label class="label" for="f-{{ name }}">{{ label }}{% if attrs.required ?? false %} <span aria-hidden="true">*</span>{% endif %}</label>
+    <select class="input {{ _err ? 'input-error' }}" id="f-{{ name }}" name="{{ name }}" data-smart {% if attrs.required ?? false %}required{% endif %} {% if _err %}aria-invalid="true" aria-describedby="e-{{ name }}"{% endif %}>
+      {% include 'partials/country_options.twig' with {selected: _val} only %}
+    </select>
+    {% if _err %}<p class="field-error" id="e-{{ name }}">{{ _err }}</p>{% endif %}
+  </div>
+{% endmacro %}

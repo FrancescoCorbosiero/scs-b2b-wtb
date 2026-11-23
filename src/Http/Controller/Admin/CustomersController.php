@@ -41,6 +41,7 @@ final class CustomersController
             'customers' => $this->users->search($q, $status),
             'q' => $q,
             'status' => $status,
+            'status_counts' => $this->users->countByStatus(),
         ]);
     }
 

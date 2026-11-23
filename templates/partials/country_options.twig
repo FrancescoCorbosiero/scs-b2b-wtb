@@ -1,0 +1,12 @@
+{# Paesi in due gruppi (D-020): più usati in testa, poi tutti. Variabile: selected. #}
+{% set _g = country_groups() %}
+{% if _g.top %}
+  <optgroup label="{{ t('common.select.frequent') }}">
+    {% for code, name in _g.top %}<option value="{{ code }}" {{ selected == code ? 'selected' }}>{{ name }}</option>{% endfor %}
+  </optgroup>
+  <optgroup label="{{ t('common.select.all_countries') }}">
+    {% for code, name in _g.rest %}<option value="{{ code }}" {{ selected == code ? 'selected' }}>{{ name }}</option>{% endfor %}
+  </optgroup>
+{% else %}
+  {% for code, name in _g.rest %}<option value="{{ code }}" {{ selected == code ? 'selected' }}>{{ name }}</option>{% endfor %}
+{% endif %}

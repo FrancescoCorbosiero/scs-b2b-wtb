@@ -43,7 +43,7 @@
               {{ f.input('ship_city', t('fields.address_city'), '', 'text', {autocomplete: 'shipping address-level2'}) }}
               {{ f.input('ship_zip', t('fields.address_zip'), '', 'text', {autocomplete: 'shipping postal-code'}) }}
               {{ f.input('ship_province', t('fields.address_province'), '', 'text', {hint: t('fields.address_province_hint')}) }}
-              {{ f.select('ship_country', t('fields.country_code'), country_options(), cart.destination) }}
+              {{ f.country_select('ship_country', t('fields.country_code'), cart.destination) }}
               {{ f.input('ship_phone', t('fields.phone') ~ ' (' ~ t('common.optional') ~ ')', '', 'tel') }}
             </div>
           </div>

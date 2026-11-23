@@ -8,6 +8,7 @@ use App\Http\Req;
 use App\Http\Responder;
 use App\Orders\Cart;
 use App\Orders\CartService;
+use App\Shipping\CountryChoices;
 use App\Shipping\CountryRepository;
 use App\Support\Translator;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -23,6 +24,7 @@ final class CartController
         private readonly Responder $responder,
         private readonly CartService $carts,
         private readonly CountryRepository $countries,
+        private readonly CountryChoices $choices,
         private readonly Translator $t,
     ) {
     }
@@ -31,6 +33,10 @@ final class CartController
     {
         $customer = Req::requireCustomer($request);
         $cart = new Cart(Req::session($request));
+        if ($cart->country() === null && ($last = $this->choices->lastUsed((int) $customer['id'])) !== null) {
+            // Destinazione proposta (D-020): quella dell'ultimo ordine del cliente, poi la sua sede.
+            $cart->setCountry($last);
+        }
         $view = $this->carts->build($cart->items(), (string) $customer['country_code'], $cart->country() ?? (string) $customer['country_code']);
         if ($view['notices'] !== []) {
             // Lo stock si ricontrolla a ogni apertura: il carrello si adegua e il cliente vede cosa è cambiato.

@@ -10,9 +10,9 @@
   </div>
   <form method="get" action="/admin/clienti" class="flex flex-wrap gap-2 mb-4">
     <input class="input w-64" type="search" name="q" value="{{ q }}" placeholder="{{ t('admin.customers.search') }}">
-    <select class="input w-auto" name="stato">
+    <select class="input w-auto" name="stato" data-autosubmit-field>
       <option value="">{{ t('admin.customers.status_all') }}</option>
-      {% for k in ['active', 'invited', 'inactive'] %}<option value="{{ k }}" {{ status == k ? 'selected' }}>{{ t('admin.customers.status.' ~ k) }}</option>{% endfor %}
+      {% for k in ['active', 'invited', 'inactive'] %}{% if status_counts[k] > 0 or status == k %}<option value="{{ k }}" {{ status == k ? 'selected' }}>{{ t('admin.customers.status.' ~ k) }} ({{ status_counts[k] }})</option>{% endif %}{% endfor %}
     </select>
     <button class="btn btn-ghost" type="submit">{{ t('common.search') }}</button>
     {% if q or status %}<a class="btn btn-ghost" href="/admin/clienti">{{ t('common.reset') }}</a>{% endif %}

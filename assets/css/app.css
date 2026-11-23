@@ -174,3 +174,18 @@
   .rethink-box { @apply w-full max-w-sm rounded-lg bg-white p-6 text-center shadow-2xl; }
   .ship-mode:has(input[value="billing"]:checked) .ship-other-fields { display: none; }
 }
+
+/* Menu a tendina con ricerca (D-020), costruito da assets/js/app.js sopra il <select> nativo. */
+@layer components {
+  .smart-select { @apply relative; }
+  .smart-select > select { @apply sr-only; }
+  .smart-select-input { @apply pr-8 cursor-pointer bg-no-repeat; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b665e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-size: 1.25em; }
+  .smart-select-input:focus { @apply cursor-text; }
+  .smart-select-list { @apply absolute z-40 mt-1 max-h-72 w-full min-w-[12rem] overflow-auto rounded-md border border-line bg-white py-1 text-sm shadow-lg; }
+  .smart-select-group { @apply px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted; }
+  .smart-select-option { @apply flex cursor-pointer items-center justify-between gap-2 px-3 py-1.5; }
+  .smart-select-option[aria-selected="true"] { @apply font-semibold; }
+  .smart-select-option.is-active { @apply bg-paper; }
+  .smart-select-option mark { @apply bg-transparent font-semibold text-ink underline; }
+  .smart-select-empty { @apply px-3 py-2 text-muted; }
+}

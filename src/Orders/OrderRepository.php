@@ -31,6 +31,17 @@ final class OrderRepository
         return $this->db->all('SELECT * FROM orders WHERE user_id = :u ORDER BY id DESC', ['u' => $userId]);
     }
 
+    /** Ordini per modalità, per i conteggi del filtro (D-020). @return array<string, int> */
+    public function countByMode(): array
+    {
+        $out = [];
+        foreach ($this->db->all('SELECT mode, COUNT(*) AS n FROM orders GROUP BY mode') as $row) {
+            $out[(string) $row['mode']] = (int) $row['n'];
+        }
+
+        return $out;
+    }
+
     /** @return list<array<string, mixed>> */
     public function search(string $status, string $q, string $mode, int $limit = 200): array
     {

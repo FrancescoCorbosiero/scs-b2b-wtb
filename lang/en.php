@@ -11,6 +11,12 @@ return [
         'description' => 'B2B sneaker catalogue reserved for resellers: availability, dispatch times and dedicated prices.',
     ],
     'common' => [
+        'select' => [
+            'search' => 'Search…',
+            'empty' => 'No results',
+            'frequent' => 'Most used',
+            'all_countries' => 'All countries',
+        ],
         'skip' => 'Skip to content',
         'menu' => 'Menu',
         'save' => 'Save',

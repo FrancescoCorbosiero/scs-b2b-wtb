@@ -73,6 +73,19 @@ final class UserRepository
         $this->db->update('users', ['last_login_at' => $this->clock->iso()], 'id = :id', ['id' => $id]);
     }
 
+    /** Clienti per stato, per i conteggi del filtro (D-020). @return array{active: int, invited: int, inactive: int} */
+    public function countByStatus(): array
+    {
+        $row = $this->db->one(
+            'SELECT COALESCE(SUM(is_active = 1 AND password_hash IS NOT NULL), 0) AS active,
+                    COALESCE(SUM(is_active = 1 AND password_hash IS NULL), 0) AS invited,
+                    COALESCE(SUM(is_active = 0), 0) AS inactive
+             FROM users',
+        ) ?? [];
+
+        return ['active' => (int) ($row['active'] ?? 0), 'invited' => (int) ($row['invited'] ?? 0), 'inactive' => (int) ($row['inactive'] ?? 0)];
+    }
+
     /**
      * @return list<array<string, mixed>>
      */
